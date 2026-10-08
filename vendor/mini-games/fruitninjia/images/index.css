@@ -73,6 +73,11 @@ html, body{
 	width: 100%;
 	height: 100%;
 	background: transparent;
+	touch-action: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
 }
 
 body{
@@ -92,6 +97,7 @@ em{
 	margin: -280px auto auto -320px;
 	text-align: left;
 	background: #fff;
+	touch-action: none;
 }
 
 #view{

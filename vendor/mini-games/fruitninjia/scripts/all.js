@@ -124,6 +124,20 @@ define("scripts/control.js", function(exports){
 	var canvasLeft, canvasTop;
 	
 	canvasLeft = canvasTop = 0;
+
+	function toCanvasPos( x, y ){
+		var view = document.getElementById( "view" );
+		if( view ){
+			var rect = view.getBoundingClientRect();
+			if( rect.width > 0 && rect.height > 0 ){
+				return [
+					( x - rect.left ) * ( 640 / rect.width ),
+					( y - rect.top ) * ( 480 / rect.height )
+				];
+			}
+		}
+		return [ x - canvasLeft, y - canvasTop ];
+	}
 	
 	exports.init = function(){
 		this.fixCanvasPos();
@@ -135,7 +149,8 @@ define("scripts/control.js", function(exports){
 	    var dragger = new Ucren.BasicDrag({ type: "calc" });
 	
 	    dragger.on( "returnValue", function( dx, dy, x, y, kf ){
-	    	if( kf = knife.through( x - canvasLeft, y - canvasTop ) )
+	    	var pos = toCanvasPos( x, y );
+	    	if( kf = knife.through( pos[0], pos[1] ) )
 	            message.postMessage( kf, "slice" );
 	    });
 	
@@ -2668,13 +2683,80 @@ define("scripts/lib/sound.js", function(exports){
 		autoload: true, 
 		loop: false 
 	};
-	
-	function ClassBuzz( src ){
-	    this.sound = new buzz.sound( src, config );
+
+	var AudioCtxClass = typeof window !== "undefined" && (window.AudioContext || window.webkitAudioContext);
+	var webAudioCtx = null;
+	var audioBufferCache = {};
+
+	function getWebAudioContext(){
+		if( !webAudioCtx && AudioCtxClass ){
+			try {
+				webAudioCtx = new AudioCtxClass();
+			} catch(e) {}
+		}
+		if( webAudioCtx && webAudioCtx.state === "suspended" ){
+			webAudioCtx.resume().catch(function(){});
+		}
+		return webAudioCtx;
+	}
+
+	if( typeof window !== "undefined" ){
+		var unlockAudio = function(){
+			getWebAudioContext();
+			window.removeEventListener( "touchstart", unlockAudio, true );
+			window.removeEventListener( "touchend", unlockAudio, true );
+			window.removeEventListener( "click", unlockAudio, true );
+		};
+		window.addEventListener( "touchstart", unlockAudio, true );
+		window.addEventListener( "touchend", unlockAudio, true );
+		window.addEventListener( "click", unlockAudio, true );
+	}
+
+	function preloadWebAudioBuffer( src ){
+		var ctx = getWebAudioContext();
+		if( !ctx || audioBufferCache[src] ) return;
+		audioBufferCache[src] = "loading";
+
+		var candidates = [ src + ".mp3", src + ".ogg" ];
+		var loadIndex = function( idx ){
+			if( idx >= candidates.length ) return;
+			fetch( candidates[idx] )
+				.then( function( res ){
+					if( !res.ok ) throw new Error("HTTP " + res.status);
+					return res.arrayBuffer();
+				} )
+				.then( function( ab ){
+					return ctx.decodeAudioData( ab );
+				} )
+				.then( function( decoded ){
+					audioBufferCache[src] = decoded;
+				} )
+				.catch( function(){
+					loadIndex( idx + 1 );
+				} );
+		};
+		loadIndex( 0 );
 	}
 	
-	ClassBuzz.prototype.play = function( s ){
-		s = this.sound;
+	function ClassBuzz( src ){
+		this.src = src;
+		this.sound = new buzz.sound( src, config );
+		preloadWebAudioBuffer( src );
+	}
+	
+	ClassBuzz.prototype.play = function(){
+		var ctx = getWebAudioContext();
+		var buf = audioBufferCache[this.src];
+		if( ctx && buf && typeof buf !== "string" ){
+			try {
+				var source = ctx.createBufferSource();
+				source.buffer = buf;
+				source.connect( ctx.destination );
+				source.start( 0 );
+				return;
+			} catch(e) {}
+		}
+		var s = this.sound;
 		s.setPercent( 0 );
 		s.setVolume( 100 );
 		s.play();
@@ -3005,7 +3087,11 @@ define("scripts/lib/ucren.js", function(exports){
 			if( window.attachEvent ){
 				target.attachEvent( "on" + name, call );
 			}else if( window.addEventListener ){
-				target.addEventListener( name, call, false );
+				var options = false;
+				if( name === "touchstart" || name === "touchmove" ){
+					options = { passive: false };
+				}
+				target.addEventListener( name, call, options );
 			}else{
 				target["on" + name] = call;
 			}
@@ -3457,13 +3543,19 @@ define("scripts/lib/ucren.js", function(exports){
 	
 				var evt = {};
 	
-				evt[this.TOUCH_START] = function( e ){
+				var onStart = function( e ){
 					e = Ucren.Event( e );
-					this.startDrag();
+					this.startDrag( e );
+					if( e && e.preventDefault ) e.preventDefault();
 					e.cancelBubble = true;
 					e.stopPropagation && e.stopPropagation();
 					return e.returnValue = false;
 				}.bind( this );
+
+				evt[this.TOUCH_START] = onStart;
+				if( this.isTouch && this.TOUCH_START !== "mousedown" ){
+					evt["mousedown"] = onStart;
+				}
 	
 				handle.addEvents( evt );
 				this.target = el;
@@ -3472,20 +3564,31 @@ define("scripts/lib/ucren.js", function(exports){
 			//private
 			getCoors: function( e ){
 				var coors = [];
-				if ( e.targetTouches && e.targetTouches.length ) { 	// iPhone
+				if( e && e.touches && e.touches.length ){
+					var thisTouch = e.touches[0];
+					coors[0] = thisTouch.clientX;
+					coors[1] = thisTouch.clientY;
+				}else if( e && e.targetTouches && e.targetTouches.length ){
 					var thisTouch = e.targetTouches[0];
 					coors[0] = thisTouch.clientX;
 					coors[1] = thisTouch.clientY;
-				}else{ 								// all others
+				}else if( e && e.changedTouches && e.changedTouches.length ){
+					var thisTouch = e.changedTouches[0];
+					coors[0] = thisTouch.clientX;
+					coors[1] = thisTouch.clientY;
+				}else if( e ){
 					coors[0] = e.clientX;
 					coors[1] = e.clientY;
+				}else{
+					coors[0] = 0;
+					coors[1] = 0;
 				}
 				return coors;
 			},
 	
 			//private
-			startDrag: function(){
-				var target, draging, e;
+			startDrag: function( e ){
+				var target, draging;
 				target = this.target;
 				draging = target.draging = {};
 	
@@ -3494,10 +3597,14 @@ define("scripts/lib/ucren.js", function(exports){
 				draging.x = parseInt( target.style( "left" ), 10 ) || 0;
 				draging.y = parseInt( target.style( "top" ), 10 ) || 0;
 	
-				e = Ucren.Event();
+				e = e || Ucren.Event();
 				var coors = this.getCoors( e );
-				draging.mouseX = coors[0];
-				draging.mouseY = coors[1];
+				draging.mouseX = draging.newMouseX = coors[0];
+				draging.mouseY = draging.newMouseY = coors[1];
+
+				if( this.type == "calc" ){
+					this.returnValue( 0, 0, coors[0], coors[1] );
+				}
 	
 				this.registerDocumentEvent();
 			},
@@ -3517,57 +3624,69 @@ define("scripts/lib/ucren.js", function(exports){
 				draging.documentSelectStart =
 					Ucren.addEvent( document, "selectstart", function( e ){
 						e = e || event;
+						if( e && e.preventDefault ) e.preventDefault();
 						e.stopPropagation && e.stopPropagation();
 						e.cancelBubble = true;
 						return e.returnValue = false;
 					});
-	
-				draging.documentMouseMove =
-					Ucren.addEvent( document, this.TOUCH_MOVE, function( e ){
-						var ie, nie;
-						e = e || event;
-						ie = Ucren.isIe && e.button != 1;
-						nie = !Ucren.isIe && e.button != 0;
-						if( (ie || nie ) && !this.isTouch )
-							this.endDrag();
-						var coors = this.getCoors( e );
-						draging.newMouseX = coors[0];
-						draging.newMouseY = coors[1];
-						e.stopPropagation && e.stopPropagation();
-						return e.returnValue = false;
-					}.bind( this ));
-	
-				draging.documentMouseUp =
-					Ucren.addEvent( document, this.TOUCH_END, function(){
-						this.endDrag();
-					}.bind( this ));
-	
-				var lx, ly;
-	
-				clearInterval( draging.timer );
-				draging.timer = setInterval( function(){
-					var x, y, dx, dy;
-					if( draging.newMouseX != lx && draging.newMouseY != ly ){
-						lx = draging.newMouseX;
-						ly = draging.newMouseY;
-						dx = draging.newMouseX - draging.mouseX;
-						dy = draging.newMouseY - draging.mouseY;
-						x = draging.x + dx;
-						y = draging.y + dy;
+
+				var lx = draging.mouseX, ly = draging.mouseY;
+
+				var handleMove = function( newX, newY ){
+					if( newX !== lx || newY !== ly ){
+						var dx = newX - draging.mouseX;
+						var dy = newY - draging.mouseY;
+						var x = draging.x + dx;
+						var y = draging.y + dy;
+						lx = newX;
+						ly = newY;
 						if( this.type == "calc" ){
-							this.returnValue( dx, dy, draging.newMouseX, draging.newMouseY );
+							this.returnValue( dx, dy, newX, newY );
 						}else{
 							target.left( x ).top( y );
 						}
 					}
-				}.bind( this ), 10 );
+				}.bind( this );
+	
+				var onMove = function( e ){
+					var ie, nie;
+					e = e || event;
+					ie = Ucren.isIe && e.button != 1;
+					nie = !Ucren.isIe && e.button != 0;
+					if( (ie || nie ) && !this.isTouch && !(e.touches || e.changedTouches) )
+						this.endDrag();
+					var coors = this.getCoors( e );
+					draging.newMouseX = coors[0];
+					draging.newMouseY = coors[1];
+					handleMove( coors[0], coors[1] );
+					if( e && e.preventDefault ) e.preventDefault();
+					e.stopPropagation && e.stopPropagation();
+					return e.returnValue = false;
+				}.bind( this );
+
+				draging.documentMouseMove = Ucren.addEvent( document, this.TOUCH_MOVE, onMove );
+				if( this.isTouch && this.TOUCH_MOVE !== "mousemove" ){
+					draging.documentAuxMove = Ucren.addEvent( document, "mousemove", onMove );
+				}
+	
+				var onEnd = function(){
+					this.endDrag();
+				}.bind( this );
+
+				draging.documentMouseUp = Ucren.addEvent( document, this.TOUCH_END, onEnd );
+				if( this.isTouch && this.TOUCH_END !== "mouseup" ){
+					draging.documentAuxUp = Ucren.addEvent( document, "mouseup", onEnd );
+				}
 			},
 	
 			//private
 			unRegisterDocumentEvent: function(){
 				var draging = this.target.draging;
+				if( !draging ) return;
 				Ucren.delEvent( document, this.TOUCH_MOVE, draging.documentMouseMove );
+				if( draging.documentAuxMove ) Ucren.delEvent( document, "mousemove", draging.documentAuxMove );
 				Ucren.delEvent( document, this.TOUCH_END, draging.documentMouseUp );
+				if( draging.documentAuxUp ) Ucren.delEvent( document, "mouseup", draging.documentAuxUp );
 				Ucren.delEvent( document, "selectstart", draging.documentSelectStart );
 				clearInterval( draging.timer );
 			},
@@ -4515,7 +4634,7 @@ define("scripts/object/knife.js", function(exports){
 		this.line.remove();
 	
 		var index;
-		if( index = knifes.indexOf( this ) )
+		if( (index = knifes.indexOf( this )) !== -1 )
 		    knifes.splice( index, 1 );
 	};
 	

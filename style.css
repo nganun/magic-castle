@@ -237,6 +237,316 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* Small built-in phrase scenes enrich familiar Hanzi without requiring art for every parent-added word. */
 .hanzi-scene{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:center;gap:8px;height:72px;margin:8px auto;padding:10px;border-radius:16px;background:linear-gradient(#dff3ff 0 54%,#bfe39b 55%);overflow:hidden}.hanzi-scene span{position:absolute;right:8px;bottom:6px;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,.76);color:#69587c;font-size:10px;font-weight:900}.scene-sun i:first-child{width:31px;height:31px;border-radius:50%;background:#ffd55c;align-self:flex-start;margin:2px 12px 0 0;box-shadow:0 0 0 7px rgba(255,220,100,.23)}.scene-sun i:nth-child(2){width:64px;height:23px;border-radius:50% 50% 0 0;background:#8fc66d}.scene-cat i:first-child{width:44px;height:34px;border-radius:45% 45% 40% 40%;background:#f4a75c;box-shadow:inset 12px 0 #f6bf7c}.scene-cat i:nth-child(2){width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:15px solid #f4a75c;align-self:center;margin-left:-43px;margin-top:-26px}.scene-adult i:first-child,.scene-people i:first-child{width:19px;height:42px;border-radius:12px 12px 6px 6px;background:#8368cb}.scene-adult i:nth-child(2){width:14px;height:30px;border-radius:10px 10px 5px 5px;background:#ef8db3}.scene-people i:nth-child(2),.scene-people i:nth-child(3){width:15px;height:33px;border-radius:10px 10px 5px 5px;background:#f2b95d}@media(max-width:600px){.hanzi-scene{height:58px;margin:6px auto}.hanzi-scene span{font-size:8px}}
 
+/* Hanzi group words display in spellbook & lesson header */
+.hanzi-book-topline{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.hanzi-book-topline .hanzi-book-kicker{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hanzi-spellbook-group-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;background:#fff;border:2px solid #ecd6b3;color:#85582f;font-size:12px;font-weight:900;box-shadow:0 2px 0 rgba(141,93,53,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.hanzi-spellbook-group-btn svg{width:13px;height:13px;color:#ae7d4c}
+.hanzi-spellbook-group-btn:hover,.hanzi-spellbook-group-btn:focus-visible{border-color:#c89456;background:#fffdf8;transform:translateY(-1px)}
+
+/* Hanzi group words full-screen stage */
+.modal.hanzi-fullscreen-modal{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100dvh;
+  padding:0;
+  margin:0;
+  background:rgba(24,12,42,.75);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  z-index:100;
+  display:none;
+  align-items:stretch;
+  justify-content:stretch
+}
+.modal.hanzi-fullscreen-modal.open{
+  display:flex
+}
+.hanzi-fullscreen-stage{
+  width:100vw;
+  height:100dvh;
+  box-sizing:border-box;
+  padding:clamp(8px,1.4vw,14px) clamp(8px,1.8vw,16px);
+  display:flex;
+  flex-direction:column;
+  background:radial-gradient(circle at 50% 20%,#fffdf6 0%,#fbf2e4 65%,#f5e5cf 100%);
+  overflow:hidden
+}
+.hanzi-fullscreen-header{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex-shrink:0;
+  padding-bottom:clamp(6px,1vw,8px);
+  border-bottom:1.5px dashed #dfcbb0;
+  margin-bottom:clamp(6px,1vw,8px)
+}
+.hanzi-fullscreen-top-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%
+}
+.hanzi-fullscreen-info{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  flex:1
+}
+.hanzi-fullscreen-info h2{
+  margin:0;
+  font-family:STKaiti,"KaiTi",serif;
+  font-size:clamp(16px,2.2vw,22px);
+  line-height:1.2;
+  color:#53347c;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.hanzi-fullscreen-count{
+  padding:2px 7px;
+  border-radius:999px;
+  background:#f1e3ff;
+  color:#6f45a8;
+  font-size:11px;
+  font-weight:900;
+  white-space:nowrap;
+  flex-shrink:0
+}
+.hanzi-modal-group-tabs{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  padding:2px 0;
+  scrollbar-width:none
+}
+.hanzi-modal-group-tabs::-webkit-scrollbar{
+  display:none
+}
+.hanzi-modal-group-tab{
+  padding:3px 10px;
+  border-radius:999px;
+  background:#fff;
+  border:1.5px solid #ecd6b3;
+  color:#7a5933;
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+  flex-shrink:0
+}
+.hanzi-modal-group-tab.active{
+  background:#764fb8;
+  border-color:#764fb8;
+  color:#fff
+}
+.hanzi-fullscreen-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0
+}
+.hanzi-fullscreen-play-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:34px;
+  padding:0 10px;
+  border-radius:10px;
+  background:#f7eaff;
+  color:#6e45ab;
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+  border:1.5px solid #decbf0;
+  white-space:nowrap;
+  transition:all .15s ease
+}
+.hanzi-fullscreen-play-btn.is-playing{
+  background:#ffd875;
+  color:#7a4e0a;
+  border-color:#ecc052
+}
+.hanzi-fullscreen-close-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:34px;
+  padding:0 12px;
+  border-radius:10px;
+  background:#764fb8;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  border:none;
+  cursor:pointer;
+  white-space:nowrap;
+  box-shadow:0 2px 0 #5633af,0 6px 14px rgba(85,47,154,.22);
+  transition:transform .15s ease,background .15s ease
+}
+.hanzi-fullscreen-close-btn:hover,.hanzi-fullscreen-close-btn:focus-visible{
+  transform:translateY(-1px);
+  background:#673ea9
+}
+
+/* Big Grid & Big Character Cards */
+.hanzi-fullscreen-grid{
+  display:grid;
+  grid-template-columns:repeat(var(--hanzi-cols,4),minmax(0,1fr));
+  grid-template-rows:repeat(var(--hanzi-rows,2),minmax(0,1fr));
+  gap:clamp(5px,1vw,12px);
+  flex:1;
+  min-height:0;
+  width:100%;
+  height:100%;
+  box-sizing:border-box;
+  overflow-y:auto
+}
+.hanzi-fullscreen-card{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-height:0;
+  height:100%;
+  box-sizing:border-box;
+  padding:clamp(5px,0.8vw,8px);
+  border-radius:clamp(12px,1.6vw,20px);
+  background:linear-gradient(145deg,#ffffff,#fffdf8);
+  border:2.5px solid #edd6b6;
+  box-shadow:0 3px 10px rgba(136,92,46,.09),inset 0 0 0 1px rgba(255,255,255,.9);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  overflow:hidden;
+  cursor:pointer
+}
+.hanzi-fullscreen-card:hover{
+  transform:translateY(-2px);
+  border-color:#cca168;
+  box-shadow:0 6px 16px rgba(136,92,46,.15)
+}
+.hanzi-fullscreen-card.is-current{
+  border-color:#8454d1;
+  background:linear-gradient(145deg,#fcf7ff,#fffbf4);
+  box-shadow:0 4px 14px rgba(110,64,183,.25),0 0 0 2px rgba(132,84,209,.25)
+}
+.hanzi-fullscreen-card.is-speaking{
+  border-color:#f4a13a;
+  background:linear-gradient(145deg,#fffbf0,#fff4df);
+  box-shadow:0 6px 20px rgba(230,147,38,.35),0 0 0 3px rgba(244,161,58,.35);
+  animation:hanziCardThrob .6s infinite alternate
+}
+@keyframes hanziCardThrob{
+  0%{transform:scale(1)}
+  100%{transform:scale(1.025)}
+}
+.hanzi-card-topline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+  width:100%;
+  flex-shrink:0;
+  min-height:20px
+}
+.hanzi-card-index{
+  font-size:clamp(10px,1vw,12px);
+  font-weight:900;
+  color:#ab8d70;
+  line-height:1
+}
+.hanzi-card-tag{
+  padding:2px 7px;
+  border-radius:999px;
+  font-size:clamp(9px,0.9vw,11px);
+  font-weight:900;
+  white-space:nowrap;
+  line-height:1.2
+}
+.hanzi-card-tag.is-current{
+  background:#f5e8ff;
+  color:#7343b5;
+  border:1px solid #d9bcf7
+}
+.hanzi-card-tag.is-mastered{
+  background:#effbe7;
+  color:#37872d;
+  border:1px solid #b7e8a4
+}
+.hanzi-card-jump-btn{
+  padding:2px 8px;
+  border-radius:999px;
+  background:#f4ebff;
+  border:1px solid #dcc4f5;
+  color:#6840a1;
+  font-size:clamp(9px,0.9vw,11px);
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+  line-height:1.2;
+  transition:all .15s ease
+}
+.hanzi-card-jump-btn:hover,.hanzi-card-jump-btn:focus-visible{
+  background:#764fb8;
+  color:#fff;
+  border-color:#764fb8
+}
+.hanzi-card-body{
+  flex:1;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  overflow:hidden
+}
+.hanzi-card-big-text{
+  display:block;
+  font-family:STKaiti,"KaiTi",serif;
+  font-weight:900;
+  color:#53347c;
+  line-height:1;
+  text-shadow:0 2px 0 rgba(119,77,171,.12);
+  white-space:nowrap;
+  transition:transform .15s ease
+}
+.hanzi-fullscreen-card:hover .hanzi-card-big-text{
+  transform:scale(1.05)
+}
+.hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
+.hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{
+  font-size:clamp(36px,min(8.5vw,13vh),90px)
+}
+.hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{
+  font-size:clamp(26px,min(6vw,9.5vh),64px)
+}
+.hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{
+  font-size:clamp(20px,min(4.4vw,7.5vh),50px);
+  letter-spacing:.02em
+}
+
+@media(max-width:600px){
+  .hanzi-fullscreen-stage{padding:6px 6px 8px}
+  .hanzi-fullscreen-header{margin-bottom:4px;padding-bottom:4px;gap:4px}
+  .hanzi-fullscreen-info h2{font-size:15px}
+  .hanzi-fullscreen-count{font-size:10px;padding:1px 5px}
+  .hanzi-fullscreen-actions{gap:4px}
+  .hanzi-fullscreen-close-btn{min-height:30px;padding:0 8px;font-size:11px;border-radius:8px}
+  .hanzi-fullscreen-play-btn{min-height:30px;padding:0 8px;font-size:10px;border-radius:8px}
+  .hanzi-fullscreen-grid{gap:5px}
+  .hanzi-fullscreen-card{padding:4px 4px 5px;border-width:2px;border-radius:11px}
+  .hanzi-card-index{font-size:9px}
+  .hanzi-card-tag{font-size:9px;padding:1px 5px}
+  .hanzi-card-jump-btn{padding:1px 6px;font-size:9px}
+  .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
+  .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(32px,min(11vw,11vh),52px)}
+  .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(22px,min(8vw,8.5vh),38px)}
+  .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(17px,min(6.2vw,7vh),28px)}
+  .hanzi-spellbook-group-btn{padding:4px 9px;font-size:11px}
+}
+
 
 /* Parent growth views: readable shelves and a small achievement wall. */
 .parent-learning-controls{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin:12px 0;padding:11px;border-radius:14px;background:#f8f3ff;color:#705986;font-size:12px;font-weight:900}.parent-learning-controls select{min-height:36px;border:2px solid #e6d7fa;border-radius:10px;background:#fff;color:#593f88;font:inherit}.parent-learning-controls span{grid-column:1/-1;color:#8c779c}.hanzi-book-list section{margin-top:14px}.hanzi-book-list h3{margin:0 0 7px;color:#805f42;font-size:13px}.hanzi-book-list section>div{display:flex;flex-wrap:wrap;gap:8px}.hanzi-book-list article{min-width:62px;padding:8px;border-radius:12px;background:#fff7e6;text-align:center}.hanzi-book-word{display:block;width:100%;min-width:46px;padding:0;background:transparent;color:inherit}.hanzi-book-word:focus-visible{outline:3px solid #8d73ce;outline-offset:3px}.hanzi-book-list b{display:block;font-family:STKaiti,"KaiTi",serif;font-size:28px;color:#5c398e}.hanzi-book-list span{font-size:9px;color:#937052;font-weight:900}.hanzi-book-empty{padding:20px;text-align:center;color:#8d7795;font-weight:800}.achievement-list{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:16px}.achievement-list article{min-height:96px;padding:10px;border:2px solid #eee3f5;border-radius:16px;background:#fbf8ff;text-align:center;color:#9a8ca8}.achievement-list article.earned{border-color:#f6d36c;background:#fff9df;color:#6a4c96}.achievement-list b{display:block;font-size:25px;color:#d2c7de}.achievement-list .earned b{color:#e6a429}.achievement-list span{display:block;font-size:12px;font-weight:900}.achievement-list small{display:block;margin-top:4px;font-size:9px;font-weight:800}@media(max-width:600px){.achievement-list{gap:7px}.achievement-list article{min-height:80px;padding:8px}.parent-learning-controls{grid-template-columns:1fr}.parent-learning-controls span{grid-column:auto}}
@@ -512,3 +822,216 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 /* Fruit slicing benefits from horizontal room; keep the original canvas large when the device rotates. */
 @media(orientation:landscape) and (max-height:600px){.vendor-fruit iframe{height:calc(100dvh - 155px);min-height:430px}.arcade-layout{padding-top:10px;padding-bottom:10px}.arcade-play>.section-kicker{margin-top:8px}.arcade-play>h1{font-size:23px}}
+
+/* Hanzi Writer (P0) & Celebration Feedback (P1) */
+.hanzi-writer-entry{
+  display:flex;
+  justify-content:center;
+  margin:10px 0 6px;
+}
+.hanzi-writer-entry-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 16px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#fff8ed 0%,#fdedd0 100%);
+  border:2px solid #ecd5b0;
+  color:#734b22;
+  font-family:"STKaiti","KaiTi","BiauKai","楷体",serif;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 3px 0 #deb981,0 6px 14px rgba(184,133,65,.15);
+  transition:transform .15s ease,background .15s ease;
+}
+.hanzi-writer-entry-btn:hover,.hanzi-writer-entry-btn:focus-visible{
+  transform:translateY(-1px);
+  background:linear-gradient(135deg,#fffbf5 0%,#fef3df 100%);
+  border-color:#e4c798;
+}
+.hanzi-writer-entry-btn svg{
+  color:#b87023;
+}
+
+.modal.hanzi-writer-modal{
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  box-sizing:border-box;
+}
+.hanzi-writer-card{
+  width:min(94vw,420px);
+  max-height:min(94dvh,640px);
+  padding:clamp(14px,3vw,20px);
+  border-radius:24px;
+  background:radial-gradient(circle at 50% 15%,#fffdf9 0%,#fbf4e8 70%,#f5e9d3 100%);
+  border:3px solid #edd7b8;
+  box-shadow:0 12px 32px rgba(92,57,25,.18);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  overflow-y:auto;
+  box-sizing:border-box;
+}
+.hanzi-writer-header{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.hanzi-writer-heading .section-kicker{
+  margin:0;
+  font-size:11px;
+}
+.hanzi-writer-heading h2{
+  margin:2px 0 0;
+  font-family:"STKaiti","KaiTi","BiauKai","楷体",serif;
+  font-size:22px;
+  color:#55347e;
+  line-height:1.2;
+}
+.hanzi-writer-word-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  margin:6px 0 10px;
+  width:100%;
+}
+.hanzi-writer-char-tab{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 12px;
+  border-radius:999px;
+  background:#fff;
+  border:2px solid #ecd6b3;
+  color:#734b22;
+  font-family:"STKaiti","KaiTi","BiauKai","楷体",serif;
+  font-size:16px;
+  font-weight:900;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.hanzi-writer-char-tab.active{
+  background:#7a4ebf;
+  border-color:#7a4ebf;
+  color:#fff;
+  box-shadow:0 2px 0 #583393;
+}
+.hanzi-writer-char-tab.completed{
+  border-color:#70bd58;
+}
+.hanzi-writer-char-tab.completed::after{
+  content:"✓";
+  color:#3ca020;
+  font-size:12px;
+  margin-left:2px;
+}
+.hanzi-writer-char-tab.active.completed::after{
+  color:#fff;
+}
+.hanzi-writer-stage{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:4px 0 8px;
+  width:100%;
+}
+.hanzi-tian-grid{
+  position:relative;
+  width:min(280px,70vw,34vh);
+  height:min(280px,70vw,34vh);
+  background:#fffef8;
+  border:3px solid #d45d55;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(180,80,70,.12),inset 0 0 0 1px rgba(212,93,85,.18);
+  overflow:hidden;
+  touch-action:none;
+}
+.tian-guide-line{
+  position:absolute;
+  pointer-events:none;
+}
+.tian-line-h{
+  top:50%;
+  left:0;
+  right:0;
+  border-top:1.5px dashed rgba(212,93,85,.45);
+}
+.tian-line-v{
+  left:50%;
+  top:0;
+  bottom:0;
+  border-left:1.5px dashed rgba(212,93,85,.45);
+}
+.tian-line-d1{
+  top:0;
+  left:0;
+  width:141.4%;
+  transform-origin:0 0;
+  transform:rotate(45deg);
+  border-top:1px dotted rgba(212,93,85,.25);
+}
+.tian-line-d2{
+  top:0;
+  right:0;
+  width:141.4%;
+  transform-origin:100% 0;
+  transform:rotate(-45deg);
+  border-top:1px dotted rgba(212,93,85,.25);
+}
+.hanzi-writer-canvas-holder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  touch-action:none;
+}
+.hanzi-writer-canvas-holder svg{
+  display:block;
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  touch-action:none;
+}
+.hanzi-writer-dashed-outline path{
+  pointer-events:none;
+}
+.hanzi-writer-status{
+  margin:6px 0 10px;
+  padding:4px 12px;
+  border-radius:999px;
+  background:#f4ebfb;
+  color:#6b44a8;
+  font-family:"STKaiti","KaiTi","BiauKai","楷体",serif;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+  min-height:22px;
+}
+.hanzi-writer-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+}
+.hanzi-writer-actions button{
+  font-family:"STKaiti","KaiTi","BiauKai","楷体",serif;
+  font-size:14px;
+  padding:6px 14px;
+}
+@media(max-width:600px){
+  .hanzi-writer-card{padding:12px}
+  .hanzi-writer-heading h2{font-size:18px}
+  .hanzi-tian-grid{width:min(260px,74vw,32vh);height:min(260px,74vw,32vh)}
+  .hanzi-writer-actions button{font-size:13px;padding:5px 11px}
+  .hanzi-writer-status{font-size:13px}
+  .hanzi-writer-entry-btn{padding:5px 13px;font-size:13px}
+}

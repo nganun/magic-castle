@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=1.0.9" />
     <link rel="stylesheet" href="styles/screens/adventure-map.css" />
   </head>
   <body>
@@ -119,6 +119,30 @@
     <div class="modal" id="adminModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="adminTitle"><div class="modal-card parent-modal-card"><button class="modal-close icon-button" id="closeAdmin" type="button" aria-label="关闭管理员设置">×</button><section id="adminContent"><p class="section-kicker">学习内容工作台</p><h2 id="adminTitle">选择要整理的内容</h2><p class="parent-note">英文和汉字分开管理。每个分组都有自己的学习清单；带有“正在学习”标记的分组会显示在城堡地图中。</p><div class="content-config-launchers"><button id="openEnglishConfig" class="content-config-launcher english-config-launcher" type="button"><span class="content-config-icon" aria-hidden="true">A B C</span><span class="content-config-copy"><strong>英文单词</strong><small id="englishConfigMeta">正在读取分组…</small></span><span class="content-config-arrow" aria-hidden="true">›</span></button><button id="openHanziConfig" class="content-config-launcher hanzi-config-launcher" type="button"><span class="content-config-icon" aria-hidden="true">字</span><span class="content-config-copy"><strong>汉字与词组</strong><small id="hanziConfigMeta">正在读取分组…</small></span><span class="content-config-arrow" aria-hidden="true">›</span></button><button id="openRecitalConfig" class="content-config-launcher recital-config-launcher" type="button"><span class="content-config-icon" aria-hidden="true">朗</span><span class="content-config-copy"><strong>朗诵文本</strong><small id="recitalConfigMeta">正在读取篇目…</small></span><span class="content-config-arrow" aria-hidden="true">›</span></button></div></section></div></div>
     <div class="modal" id="contentConfigModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="contentConfigTitle"><div class="modal-card content-config-modal"><button class="modal-close icon-button" id="closeContentConfig" type="button" aria-label="关闭内容配置">×</button><input id="contentConfigType" type="hidden" /><header class="content-config-header"><p class="section-kicker">内容分组</p><h2 id="contentConfigTitle">内容配置</h2><p class="parent-note" id="contentConfigDescription"></p><div class="content-config-summary" id="contentConfigSummary" aria-live="polite"></div></header><section class="content-group-directory" aria-labelledby="contentGroupDirectoryTitle"><div class="content-group-directory-heading"><div><p class="section-kicker">学习分组</p><h3 id="contentGroupDirectoryTitle">选择正在学习的分组</h3></div><button id="addContentGroup" class="secondary-button" type="button">+ 新增分组</button></div><div id="contentGroupList" class="content-group-list"></div></section><section class="content-group-editor" aria-labelledby="contentGroupEditorTitle"><div class="content-group-editor-heading"><div><p class="section-kicker">编辑分组</p><h3 id="contentGroupEditorTitle">分组内容</h3></div><button id="deleteContentGroup" class="text-danger-button" type="button">删除此分组</button></div><label class="admin-field"><span id="contentGroupNameLabel">分组名称</span><input id="contentGroupName" maxlength="16" /></label><label class="admin-field"><span id="contentGroupWordsLabel">学习内容</span><textarea id="contentGroupWords" rows="6"></textarea></label><button id="saveContentGroup" class="primary-button" type="button">保存，并设为正在学习</button></section></div></div>
     <div class="modal" id="recitalConfigModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="recitalConfigTitle"><div class="modal-card content-config-modal"><button class="modal-close icon-button" id="closeRecitalConfig" type="button" aria-label="关闭朗诵文本配置">×</button><header class="content-config-header"><p class="section-kicker">朗诵小舞台</p><h2 id="recitalConfigTitle">按行整理朗诵文本</h2><p class="parent-note">每一篇是一段完整朗诵。文本框中一行就是一次跟读；孩子会按顺序一行一行地听读、朗诵和完成。</p></header><section class="content-group-directory" aria-labelledby="recitalGroupDirectoryTitle"><div class="content-group-directory-heading"><div><p class="section-kicker">朗诵分组</p><h3 id="recitalGroupDirectoryTitle">选择正在朗诵的分组</h3></div><button id="addRecitalGroup" class="secondary-button" type="button">+ 新增分组</button></div><div id="recitalGroupList" class="content-group-list"></div></section><section class="content-group-editor" aria-labelledby="recitalGroupEditorTitle"><div class="content-group-editor-heading"><div><p class="section-kicker">编辑分组</p><h3 id="recitalGroupEditorTitle">文本与每一句</h3></div><button id="deleteRecitalGroup" class="text-danger-button" type="button">删除此分组</button></div><label class="admin-field">分组名称<input id="recitalGroupTitle" maxlength="24" placeholder="例如：春晓" /></label><label class="admin-field">朗诵文本<span class="field-hint">每一行是一句，系统会按行带孩子朗读。</span><textarea id="recitalGroupLines" rows="8" placeholder="春眠不觉晓，&#10;处处闻啼鸟。"></textarea></label><button id="saveRecitalGroup" class="primary-button" type="button">保存，并设为正在朗诵</button></section></div></div>
+    <div class="modal hanzi-fullscreen-modal" id="hanziGroupModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hanziGroupModalTitle">
+      <div class="hanzi-fullscreen-stage">
+        <header class="hanzi-fullscreen-header">
+          <div class="hanzi-fullscreen-top-row">
+            <div class="hanzi-fullscreen-info">
+              <h2 id="hanziGroupModalTitle">汉字分组</h2>
+              <span class="hanzi-fullscreen-count" id="hanziGroupModalCount">共 0 字</span>
+            </div>
+            <div class="hanzi-fullscreen-actions">
+              <button class="hanzi-fullscreen-play-btn" id="hanziGroupPlayAllBtn" type="button" aria-label="连续朗读本组汉字">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+                <span id="hanziGroupPlayAllLabel">连续朗读</span>
+              </button>
+              <button class="hanzi-fullscreen-close-btn" id="closeHanziGroupModal" type="button" aria-label="返回学习">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+                <span>返回</span>
+              </button>
+            </div>
+          </div>
+          <div class="hanzi-modal-group-tabs" id="hanziModalGroupTabs" role="tablist" hidden></div>
+        </header>
+        <div class="hanzi-fullscreen-grid" id="hanziGroupWordsGrid"></div>
+      </div>
+    </div>
     <div class="modal daily-modal" id="dailyModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="dailyTitle">
       <div class="reward-card daily-wrap-card"><p class="section-kicker">今天完成啦</p><h2 id="dailyTitle">魔法任务全完成！</h2><p id="dailyWrapCopy">明天也来和露娜一起学英文吧。</p><div class="daily-streak-badge">连续学习 <b id="dailyWrapStreak">1</b> 天</div><div class="daily-wrap-actions"><button class="secondary-button" id="dailyWrapHome" type="button">回到魔法城堡</button><button class="primary-button" id="dailyWrapCloset" type="button">去衣橱看看</button></div></div>
     </div>
@@ -131,7 +155,35 @@
         <button class="primary-button" type="button" id="claimReward">放进我的衣橱 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
       </div>
     </div>
+    <div class="modal hanzi-writer-modal" id="hanziWriterModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hanziWriterTitle">
+      <div class="modal-card hanzi-writer-card">
+        <header class="hanzi-writer-header">
+          <div class="hanzi-writer-heading">
+            <span class="section-kicker">笔顺与写字</span>
+            <h2 id="hanziWriterTitle">练习写字</h2>
+          </div>
+          <button class="modal-close icon-button" id="closeHanziWriterModal" type="button" aria-label="关闭写字台">×</button>
+        </header>
+        <div class="hanzi-writer-word-tabs" id="hanziWriterWordTabs" role="tablist"></div>
+        <div class="hanzi-writer-stage">
+          <div class="hanzi-tian-grid" id="hanziWriterTarget">
+            <div class="tian-guide-line tian-line-h"></div>
+            <div class="tian-guide-line tian-line-v"></div>
+            <div class="tian-guide-line tian-line-d1"></div>
+            <div class="tian-guide-line tian-line-d2"></div>
+            <div class="hanzi-writer-canvas-holder" id="hanziWriterCanvasHolder"></div>
+          </div>
+        </div>
+        <div class="hanzi-writer-status" id="hanziWriterStatus" aria-live="polite">点击“演示”看笔顺，或点“描红”手写</div>
+        <div class="hanzi-writer-actions">
+          <button class="secondary-button" id="hanziWriterAnimateBtn" type="button">🎬 演示笔顺</button>
+          <button class="primary-button" id="hanziWriterQuizBtn" type="button">✏️ 手指描红</button>
+          <button class="secondary-button" id="hanziWriterResetBtn" type="button">🔄 重新写</button>
+        </div>
+      </div>
+    </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="app.js"></script>
+    <script src="vendor/hanzi-writer/hanzi-writer.min.js?v=1.0.9"></script>
+    <script type="module" src="app.js?v=1.0.9"></script>
   </body>
 </html>

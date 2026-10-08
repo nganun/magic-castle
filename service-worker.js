@@ -1,4 +1,4 @@
-const CACHE_NAME = 'magic-castle-__BUILD_ID__';
+const CACHE_NAME = 'magic-castle-v1.0.9';
 const APP_SHELL = [
   './',
   './index.html',
@@ -13,6 +13,11 @@ const APP_SHELL = [
   './features/default-content.js',
   './features/build-info.js',
   './features/arcade-games.js',
+  './features/audio-sfx.js',
+  './features/confetti.js',
+  './vendor/hanzi-writer/hanzi-writer.min.js',
+  './vendor/hanzi-writer/default-chars.js',
+  './vendor/hanzi-writer/default-chars.json',
   './manifest.webmanifest',
   './assets/icons/app-icon-192.png',
   './assets/icons/app-icon-512.png',
@@ -84,8 +89,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // CSS and JS use network-first so visual fixes are never held behind an old offline cache.
-  if (url.pathname.endsWith('/style.css') || url.pathname.endsWith('/styles/screens/adventure-map.css') || url.pathname.endsWith('/app.js') || url.pathname.includes('/features/')) {
+  // CSS, JS, and vendor use network-first so visual and script fixes are never held behind an old offline cache.
+  if (url.pathname.endsWith('/style.css') || url.pathname.endsWith('/styles/screens/adventure-map.css') || url.pathname.endsWith('/app.js') || url.pathname.includes('/features/') || url.pathname.includes('/vendor/')) {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
       return response;

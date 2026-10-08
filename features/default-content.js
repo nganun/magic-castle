@@ -55,23 +55,31 @@ export const DEFAULT_LEARNING_CONTENT = {
     ]
   },
   "recital": {
-    "activeGroupId": "recital-spring-dawn",
+    "activeGroupId": "delious-foods",
     "groups": [
+      {
+        "id": "delious-foods",
+        "lines": [
+          "大家好，",
+          "我是今天的美食播报员 —— 王清澄。",
+          "今天我们吃的是：XXX, XXX",
+          "喝的是：XXX。",
+          "这些食物很有营养，",
+          "希望小朋友们不挑食，不浪费，",
+          "好好吃饭，身体棒棒！",
+          "我的播报完毕，谢谢大家！"
+        ],
+        "name": "美食播报"
+      },
       {
         "id": "recital-spring-dawn",
         "lines": [
           "春眠不觉晓，",
-          "处处闻啼鸟。"
+          "处处闻啼鸟。",
+          "夜来风雨声，",
+          "花落知多少。"
         ],
         "name": "春晓"
-      },
-      {
-        "id": "recital-tower",
-        "lines": [
-          "白日依山尽，",
-          "黄河入海流。"
-        ],
-        "name": "登鹳雀楼"
       }
     ]
   }

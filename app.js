@@ -9,6 +9,9 @@ import { WORD_TRANSLATIONS, HANZI_SCENES, WORD_SENTENCES } from './features/cont
 import { DEFAULT_LEARNING_CONTENT } from './features/default-content.js';
 import { ARCADE_GAMES, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
+import { playSfx } from './features/audio-sfx.js';
+import { triggerConfetti } from './features/confetti.js';
+import { DEFAULT_HANZI_CHARS } from './vendor/hanzi-writer/default-chars.js';
 
 const CHILD_NAME = '荆宝';
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -339,21 +342,8 @@ function startWardrobeMusic() {
   audio.play().catch(() => { wardrobeMusic = null; });
 }
 function playSuccessChime() {
-  if (!state.soundOn || !window.AudioContext && !window.webkitAudioContext) return;
-  const Context = window.AudioContext || window.webkitAudioContext;
-  const context = new Context();
-  const now = context.currentTime;
-  [659.25, 783.99].forEach((frequency, index) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(frequency, now + index * .12);
-    gain.gain.setValueAtTime(.0001, now + index * .12);
-    gain.gain.exponentialRampToValueAtTime(.11, now + index * .12 + .018);
-    gain.gain.exponentialRampToValueAtTime(.0001, now + index * .12 + .34);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(now + index * .12); oscillator.stop(now + index * .12 + .36);
-  });
-  setTimeout(() => context.close(), 650);
+  if (!state.soundOn) return;
+  playSfx('ding');
 }
 function showToast(text) {
   const toast = $('#toast'); toast.textContent = text; toast.classList.add('show');
@@ -372,6 +362,8 @@ function renderTopbarContext() {
   crumb.setAttribute('aria-label', arcadeGameOpen ? '返回小小游戏机大厅' : (isCurrentScreen ? `当前位置：${label}` : `继续${label}`));
 }
 function setScreen(name, { push = true } = {}) {
+  closeHanziGroupModal();
+  closeHanziWriter();
   if (name !== 'arcade') releaseFruitOrientation();
   refreshDailyBoundary();
   const previousScreen = state.screen;
@@ -764,10 +756,417 @@ function lessonPrimaryActionsMarkup(name = '') {
 }
 function hanziLearnMarkup(game, recordingAction) {
   const parts = [...game.word];
+  const group = activeContentGroup('hanzi');
+  const totalWords = group.words.length;
   const related = parts.length > 1 ? parts : currentTheme().words.filter((item) => item !== game.word && item.includes(game.word)).slice(0, 2);
   const relatedMarkup = related.length ? related.map((item) => `<span>${item}</span>`).join('') : '<span>今天读一读</span>';
-  return `<article class="hanzi-spellbook"><p class="hanzi-book-kicker">汉字图书塔 · 会说话的书页</p><button class="hanzi-glyph" data-hanzi-length="${parts.length}" id="hanziSpeak" type="button" aria-label="朗读 ${game.word}"><b>${game.word}</b><small>点一下，听读音</small></button><p class="hanzi-read-copy">${game.zh}</p>${hanziSceneMarkup(game.word)}<div class="hanzi-word-trail"><em>${parts.length > 1 ? '拆开看看' : '认识词组'}</em><div>${relatedMarkup}</div></div>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+  return `<article class="hanzi-spellbook"><div class="hanzi-book-topline"><p class="hanzi-book-kicker">汉字图书塔 · 会说话的书页</p><button class="hanzi-spellbook-group-btn" id="hanziSpellbookGroupBtn" type="button" aria-label="查看本组汉字，共 ${totalWords} 个"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>查看本组汉字(${totalWords})</span></button></div><button class="hanzi-glyph" data-hanzi-length="${parts.length}" id="hanziSpeak" type="button" aria-label="朗读 ${game.word}"><b>${game.word}</b><small>点一下，听读音</small></button><div class="hanzi-writer-entry"><button class="hanzi-writer-entry-btn" id="openHanziWriterBtn" type="button" aria-label="练习写字与笔顺描红"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg><span>练习写字 (笔顺描红)</span></button></div><p class="hanzi-read-copy">${game.zh}</p>${hanziSceneMarkup(game.word)}<div class="hanzi-word-trail"><em>${parts.length > 1 ? '拆开看看' : '认识词组'}</em><div>${relatedMarkup}</div></div>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
 }
+let hanziPlaybackTimer = null;
+let hanziPlaybackRunId = 0;
+let isSequentialPlaying = false;
+
+function stopSequentialHanzi() {
+  hanziPlaybackRunId += 1;
+  clearTimeout(hanziPlaybackTimer);
+  window.speechSynthesis?.cancel();
+  stopNativeTts();
+  isSequentialPlaying = false;
+  const label = $('#hanziGroupPlayAllLabel');
+  const btn = $('#hanziGroupPlayAllBtn');
+  if (label) label.textContent = '连续朗读';
+  if (btn) btn.classList.remove('is-playing');
+  $$('.hanzi-fullscreen-card.is-speaking').forEach((el) => el.classList.remove('is-speaking'));
+}
+
+function openHanziGroupModal() {
+  const modal = $('#hanziGroupModal');
+  if (!modal) return;
+  renderHanziGroupModal();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => $('#closeHanziGroupModal')?.focus(), 80);
+}
+
+function closeHanziGroupModal() {
+  stopSequentialHanzi();
+  const modal = $('#hanziGroupModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function playSequentialHanzi(words) {
+  if (isSequentialPlaying) {
+    stopSequentialHanzi();
+    return;
+  }
+  isSequentialPlaying = true;
+  const label = $('#hanziGroupPlayAllLabel');
+  const btn = $('#hanziGroupPlayAllBtn');
+  if (label) label.textContent = '停止';
+  if (btn) btn.classList.add('is-playing');
+  const runId = ++hanziPlaybackRunId;
+
+  let index = 0;
+  const playNext = () => {
+    if (runId !== hanziPlaybackRunId || index >= words.length) {
+      if (runId === hanziPlaybackRunId) {
+        stopSequentialHanzi();
+      }
+      return;
+    }
+    const word = words[index];
+    $$('.hanzi-fullscreen-card').forEach((card) => {
+      card.classList.toggle('is-speaking', card.dataset.hanziWord === word);
+    });
+    const activeCard = $(`[data-hanzi-word="${word}"]`);
+    activeCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    index += 1;
+    speakChinese(word, () => {
+      if (runId !== hanziPlaybackRunId) return;
+      hanziPlaybackTimer = window.setTimeout(playNext, 400);
+    });
+  };
+  playNext();
+}
+
+function updateHanziGridGeometry(count) {
+  const grid = $('#hanziGroupWordsGrid');
+  if (!grid || !count) return;
+  const isPortrait = window.innerHeight > window.innerWidth;
+  const isNarrow = window.innerWidth <= 500;
+  let cols, rows;
+  if (isNarrow && isPortrait) {
+    if (count <= 2) {
+      cols = 1;
+      rows = count;
+    } else {
+      cols = 2;
+      rows = Math.ceil(count / 2);
+    }
+  } else if (isPortrait) {
+    if (count <= 2) { cols = 1; rows = count; }
+    else if (count <= 4) { cols = 2; rows = 2; }
+    else if (count <= 6) { cols = 2; rows = 3; }
+    else if (count <= 8) { cols = 2; rows = 4; }
+    else if (count <= 10) { cols = 2; rows = 5; }
+    else if (count <= 12) { cols = 3; rows = 4; }
+    else if (count <= 15) { cols = 3; rows = 5; }
+    else if (count <= 16) { cols = 4; rows = 4; }
+    else if (count <= 20) { cols = 4; rows = 5; }
+    else {
+      cols = 3;
+      rows = Math.ceil(count / 3);
+    }
+  } else {
+    if (count <= 3) { cols = count; rows = 1; }
+    else if (count <= 6) { cols = Math.ceil(count / 2); rows = 2; }
+    else if (count <= 8) { cols = 4; rows = 2; }
+    else if (count <= 10) { cols = 5; rows = 2; }
+    else if (count <= 12) { cols = 4; rows = 3; }
+    else if (count <= 15) { cols = 5; rows = 3; }
+    else if (count <= 16) { cols = 4; rows = 4; }
+    else if (count <= 20) { cols = 5; rows = 4; }
+    else {
+      cols = Math.min(6, Math.ceil(Math.sqrt(count * 1.5)));
+      rows = Math.ceil(count / cols);
+    }
+  }
+  grid.style.setProperty('--hanzi-cols', String(cols));
+  grid.style.setProperty('--hanzi-rows', String(rows));
+}
+
+function renderHanziGroupModal() {
+  const active = activeContentGroup('hanzi');
+  const words = active.words;
+  const groups = contentGroups('hanzi').filter((g) => g.name && g.words.length >= 2);
+  const currentWord = currentRounds()[state.round]?.word;
+
+  $('#hanziGroupModalTitle').textContent = active.name;
+  $('#hanziGroupModalCount').textContent = `共 ${words.length} 字`;
+
+  const tabsContainer = $('#hanziModalGroupTabs');
+  if (tabsContainer) {
+    if (groups.length > 1) {
+      tabsContainer.hidden = false;
+      tabsContainer.innerHTML = groups.map((g) => `
+        <button type="button" role="tab" class="hanzi-modal-group-tab ${g.id === active.id ? 'active' : ''}" data-hanzi-modal-group="${escapeHtml(g.id)}" aria-selected="${g.id === active.id}">
+          ${escapeHtml(g.name)} (${g.words.length})
+        </button>
+      `).join('');
+      $$('[data-hanzi-modal-group]', tabsContainer).forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.hanziModalGroup;
+          if (targetId === active.id) return;
+          stopSequentialHanzi();
+          setActiveContentGroup('hanzi', targetId);
+          saveContentConfiguration();
+          applyAdminContent();
+          state.round = 0;
+          state.completed = false;
+          state.roundLocked = false;
+          persistProgress();
+          renderHome();
+          renderRound();
+          renderHanziGroupModal();
+          showToast(`已切换到“${activeContentGroup('hanzi').name}”分组。`);
+        });
+      });
+    } else {
+      tabsContainer.hidden = true;
+      tabsContainer.replaceChildren();
+    }
+  }
+
+  updateHanziGridGeometry(words.length);
+  const grid = $('#hanziGroupWordsGrid');
+  grid.innerHTML = words.map((word, index) => {
+    const isCurrent = currentWord === word;
+    const isMastered = Boolean(state.wordProgress[`hanzi:${word}`]?.mastered);
+    const isLearned = state.learnedWords.includes(word) || Boolean(state.wordProgress[`hanzi:${word}`]?.learn);
+    let cornerTag = '';
+    if (isCurrent) {
+      cornerTag = '<span class="hanzi-card-tag is-current">正在学 ⭐</span>';
+    } else if (isMastered) {
+      cornerTag = '<span class="hanzi-card-tag is-mastered">已掌握 ✓</span>';
+    } else if (isLearned) {
+      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学过 · 再学 ›</button>`;
+    } else {
+      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学这个 ›</button>`;
+    }
+    return `
+      <div class="hanzi-fullscreen-card ${isCurrent ? 'is-current' : ''} ${isMastered ? 'is-mastered' : ''} ${isLearned ? 'is-learned' : ''}" data-hanzi-word="${escapeHtml(word)}" data-hanzi-length="${word.length}" tabindex="0" role="button" aria-label="${escapeHtml(word)}，点击听读音">
+        <div class="hanzi-card-topline">
+          <span class="hanzi-card-index">#${index + 1}</span>
+          ${cornerTag}
+        </div>
+        <div class="hanzi-card-body">
+          <span class="hanzi-card-big-text">${escapeHtml(word)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $$('.hanzi-fullscreen-card', grid).forEach((card) => {
+    const triggerSpeak = () => {
+      const word = card.dataset.hanziWord;
+      if (!word) return;
+      $$('.hanzi-fullscreen-card.is-speaking').forEach((c) => c.classList.remove('is-speaking'));
+      card.classList.add('is-speaking');
+      speakChinese(word, () => card.classList.remove('is-speaking'));
+    };
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-hanzi-jump-index]')) return;
+      triggerSpeak();
+    });
+    card.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('[data-hanzi-jump-index]')) {
+        e.preventDefault();
+        triggerSpeak();
+      }
+    });
+  });
+
+  $$('[data-hanzi-jump-index]', grid).forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetIndex = Number(btn.dataset.hanziJumpIndex);
+      const targetWord = words[targetIndex];
+      state.round = targetIndex;
+      state.completed = false;
+      state.roundLocked = false;
+      closeHanziGroupModal();
+      renderRound();
+      speakForCurrentTheme(targetWord);
+      showToast(`已开始学习“${targetWord}”。`);
+    });
+  });
+
+  $('#hanziGroupPlayAllBtn').onclick = () => playSequentialHanzi(words);
+}
+
+let currentHanziWriter = null;
+let hanziWriterActiveWord = '';
+let hanziWriterChars = [];
+let hanziWriterCurrentCharIndex = 0;
+let hanziWriterCompletedChars = new Set();
+
+async function customCharDataLoader(char) {
+  if (DEFAULT_HANZI_CHARS && DEFAULT_HANZI_CHARS[char]) {
+    return DEFAULT_HANZI_CHARS[char];
+  }
+  const cacheKey = `hw-char-${char}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch {}
+  const res = await fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${encodeURIComponent(char)}.json`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
+  return data;
+}
+
+function closeHanziWriter() {
+  const modal = $('#hanziWriterModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  if (currentHanziWriter) {
+    try { currentHanziWriter.destroy?.(); } catch {}
+    currentHanziWriter = null;
+  }
+}
+
+function openHanziWriter(word) {
+  const modal = $('#hanziWriterModal');
+  if (!modal) return;
+  hanziWriterActiveWord = word;
+  hanziWriterChars = [...word].filter((c) => /[\u4e00-\u9fa5]/.test(c));
+  if (!hanziWriterChars.length) {
+    showToast('该卡片暂无可练习的汉字');
+    return;
+  }
+  hanziWriterCurrentCharIndex = 0;
+  hanziWriterCompletedChars.clear();
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => {
+    renderHanziWriterWord();
+  });
+}
+
+function renderHanziWriterWord() {
+  const currentChar = hanziWriterChars[hanziWriterCurrentCharIndex];
+  if (!currentChar) return;
+
+  $('#hanziWriterTitle').textContent = `练习书写 · ${hanziWriterActiveWord}`;
+
+  const tabsContainer = $('#hanziWriterWordTabs');
+  if (tabsContainer) {
+    tabsContainer.innerHTML = hanziWriterChars.map((c, idx) => {
+      const isActive = idx === hanziWriterCurrentCharIndex;
+      const isDone = hanziWriterCompletedChars.has(c);
+      return `<button type="button" role="tab" class="hanzi-writer-char-tab ${isActive ? 'active' : ''} ${isDone ? 'completed' : ''}" data-hanzi-writer-index="${idx}" aria-selected="${isActive}">
+        <span>${escapeHtml(c)}</span>
+      </button>`;
+    }).join('');
+
+    $$('[data-hanzi-writer-index]', tabsContainer).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetIndex = Number(btn.dataset.hanziWriterIndex);
+        if (targetIndex === hanziWriterCurrentCharIndex) return;
+        playSfx('pop');
+        hanziWriterCurrentCharIndex = targetIndex;
+        renderHanziWriterWord();
+      });
+    });
+  }
+
+  const holder = $('#hanziWriterCanvasHolder');
+  holder.replaceChildren();
+
+  const stage = $('.hanzi-tian-grid');
+  const size = Math.min(280, Math.floor(stage.clientWidth || 260));
+
+  if (!window.HanziWriter) {
+    $('#hanziWriterStatus').textContent = '笔顺引擎正在加载，请稍候…';
+    return;
+  }
+
+  if (currentHanziWriter) {
+    try { currentHanziWriter.destroy?.(); } catch {}
+    currentHanziWriter = null;
+  }
+
+  currentHanziWriter = window.HanziWriter.create(holder, currentChar, {
+    width: size,
+    height: size,
+    padding: 18,
+    strokeColor: '#2b1c13',
+    radicalColor: '#9c301c',
+    outlineColor: '#dfb79e',
+    drawingColor: '#9c301c',
+    drawingWidth: 28,
+    showOutline: true,
+    showCharacter: false,
+    strokeAnimationSpeed: 1.2,
+    delayBetweenStrokes: 180,
+    charDataLoader: customCharDataLoader,
+    onLoadCharDataError: () => {
+      $('#hanziWriterStatus').textContent = `暂未获取到【${currentChar}】的笔顺数据`;
+    },
+  });
+
+  startHanziQuiz();
+}
+
+function animateHanziWriter() {
+  if (!currentHanziWriter) return;
+  const currentChar = hanziWriterChars[hanziWriterCurrentCharIndex];
+  $('#hanziWriterStatus').textContent = `正在演示【${currentChar}】笔顺…`;
+  currentHanziWriter.cancelQuiz();
+  currentHanziWriter.showOutline();
+  currentHanziWriter.hideCharacter();
+  currentHanziWriter.animateCharacter({
+    onComplete: () => {
+      $('#hanziWriterStatus').textContent = `演示完毕！点击“手指描红”试一试吧`;
+    },
+  });
+}
+
+function startHanziQuiz() {
+  if (!currentHanziWriter) return;
+  const currentChar = hanziWriterChars[hanziWriterCurrentCharIndex];
+  $('#hanziWriterStatus').textContent = `请按笔顺描红【${currentChar}】`;
+
+  currentHanziWriter.cancelQuiz();
+  currentHanziWriter.showOutline();
+  currentHanziWriter.hideCharacter();
+  currentHanziWriter.quiz({
+    onCorrectStroke: (strokeData) => {
+      playSfx('ding');
+      $('#hanziWriterStatus').textContent = `第 ${strokeData.strokeNum + 1} 笔写对啦！⭐`;
+    },
+    onMistake: (strokeData) => {
+      playSfx('wrong');
+      $('#hanziWriterStatus').textContent = `笔画不太对哦，再试一次吧~ (${strokeData.mistakesOnStroke + 1}次尝试)`;
+    },
+    onComplete: (summary) => {
+      hanziWriterCompletedChars.add(currentChar);
+      playSfx('ding');
+
+      if (hanziWriterCompletedChars.size < hanziWriterChars.length) {
+        $('#hanziWriterStatus').textContent = `太棒啦！【${currentChar}】书写完成！`;
+        setTimeout(() => {
+          const nextIndex = hanziWriterChars.findIndex((c) => !hanziWriterCompletedChars.has(c));
+          if (nextIndex !== -1) {
+            hanziWriterCurrentCharIndex = nextIndex;
+            renderHanziWriterWord();
+          }
+        }, 550);
+      } else {
+        playSfx('victory');
+        triggerConfetti();
+        $('#hanziWriterStatus').textContent = `🎉 太棒啦！【${hanziWriterActiveWord}】全部书写完成！`;
+        state.stars += 1;
+        state.wordProgress[`hanzi:${hanziWriterActiveWord}`] = {
+          ...(state.wordProgress[`hanzi:${hanziWriterActiveWord}`] || {}),
+          written: true,
+        };
+        persistProgress();
+        renderTopbarContext();
+        const tabsContainer = $('#hanziWriterWordTabs');
+        if (tabsContainer) {
+          $$('.hanzi-writer-char-tab', tabsContainer).forEach((el) => el.classList.add('completed'));
+        }
+      }
+    },
+  });
+}
+
 function sentenceMarkup(word) {
   const sentence = WORD_SENTENCES[word];
   if (!sentence) return '';
@@ -803,6 +1202,7 @@ function replayCurrentPrompt() {
 }
 function handleLessonShortcuts(event) {
   if (state.screen !== 'lesson' || isTypingTarget(event.target) || event.defaultPrevented) return;
+  if ($('#hanziGroupModal')?.classList.contains('open')) return;
   if (event.key.toLowerCase() === 'r') { event.preventDefault(); replayCurrentPrompt(); return; }
   if ((event.key === 'Enter' || event.key === ' ') && !(event.target instanceof HTMLElement && event.target.closest('button, a'))) {
     const action = [...$$('#gameArea button.primary-button')].find((button) => !button.disabled && !button.hidden);
@@ -843,6 +1243,8 @@ function renderRound() {
       : `<div class="learn-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${WORD_TRANSLATIONS[game.word] || game.word}`)}</div>${recordingAction}`;
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
     $('#hanziSpeak')?.addEventListener('click', () => speakChinese(game.word));
+    $('#hanziSpellbookGroupBtn')?.addEventListener('click', openHanziGroupModal);
+    $('#openHanziWriterBtn')?.addEventListener('click', () => openHanziWriter(game.word));
     $('#recordPractice')?.addEventListener('click', recordPractice);
     startLearnCountdown(3);
   } else if (game.type === 'recite') {
@@ -925,6 +1327,8 @@ function handleCorrect(word, kind = 'match') {
 function completeReview() {
   state.completed = true;
   persistProgress();
+  if (state.soundOn) playSfx('fanfare');
+  triggerConfetti();
   showToast('魔法回顾完成，记得很棒！');
 }
 function completeTheme() {
@@ -933,6 +1337,8 @@ function completeTheme() {
   state.completedThemes = Array.from(new Set([...state.completedThemes, theme.id]));
   state.ocOwned = Array.from(new Set([...state.ocOwned, ...theme.rewards]));
   saveOcAvatar(); setDailyTask('theme'); persistProgress(); $('#newDot').hidden = false;
+  if (state.soundOn) playSfx('fanfare');
+  triggerConfetti();
 }
 function renderCompletion() {
   const theme = currentTheme();
@@ -995,6 +1401,8 @@ function renderOcItems() {
 function openReward() {
   const rewards = currentTheme().rewards;
   $('#rewardModal').classList.add('open'); $('#rewardModal').setAttribute('aria-hidden', 'false'); $('#rewardChest').classList.add('opening');
+  if (state.soundOn) playSfx('victory');
+  triggerConfetti();
   const firstReward = OC_WARDROBE.find((item) => item.id === rewards[0]);
   const lastReward = OC_WARDROBE.find((item) => item.id === rewards[rewards.length - 1]);
   const firstThumb = $('#ocRewardDress'); const lastThumb = $('#ocRewardWings');
@@ -1227,10 +1635,24 @@ $('#claimReward').addEventListener('click', () => { closeReward(); $('#newDot').
 $('#dailyWrapHome').addEventListener('click', () => { closeDailyWrapUp(); setScreen('home'); });
 $('#dailyWrapCloset').addEventListener('click', () => { closeDailyWrapUp(); setScreen('closet'); });
 $('#parentModal').addEventListener('click', (event) => { if (event.target === $('#parentModal')) closeParent(); });
+$('#closeHanziGroupModal')?.addEventListener('click', closeHanziGroupModal);
+$('#closeHanziGroupModalPrimary')?.addEventListener('click', closeHanziGroupModal);
+$('#hanziGroupModal')?.addEventListener('click', (event) => { if (event.target === $('#hanziGroupModal')) closeHanziGroupModal(); });
+$('#closeHanziWriterModal')?.addEventListener('click', closeHanziWriter);
+$('#hanziWriterModal')?.addEventListener('click', (event) => { if (event.target === $('#hanziWriterModal')) closeHanziWriter(); });
+$('#hanziWriterAnimateBtn')?.addEventListener('click', animateHanziWriter);
+$('#hanziWriterQuizBtn')?.addEventListener('click', startHanziQuiz);
+$('#hanziWriterResetBtn')?.addEventListener('click', () => {
+  renderHanziWriterWord();
+});
 $('#resetProgress').addEventListener('click', () => { state.round = 0; state.completed = false; state.roundLocked = false; closeParent(); setScreen('home'); showToast('今天的挑战已经从第一关重新开始。'); });
+window.addEventListener('resize', () => {
+  if ($('#hanziGroupModal')?.classList.contains('open')) { updateHanziGridGeometry(activeContentGroup('hanzi').words.length); }
+  if ($('#hanziWriterModal')?.classList.contains('open')) { renderHanziWriterWord(); }
+});
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });
 window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade'].includes(screen) ? screen : 'home', { push: false }); });
 document.addEventListener('keydown', handleLessonShortcuts);
-document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); });
 
 $('.app-shell').classList.add('home-active'); renderTopbarContext(); mountHomeMap(); renderWardrobe(); renderHome(); updateProgress(); renderParentModeState(); renderSpeechRateControl(); renderParentProfileControls(); if (location.hash) window.dispatchEvent(new PopStateEvent('popstate'));
