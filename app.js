@@ -752,7 +752,7 @@ function autoReadWordCard(word) {
 }
 
 function lessonPrimaryActionsMarkup(name = '') {
-  return `<div class="lesson-action-stack">${name ? `<strong class="word-action-name">${escapeHtml(name)}</strong>` : ''}<div class="lesson-primary-actions"><button class="repeat-current-button" id="repeatCurrent" type="button" aria-label="再读一遍，可按 R 键触发"><svg viewBox="0 0 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a2.5 2.5 0 0 1 0 4v2a2.5 2.5 0 0 0 2.5-4Z"/></svg><span>再读一遍</span><kbd aria-hidden="true">R</kbd></button><button class="primary-button" id="learnNext" type="button" disabled aria-disabled="true"><span class="learn-next-copy"><span id="learnNextLabel">继续</span></span><svg viewBox="0 0 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div></div>`;
+  return `<div class="lesson-action-stack">${name ? `<strong class="word-action-name">${escapeHtml(name)}</strong>` : ''}<div class="lesson-primary-actions"><button class="repeat-current-button" id="repeatCurrent" type="button" aria-label="再读一遍，可按 R 键触发"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4.5l5 4.5V4.5L7.5 9H3z" fill="currentColor"/><path d="M16 8.5c1.2 1 2 2.2 2 3.5s-.8 2.5-2 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 5.5c2.3 1.8 3.5 4.1 3.5 6.5s-1.2 4.7-3.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>再读一遍</span><kbd aria-hidden="true">R</kbd></button><button class="primary-button" id="learnNext" type="button" disabled aria-disabled="true"><span class="learn-next-copy"><span id="learnNextLabel">继续</span></span></button></div></div>`;
 }
 function hanziLearnMarkup(game, recordingAction) {
   const parts = [...game.word];
@@ -875,6 +875,13 @@ function updateHanziGridGeometry(count) {
   }
   grid.style.setProperty('--hanzi-cols', String(cols));
   grid.style.setProperty('--hanzi-rows', String(rows));
+
+  let density = 'medium';
+  if (count <= 4) density = 'few';
+  else if (count <= 8) density = 'medium';
+  else if (count <= 14) density = 'many';
+  else density = 'dense';
+  grid.dataset.density = density;
 }
 
 function renderHanziGroupModal() {
@@ -1120,7 +1127,7 @@ function animateHanziWriter() {
 function startHanziQuiz() {
   if (!currentHanziWriter) return;
   const currentChar = hanziWriterChars[hanziWriterCurrentCharIndex];
-  $('#hanziWriterStatus').textContent = `请按笔顺描红【${currentChar}】`;
+  $('#hanziWriterStatus').textContent = `跟着橙色笔画描红【${currentChar}】吧~`;
 
   currentHanziWriter.cancelQuiz();
   currentHanziWriter.showOutline();
@@ -1128,11 +1135,16 @@ function startHanziQuiz() {
   currentHanziWriter.quiz({
     onCorrectStroke: (strokeData) => {
       playSfx('ding');
-      $('#hanziWriterStatus').textContent = `第 ${strokeData.strokeNum + 1} 笔写对啦！⭐`;
+      const totalStrokes = currentHanziWriter._character?.strokes?.length || (strokeData.strokeNum + 1);
+      if (strokeData.strokeNum + 1 < totalStrokes) {
+        $('#hanziWriterStatus').textContent = `第 ${strokeData.strokeNum + 1} 笔写对啦！⭐ 继续描橙色笔画`;
+      } else {
+        $('#hanziWriterStatus').textContent = `最后一笔写对啦！⭐`;
+      }
     },
     onMistake: (strokeData) => {
       playSfx('wrong');
-      $('#hanziWriterStatus').textContent = `笔画不太对哦，再试一次吧~ (${strokeData.mistakesOnStroke + 1}次尝试)`;
+      $('#hanziWriterStatus').textContent = `笔画不太对哦，跟着橙色虚线再试一次吧~ (${strokeData.mistakesOnStroke + 1}次尝试)`;
     },
     onComplete: (summary) => {
       hanziWriterCompletedChars.add(currentChar);
