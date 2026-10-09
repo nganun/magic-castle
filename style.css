@@ -1275,3 +1275,10 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
   .hanzi-writer-status{font-size:13px}
   .hanzi-writer-entry-btn{padding:5px 13px;font-size:13px}
 }
+
+/* Read-aloud feedback: the big hanzi glyph visibly pulses whenever the TTS hand-off fires,
+   so "tap did nothing" and "tap worked but no audio" are distinguishable at a glance. */
+.hanzi-glyph.speaking b{animation:hanziSpeakPulse .42s ease-in-out infinite alternate;color:#ff8c37}
+.hanzi-glyph.speaking small{background:#ffe6c7;color:#b45f1a;box-shadow:0 2px 0 rgba(180,95,26,.18)}
+@keyframes hanziSpeakPulse{from{transform:scale(1)}to{transform:scale(1.07)}}
+@media(prefers-reduced-motion:reduce){.hanzi-glyph.speaking b{animation:none}}

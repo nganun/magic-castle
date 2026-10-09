@@ -287,9 +287,14 @@ function nativeTtsCall(promise, ms) {
 function promptMissingChineseVoice(plugin, lang, error) {
   const code = error?.code || '';
   const engineProblem = code === 'ENGINE_UNAVAILABLE' || code === 'NATIVE_TTS_TIMEOUT';
-  showToast(engineProblem
-    ? '系统朗读引擎暂时不可用，汉字读不出声音。已打开语音设置，请检查或更换“文字转语音”引擎。'
-    : '这台设备缺少中文语音包，汉字暂时读不出声音。已为你打开语音下载页面，请下载“中文（简体）”后回到城堡再试一次。');
+  const silent = code === 'NATIVE_TTS_SILENT';
+  if (silent) {
+    showToast('汉字朗读没有发出声音。已打开语音设置：请重新下载“中文”语音，或换用其它朗读引擎。');
+  } else if (engineProblem) {
+    showToast('系统朗读引擎暂时不可用，汉字读不出声音。已打开语音设置，请检查或更换“文字转语音”引擎。');
+  } else {
+    showToast('这台设备缺少中文语音包，汉字暂时读不出声音。已为你打开语音下载页面，请下载“中文（简体）”后回到城堡再试一次。');
+  }
   if (requestedTtsLanguageInstall.has(lang)) return;
   requestedTtsLanguageInstall.add(lang);
   plugin?.openLanguageInstall?.().catch(() => {});
@@ -301,10 +306,17 @@ function speakWithNativeTts(text, options, onend, onUnavailable) {
   const fallback = () => onUnavailable?.() || finish();
   const languages = options.langCandidates || [options.lang];
   const baseOptions = { ...options }; delete baseOptions.langCandidates;
-  const start = (lang) => nativeTtsCall(
-    plugin.speak({ text, volume: 1, category: 'ambient', queueStrategy: 0, ...baseOptions, lang }),
-    9000
-  );
+  // A successful call that returns far too fast means the engine accepted the utterance but
+  // never actually voiced it (broken/missing voice data) — treat that as a failure, not success.
+  const start = (lang) => {
+    const startedAt = Date.now();
+    return nativeTtsCall(
+      plugin.speak({ text, volume: 1, category: 'ambient', queueStrategy: 0, ...baseOptions, lang }),
+      9000
+    ).then(() => {
+      if (Date.now() - startedAt < 400) return Promise.reject({ code: 'NATIVE_TTS_SILENT' });
+    });
+  };
   if (options.lang?.startsWith('zh')) {
     let lastError = null;
     const tryLanguage = (index) => {
@@ -1681,7 +1693,11 @@ function renderRound() {
       ? hanziLearnMarkup(game, recordingAction)
       : `<div class="learn-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${WORD_TRANSLATIONS[game.word] || game.word}`)}</div>${recordingAction}`;
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
-    $('#hanziSpeak')?.addEventListener('click', () => speakChinese(game.word));
+    $('#hanziSpeak')?.addEventListener('click', (event) => {
+      const glyph = event.currentTarget;
+      glyph.classList.add('speaking');
+      speakChinese(game.word, () => glyph.classList.remove('speaking'));
+    });
     $('#hanziSpellbookGroupBtn')?.addEventListener('click', openHanziGroupModal);
     $('#openHanziWriterBtn')?.addEventListener('click', () => openHanziWriter(game.word));
     $('#recordPractice')?.addEventListener('click', recordPractice);
