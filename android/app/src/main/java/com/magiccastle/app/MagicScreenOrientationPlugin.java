@@ -30,7 +30,7 @@ public class MagicScreenOrientationPlugin extends Plugin {
     @PluginMethod
     public void unlock(PluginCall call) {
         getActivity().runOnUiThread(() -> {
-            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
             WindowCompat.setDecorFitsSystemWindows(getActivity().getWindow(), true);
             WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(
                 getActivity().getWindow(), getActivity().getWindow().getDecorView()

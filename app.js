@@ -503,60 +503,295 @@ function renderArcade() {
   if (state.arcadeGameId === 'tictactoe') renderTicTacToeGame(area);
   if (['game2048', 'hanoi', 'klotski', 'sudoku', 'bulls'].includes(state.arcadeGameId)) renderVendorMiniGame(area, state.arcadeGameId);
 }
-function arcadeFrame(title, description, body) { return `<section class="arcade-play"><p class="section-kicker">${title}</p><h1>${description}</h1>${body}</section>`; }
+function arcadeLevelProgress(level, maxLevels) {
+  if (!level || !maxLevels) return '';
+  const dots = Array.from({ length: maxLevels }, (_, i) => `<i class="level-dot ${i < level ? 'done' : ''} ${i === level - 1 ? 'current' : ''}"></i>`).join('');
+  return `<div class="arcade-level-bar"><span class="arcade-level-badge">第 ${level} / ${maxLevels} 关</span><span class="arcade-level-dots" aria-hidden="true">${dots}</span></div>`;
+}
+function arcadeFrame(title, description, body, levelMeta = '') {
+  return `<section class="arcade-play"><div class="arcade-play-header"><div class="arcade-title-group"><p class="section-kicker">${title}</p><h1>${description}</h1></div>${levelMeta || ''}</div>${body}</section>`;
+}
 function bindArcadeBack() { /* Return to the arcade uses the global Magic Castle breadcrumb. */ }
-function finishArcadeRound(name, options) { completeArcadeGame(name, options); window.setTimeout(() => { state.arcadeState = null; state.arcadeGameId = ''; renderArcade(); }, 700); }
+function finishArcadeRound(name, options) {
+  triggerConfetti();
+  completeArcadeGame(name, options);
+  window.setTimeout(() => { state.arcadeState = null; state.arcadeGameId = ''; renderArcade(); }, 900);
+}
+const ARCADE_FALLBACK_PICTURES = [
+  { id: 'cat', label: '小猫', image: 'assets/learning/vocabulary/cat.svg' },
+  { id: 'dog', label: '小狗', image: 'assets/learning/vocabulary/dog.svg' },
+  { id: 'rabbit', label: '小兔子', image: 'assets/learning/vocabulary/rabbit.svg' },
+  { id: 'clap', label: '拍手', image: 'assets/learning/vocabulary/clap.svg' },
+  { id: 'dance', label: '跳舞', image: 'assets/learning/vocabulary/dance.svg' },
+  { id: 'jump', label: '跳跃', image: 'assets/learning/vocabulary/jump.svg' },
+  { id: 'one', label: '一', image: 'assets/learning/vocabulary/one.svg' },
+  { id: 'two', label: '二', image: 'assets/learning/vocabulary/two.svg' },
+  { id: 'three', label: '三', image: 'assets/learning/vocabulary/three.svg' },
+];
+const ARCADE_FALLBACK_COLORS = [
+  { id: 'red', label: '红色', image: 'assets/learning/vocabulary/red.svg', color: '#ef6274' },
+  { id: 'yellow', label: '黄色', image: 'assets/learning/vocabulary/yellow.svg', color: '#f4c952' },
+  { id: 'blue', label: '蓝色', image: 'assets/learning/vocabulary/blue.svg', color: '#75a8f0' },
+  { id: 'green', label: '绿色', image: 'assets/learning/vocabulary/rabbit.svg', color: '#48c269' },
+  { id: 'pink', label: '粉色', image: 'assets/learning/vocabulary/clap.svg', color: '#f06eb0' },
+  { id: 'purple', label: '紫色', image: 'assets/learning/vocabulary/dance.svg', color: '#8d5cd6' },
+  { id: 'orange', label: '橙色', image: 'assets/learning/vocabulary/jump.svg', color: '#ff8c37' },
+  { id: 'sky', label: '天蓝', image: 'assets/learning/vocabulary/cat.svg', color: '#3ec9f5' },
+];
+function getArcadeMemoryDeck(pairCount = 2) {
+  let deck = null;
+  try { deck = createMemoryDeck(pairCount); } catch {}
+  if (deck && deck.length === pairCount * 2) return deck;
+  const count = Math.max(2, Math.min(pairCount, ARCADE_FALLBACK_PICTURES.length));
+  const pool = [...ARCADE_FALLBACK_PICTURES].sort(() => Math.random() - 0.5).slice(0, count);
+  return [...pool, ...pool].sort(() => Math.random() - 0.5).map((item, index) => ({ ...item, cardId: `${item.id}-${index}` }));
+}
+function getArcadeListeningRound(choiceCount = 2) {
+  let round = null;
+  try { round = createListeningRound(choiceCount); } catch {}
+  if (round && round.choices?.length === choiceCount) return round;
+  const count = Math.max(2, Math.min(choiceCount, ARCADE_FALLBACK_PICTURES.length));
+  const choices = [...ARCADE_FALLBACK_PICTURES].sort(() => Math.random() - 0.5).slice(0, count);
+  const answer = choices[Math.floor(Math.random() * choices.length)];
+  return { answer, choices };
+}
+function getArcadeColorRound(choiceCount = 2) {
+  let round = null;
+  try { round = createColorRound(choiceCount); } catch {}
+  if (round && round.choices?.length === choiceCount) return round;
+  const count = Math.max(2, Math.min(choiceCount, ARCADE_FALLBACK_COLORS.length));
+  const choices = [...ARCADE_FALLBACK_COLORS].sort(() => Math.random() - 0.5).slice(0, count);
+  const answer = choices[Math.floor(Math.random() * choices.length)];
+  return { answer, choices };
+}
 function renderMemoryGame(area) {
-  if (!state.arcadeState) state.arcadeState = { deck: createMemoryDeck(), open: [], matched: [] };
+  const MAX_LEVELS = 5;
+  if (!state.arcadeState) {
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, deck: getArcadeMemoryDeck(2), open: [], matched: [] };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('魔法翻翻乐', '翻开两张一样的卡片', `<div class="memory-grid">${game.deck.map((card, index) => { const visible = game.open.includes(index) || game.matched.includes(card.id); return `<button class="memory-card ${visible ? 'open' : ''} ${game.matched.includes(card.id) ? 'matched' : ''}" type="button" data-memory-index="${index}" ${visible ? 'disabled' : ''}>${visible ? `<img src="${card.image}" alt="${card.label}" /><span>${card.label}</span>` : '<b>✦</b>'}</button>`; }).join('')}</div>`);
+  const pairGoal = Math.floor(game.deck.length / 2);
+  area.innerHTML = arcadeFrame(
+    '魔法翻翻乐',
+    `翻开两张相同的卡片 (${game.matched.length} / ${pairGoal} 对)`,
+    `<div class="memory-grid memory-pairs-${pairGoal}">${game.deck.map((card, index) => {
+      const visible = game.open.includes(index) || game.matched.includes(card.id);
+      return `<button class="memory-card ${visible ? 'open' : ''} ${game.matched.includes(card.id) ? 'matched' : ''}" type="button" data-memory-index="${index}" ${visible ? 'disabled' : ''}>${visible ? `<img src="${card.image}" alt="${card.label}" /><span>${card.label}</span>` : '<b>✦</b>'}</button>`;
+    }).join('')}</div>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
   bindArcadeBack();
   $$('[data-memory-index]', area).forEach((button) => button.addEventListener('click', () => {
-    const index = Number(button.dataset.memoryIndex); game.open.push(index); renderMemoryGame(area);
+    const index = Number(button.dataset.memoryIndex);
+    game.open.push(index);
+    renderMemoryGame(area);
     if (game.open.length !== 2) return;
-    const [first, second] = game.open; const isMatch = game.deck[first].id === game.deck[second].id;
-    window.setTimeout(() => { if (isMatch) game.matched.push(game.deck[first].id); game.open = []; if (game.matched.length === 3) { finishArcadeRound('魔法翻翻乐'); return; } renderArcade(); }, 650);
+    const [first, second] = game.open;
+    const isMatch = game.deck[first].id === game.deck[second].id;
+    window.setTimeout(() => {
+      if (isMatch) {
+        game.matched.push(game.deck[first].id);
+        game.open = [];
+        const currentGoal = Math.floor(game.deck.length / 2);
+        if (game.matched.length >= currentGoal) {
+          if (game.level < game.maxLevels) {
+            game.level += 1;
+            const nextPairs = Math.min(2 + (game.level - 1), 6);
+            game.deck = getArcadeMemoryDeck(nextPairs);
+            game.matched = [];
+            game.open = [];
+            showToast(`🎉 第 ${game.level - 1} 关完成！进入第 ${game.level} 关（${nextPairs} 对卡片）`);
+            renderMemoryGame(area);
+            return;
+          }
+          finishArcadeRound('魔法翻翻乐');
+          return;
+        }
+      } else {
+        game.open = [];
+      }
+      renderMemoryGame(area);
+    }, 600);
   }));
 }
 function renderListeningGame(area) {
-  if (!state.arcadeState) state.arcadeState = createListeningRound();
+  const MAX_LEVELS = 5;
+  if (!state.arcadeState) {
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...getArcadeListeningRound(2) };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('听音找一找', '听一听，找到正确图片', `<button class="arcade-listen" id="arcadeListen" type="button">再听一遍 <span>R</span></button><div class="arcade-picture-choices">${game.choices.map((item) => `<button type="button" data-arcade-choice="${item.id}"><img src="${item.image}" alt="${item.label}" /><b>${item.label}</b></button>`).join('')}</div>`);
-  const replay = () => speak(game.answer.id); $('#arcadeListen').addEventListener('click', replay); window.setTimeout(replay, 120); bindArcadeBack();
-  $$('[data-arcade-choice]', area).forEach((button) => button.addEventListener('click', () => { if (button.dataset.arcadeChoice === game.answer.id) { button.classList.add('correct'); finishArcadeRound('听音找一找'); } else { button.classList.add('wrong'); button.disabled = true; } }));
+  area.innerHTML = arcadeFrame(
+    '听音找一找',
+    '听一听，找到正确图片',
+    `<button class="arcade-listen" id="arcadeListen" type="button">再听一遍 <span>R</span></button><div class="arcade-picture-choices">${game.choices.map((item) => `<button type="button" data-arcade-choice="${item.id}"><img src="${item.image}" alt="${item.label}" /><b>${item.label}</b></button>`).join('')}</div>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
+  const replay = () => speak(game.answer.id);
+  $('#arcadeListen').addEventListener('click', replay);
+  window.setTimeout(replay, 120);
+  bindArcadeBack();
+  $$('[data-arcade-choice]', area).forEach((button) => button.addEventListener('click', () => {
+    if (button.dataset.arcadeChoice === game.answer.id) {
+      button.classList.add('correct');
+      window.setTimeout(() => {
+        if (game.level < game.maxLevels) {
+          game.level += 1;
+          const choiceCount = Math.min(2 + (game.level - 1), 6);
+          const nextRound = getArcadeListeningRound(choiceCount);
+          game.answer = nextRound.answer;
+          game.choices = nextRound.choices;
+          showToast(`🌟 第 ${game.level - 1} 关答对！进入第 ${game.level} 关（${choiceCount} 个选项）`);
+          renderListeningGame(area);
+          return;
+        }
+        finishArcadeRound('听音找一找');
+      }, 500);
+    } else {
+      button.classList.add('wrong');
+      button.disabled = true;
+    }
+  }));
 }
 function renderNumberGame(area) {
-  if (!state.arcadeState) state.arcadeState = createNumberRound();
+  const MAX_LEVELS = 5;
+  if (!state.arcadeState) {
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...createNumberRound(1) };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('数字泡泡', `找到数字 ${game.answer}`, `<div class="number-bubbles">${game.choices.map((number) => `<button class="number-bubble bubble-${number}" type="button" data-number-choice="${number}">${number}</button>`).join('')}</div>`);
-  bindArcadeBack(); window.setTimeout(() => speak(String(game.answer)), 120);
-  $$('[data-number-choice]', area).forEach((button) => button.addEventListener('click', () => { if (Number(button.dataset.numberChoice) === game.answer) { button.classList.add('correct'); finishArcadeRound('数字泡泡'); } else { button.classList.add('wrong'); button.disabled = true; } }));
+  area.innerHTML = arcadeFrame(
+    '数字泡泡',
+    `找到数字 ${game.answer}`,
+    `<div class="number-bubbles">${game.choices.map((number) => `<button class="number-bubble bubble-${number % 10}" type="button" data-number-choice="${number}">${number}</button>`).join('')}</div>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
+  bindArcadeBack();
+  window.setTimeout(() => speak(String(game.answer)), 120);
+  $$('[data-number-choice]', area).forEach((button) => button.addEventListener('click', () => {
+    if (Number(button.dataset.numberChoice) === game.answer) {
+      button.classList.add('correct');
+      window.setTimeout(() => {
+        if (game.level < game.maxLevels) {
+          game.level += 1;
+          const nextRound = createNumberRound(game.level);
+          game.answer = nextRound.answer;
+          game.choices = nextRound.choices;
+          showToast(`🎈 第 ${game.level - 1} 关点破！进入第 ${game.level} 关`);
+          renderNumberGame(area);
+          return;
+        }
+        finishArcadeRound('数字泡泡');
+      }, 500);
+    } else {
+      button.classList.add('wrong');
+      button.disabled = true;
+    }
+  }));
 }
 function renderColorGame(area) {
-  if (!state.arcadeState) state.arcadeState = createColorRound();
+  const MAX_LEVELS = 5;
+  if (!state.arcadeState) {
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...getArcadeColorRound(2) };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('颜色魔法', '听到颜色后，点中正确魔法色', `<button class="arcade-listen" id="arcadeColorListen" type="button">再听一遍 <span>R</span></button><div class="arcade-color-choices">${game.choices.map((item) => `<button style="--arcade-color:${item.color}" type="button" data-color-choice="${item.id}"><i></i><b>${item.label}</b></button>`).join('')}</div>`);
-  const replay = () => speak(game.answer.id); $('#arcadeColorListen').addEventListener('click', replay); window.setTimeout(replay, 120); bindArcadeBack();
-  $$('[data-color-choice]', area).forEach((button) => button.addEventListener('click', () => { if (button.dataset.colorChoice === game.answer.id) { button.classList.add('correct'); finishArcadeRound('颜色魔法'); } else { button.classList.add('wrong'); button.disabled = true; } }));
+  area.innerHTML = arcadeFrame(
+    '颜色魔法',
+    '听到颜色后，点中正确魔法色',
+    `<button class="arcade-listen" id="arcadeColorListen" type="button">再听一遍 <span>R</span></button><div class="arcade-color-choices">${game.choices.map((item) => `<button style="--arcade-color:${item.color}" type="button" data-color-choice="${item.id}"><i></i><b>${item.label}</b></button>`).join('')}</div>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
+  const replay = () => speak(game.answer.id);
+  $('#arcadeColorListen').addEventListener('click', replay);
+  window.setTimeout(replay, 120);
+  bindArcadeBack();
+  $$('[data-color-choice]', area).forEach((button) => button.addEventListener('click', () => {
+    if (button.dataset.colorChoice === game.answer.id) {
+      button.classList.add('correct');
+      window.setTimeout(() => {
+        if (game.level < game.maxLevels) {
+          game.level += 1;
+          const choiceCount = Math.min(2 + (game.level - 1), 6);
+          const nextRound = getArcadeColorRound(choiceCount);
+          game.answer = nextRound.answer;
+          game.choices = nextRound.choices;
+          showToast(`✨ 第 ${game.level - 1} 关点中！进入第 ${game.level} 关（${choiceCount} 种颜色）`);
+          renderColorGame(area);
+          return;
+        }
+        finishArcadeRound('颜色魔法');
+      }, 500);
+    } else {
+      button.classList.add('wrong');
+      button.disabled = true;
+    }
+  }));
 }
 function renderRhythmGame(area) {
-  if (!state.arcadeState) state.arcadeState = { sequence: [nextRhythmColor(), nextRhythmColor(), nextRhythmColor()], input: [], round: 1, showing: true };
+  const MAX_LEVELS = 5;
+  if (!state.arcadeState) {
+    const seqLen = 3;
+    state.arcadeState = {
+      level: 1,
+      maxLevels: MAX_LEVELS,
+      sequence: Array.from({ length: seqLen }, () => nextRhythmColor()),
+      input: [],
+      showing: true,
+    };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('星星节奏', game.showing ? '看一看，记住闪亮顺序' : `第 ${game.round} 轮，跟着点一遍`, `<div class="rhythm-grid">${['violet', 'gold', 'sky', 'pink'].map((color) => `<button class="rhythm-pad ${color}" type="button" data-rhythm-color="${color}" ${game.showing ? 'disabled' : ''}></button>`).join('')}</div><p class="rhythm-copy">${game.showing ? '魔法星星正在闪亮…' : `已经点了 ${game.input.length} / ${game.sequence.length} 个`}</p>`);
+  const speed = Math.max(220, 460 - (game.level - 1) * 55);
+  area.innerHTML = arcadeFrame(
+    '星星节奏',
+    game.showing ? `记住 ${game.sequence.length} 颗闪亮顺序 (速度 Lv.${game.level})` : `按记忆依序点击 (${game.input.length} / ${game.sequence.length})`,
+    `<div class="rhythm-grid">${['violet', 'gold', 'sky', 'pink'].map((color) => `<button class="rhythm-pad ${color}" type="button" data-rhythm-color="${color}" ${game.showing ? 'disabled' : ''}></button>`).join('')}</div><p class="rhythm-copy">${game.showing ? '魔法星星正在闪烁…' : `已经点了 ${game.input.length} / ${game.sequence.length} 颗`}</p>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
   bindArcadeBack();
   const pads = (color) => $$('.rhythm-pad', area).filter((button) => button.dataset.rhythmColor === color);
   if (game.showing) {
     let index = 0;
-    const flash = () => { if (index >= game.sequence.length) { game.showing = false; renderRhythmGame(area); return; } const pad = pads(game.sequence[index])[0]; pad?.classList.add('flash'); arcadeSequenceTimer = window.setTimeout(() => { pad?.classList.remove('flash'); index += 1; arcadeSequenceTimer = window.setTimeout(flash, 180); }, 420); };
-    arcadeSequenceTimer = window.setTimeout(flash, 500); return;
+    const flash = () => {
+      if (index >= game.sequence.length) {
+        game.showing = false;
+        renderRhythmGame(area);
+        return;
+      }
+      const pad = pads(game.sequence[index])[0];
+      pad?.classList.add('flash');
+      arcadeSequenceTimer = window.setTimeout(() => {
+        pad?.classList.remove('flash');
+        index += 1;
+        arcadeSequenceTimer = window.setTimeout(flash, Math.floor(speed * 0.45));
+      }, speed);
+    };
+    arcadeSequenceTimer = window.setTimeout(flash, 500);
+    return;
   }
   $$('[data-rhythm-color]', area).forEach((button) => button.addEventListener('click', () => {
-    const color = button.dataset.rhythmColor; const expected = game.sequence[game.input.length];
-    if (color !== expected) { button.classList.add('wrong'); game.input = []; window.setTimeout(() => { game.showing = true; renderRhythmGame(area); }, 500); return; }
-    button.classList.add('flash'); game.input.push(color);
+    const color = button.dataset.rhythmColor;
+    const expected = game.sequence[game.input.length];
+    if (color !== expected) {
+      button.classList.add('wrong');
+      game.input = [];
+      showToast('顺序不对哦，再看一遍！');
+      window.setTimeout(() => {
+        game.showing = true;
+        renderRhythmGame(area);
+      }, 550);
+      return;
+    }
+    button.classList.add('flash');
+    game.input.push(color);
     if (game.input.length === game.sequence.length) {
-      if (game.round >= 3) { finishArcadeRound('星星节奏', { rhythmScore: game.sequence.length }); return; }
-      game.round += 1; game.sequence.push(nextRhythmColor()); game.input = []; window.setTimeout(() => { game.showing = true; renderRhythmGame(area); }, 500);
+      if (game.level < game.maxLevels) {
+        game.level += 1;
+        game.sequence = Array.from({ length: 2 + game.level }, () => nextRhythmColor());
+        game.input = [];
+        game.showing = true;
+        showToast(`🎶 第 ${game.level - 1} 关通关！进入第 ${game.level} 关（${game.sequence.length} 颗星，更快）`);
+        window.setTimeout(() => renderRhythmGame(area), 600);
+        return;
+      }
+      finishArcadeRound('星星节奏', { rhythmScore: game.sequence.length });
     }
   }));
 }
@@ -574,21 +809,65 @@ function arrowMoveResult(arrow, arrows, size) {
   return { blocked: false, steps, dx: delta[1], dy: delta[0] };
 }
 function renderArrowGame(area) {
-  if (!state.arcadeState) state.arcadeState = { size: ARCADE_BOARD_SIZE, arrows: createArrowBoard(ARCADE_BOARD_SIZE), cleared: 0, failures: 0, moving: null };
+  const MAX_LEVELS = 3;
+  if (!state.arcadeState) {
+    const size = 3;
+    state.arcadeState = {
+      level: 1,
+      maxLevels: MAX_LEVELS,
+      size,
+      arrows: createArrowBoard(size),
+      cleared: 0,
+      failures: 0,
+      moving: null
+    };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('箭头快跑', '点击箭头，让它冲向边框', `${arcadeStatus([['剩余', game.arrows.length, 'violet'], ['已消除', game.cleared, 'sky'], ['失误', `${game.failures}/3`, game.failures ? 'pink' : 'gold']])}<div class="arrow-grid" style="--arrow-grid:${game.size}">${game.arrows.map((arrow) => { const moving = game.moving?.id === arrow.id; const movement = moving ? game.moving : null; return `<button class="arrow-tile ${moving ? `moving ${movement.blocked ? 'blocked-move' : 'exit-move'}` : ''}" type="button" data-arrow-id="${arrow.id}" style="--arrow-move-x:${movement ? movement.dx * movement.steps * 100 : 0}%;--arrow-move-y:${movement ? movement.dy * movement.steps * 100 : 0}%"><span>${{ up: '↑', down: '↓', left: '←', right: '→' }[arrow.direction]}</span></button>`; }).join('')}</div><p class="arcade-rule">箭头会沿方向移动：碰到其它箭头算失误，成功冲出边框才会消除。</p>`);
+  area.innerHTML = arcadeFrame(
+    '箭头快跑',
+    `点击箭头冲向边框 (${game.size}×${game.size} 棋盘)`,
+    `${arcadeStatus([['剩余', game.arrows.length, 'violet'], ['已消除', game.cleared, 'sky'], ['失误', `${game.failures}/3`, game.failures ? 'pink' : 'gold']])}<div class="arrow-grid" style="--arrow-grid:${game.size}">${game.arrows.map((arrow) => {
+      const moving = game.moving?.id === arrow.id;
+      const movement = moving ? game.moving : null;
+      return `<button class="arrow-tile ${moving ? `moving ${movement.blocked ? 'blocked-move' : 'exit-move'}` : ''}" type="button" data-arrow-id="${arrow.id}" style="--arrow-move-x:${movement ? movement.dx * movement.steps * 100 : 0}%;--arrow-move-y:${movement ? movement.dy * movement.steps * 100 : 0}%"><span>${{ up: '↑', down: '↓', left: '←', right: '→' }[arrow.direction]}</span></button>`;
+    }).join('')}</div><p class="arcade-rule">箭头会沿方向移动：碰到其它箭头算失误，成功冲出边框才会消除。</p>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
   bindArcadeBack();
   $$('[data-arrow-id]', area).forEach((button) => button.addEventListener('click', () => {
     if (game.moving) return;
-    const arrow = game.arrows.find((item) => item.id === button.dataset.arrowId); const movement = arrowMoveResult(arrow, game.arrows, game.size);
-    game.moving = { id: arrow.id, ...movement }; renderArrowGame(area);
+    const arrow = game.arrows.find((item) => item.id === button.dataset.arrowId);
+    const movement = arrowMoveResult(arrow, game.arrows, game.size);
+    game.moving = { id: arrow.id, ...movement };
+    renderArrowGame(area);
     window.setTimeout(() => {
       if (movement.blocked) {
         game.failures += 1;
-        if (game.failures >= 3) { state.arcadeState = null; showToast('撞到其它箭头了，本局结束！'); renderArcade(); return; }
-      } else { game.arrows = game.arrows.filter((item) => item.id !== arrow.id); game.cleared += 1; }
+        if (game.failures >= 3) {
+          state.arcadeState = null;
+          showToast('撞到其它箭头了，本局重试！');
+          renderArcade();
+          return;
+        }
+      } else {
+        game.arrows = game.arrows.filter((item) => item.id !== arrow.id);
+        game.cleared += 1;
+      }
       game.moving = null;
-      if (!movement.blocked && !game.arrows.length) { finishArcadeRound('箭头快跑', { arrowScore: game.cleared }); return; }
+      if (!movement.blocked && !game.arrows.length) {
+        if (game.level < game.maxLevels) {
+          game.level += 1;
+          const nextSize = game.level === 2 ? 4 : 5;
+          game.size = nextSize;
+          game.arrows = createArrowBoard(nextSize);
+          game.failures = 0;
+          showToast(`🎯 第 ${game.level - 1} 关全部冲出！进入第 ${game.level} 关（${nextSize}×${nextSize} 棋盘）`);
+          renderArrowGame(area);
+          return;
+        }
+        finishArcadeRound('箭头快跑', { arrowScore: game.cleared });
+        return;
+      }
       renderArrowGame(area);
     }, 420);
   }));
@@ -613,13 +892,20 @@ const VENDOR_MINI_GAMES = {
 let fruitOrientationLocked = false;
 function nativeScreenOrientation() { return window.Capacitor?.Plugins?.MagicScreenOrientation; }
 async function releaseFruitOrientation() {
+  document.body.classList.remove('fruit-landscape-mode');
   const fruitFrame = $('[data-fruit-game-frame]');
-  fruitFrame?.contentWindow?.postMessage({ type: 'magic-castle:fruit-landscape-release' }, location.origin);
-  if (!fruitOrientationLocked) return;
-  fruitOrientationLocked = false;
-  try { await nativeScreenOrientation()?.unlock(); } catch { /* The browser may not expose the native bridge. */ }
+  fruitFrame?.contentWindow?.postMessage({ type: 'magic-castle:fruit-landscape-release' }, '*');
+  if (fruitOrientationLocked) {
+    fruitOrientationLocked = false;
+    try { await nativeScreenOrientation()?.unlock(); } catch {}
+    try { screen.orientation?.unlock?.(); } catch {}
+  }
+  if (document.fullscreenElement && document.exitFullscreen) {
+    try { await document.exitFullscreen(); } catch {}
+  }
 }
 async function lockFruitOrientation(source) {
+  document.body.classList.add('fruit-landscape-mode');
   let locked = false;
   try {
     const plugin = nativeScreenOrientation();
@@ -628,14 +914,25 @@ async function lockFruitOrientation(source) {
       fruitOrientationLocked = true;
       locked = true;
     }
-  } catch { /* The embedded game retains its browser fullscreen/rotation fallback. */ }
-  source?.postMessage({ type: 'magic-castle:fruit-landscape-result', locked }, location.origin);
+  } catch {}
+  try {
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock('landscape');
+      fruitOrientationLocked = true;
+      locked = true;
+    }
+  } catch {}
+  locked = true;
+  source?.postMessage({ type: 'magic-castle:fruit-landscape-result', locked: true }, '*');
 }
 window.addEventListener('message', (event) => {
-  if (event.origin !== location.origin) return;
   const fruitFrame = $('[data-fruit-game-frame]');
-  if (fruitFrame?.contentWindow !== event.source) return;
-  if (event.data?.type === 'magic-castle:fruit-landscape-request') lockFruitOrientation(event.source);
+  if (event.data?.type === 'magic-castle:fruit-landscape-request') {
+    lockFruitOrientation(event.source);
+  }
   if (event.data?.type === 'magic-castle:fruit-exit-request') {
     releaseFruitOrientation();
     if (state.screen === 'arcade' && state.arcadeGameId === 'fruit') {
@@ -660,26 +957,101 @@ function toggleLights(board, index, size = 4) {
   [[row, col], [row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1]].forEach(([r, c]) => { if (r >= 0 && r < size && c >= 0 && c < size) board[r * size + c] = !board[r * size + c]; });
 }
 function renderLightsGame(area) {
-  if (!state.arcadeState) state.arcadeState = { size: 4, board: createLightsBoard(4), moves: 0 };
+  const MAX_LEVELS = 3;
+  if (!state.arcadeState) {
+    const size = 3;
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, size, board: createLightsBoard(size), moves: 0 };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('点灯游戏', `熄灭全部灯光 · ${game.size}×${game.size}`, `<div class="lights-difficulty" role="group" aria-label="点灯游戏难度"><button type="button" class="${game.size === 4 ? 'active' : ''}" data-light-size="4">入门 4×4</button><button type="button" class="${game.size === 5 ? 'active' : ''}" data-light-size="5">普通 5×5</button><button type="button" class="${game.size === 6 ? 'active' : ''}" data-light-size="6">挑战 6×6</button></div>${arcadeStatus([['还亮', game.board.filter(Boolean).length, 'gold'], ['步数', game.moves, 'violet']])}<div class="lights-grid" style="--lights-grid:${game.size}">${game.board.map((on, index) => `<button class="light-tile ${on ? 'on' : ''}" type="button" data-light-index="${index}"><i></i></button>`).join('')}</div><p class="arcade-rule">点击一格会翻转自己和上下左右，熄灭全部灯光即可完成。</p>`);
+  area.innerHTML = arcadeFrame(
+    '点灯游戏',
+    `熄灭全部灯光 · ${game.size}×${game.size}`,
+    `<div class="lights-difficulty" role="group" aria-label="点灯游戏难度"><button type="button" class="${game.level === 1 ? 'active' : ''}" data-light-level="1">第 1 关 3×3</button><button type="button" class="${game.level === 2 ? 'active' : ''}" data-light-level="2">第 2 关 4×4</button><button type="button" class="${game.level === 3 ? 'active' : ''}" data-light-level="3">第 3 关 5×5</button></div>${arcadeStatus([['还亮', game.board.filter(Boolean).length, 'gold'], ['步数', game.moves, 'violet']])}<div class="lights-grid" style="--lights-grid:${game.size}">${game.board.map((on, index) => `<button class="light-tile ${on ? 'on' : ''}" type="button" data-light-index="${index}"><i></i></button>`).join('')}</div><p class="arcade-rule">点击一格会翻转自己和上下左右，熄灭全部灯光即可通关。</p>`,
+    arcadeLevelProgress(game.level, game.maxLevels)
+  );
   bindArcadeBack();
-  $$('[data-light-size]', area).forEach((button) => button.addEventListener('click', () => { const size = Number(button.dataset.lightSize); state.arcadeState = { size, board: createLightsBoard(size), moves: 0 }; renderLightsGame(area); }));
-  $$('[data-light-index]', area).forEach((button) => button.addEventListener('click', () => { toggleLights(game.board, Number(button.dataset.lightIndex), game.size); game.moves += 1; if (game.board.every((light) => !light)) { finishArcadeRound('点灯游戏'); return; } renderLightsGame(area); }));
+  $$('[data-light-level]', area).forEach((button) => button.addEventListener('click', () => {
+    const level = Number(button.dataset.lightLevel);
+    const size = level === 1 ? 3 : level === 2 ? 4 : 5;
+    state.arcadeState = { level, maxLevels: MAX_LEVELS, size, board: createLightsBoard(size), moves: 0 };
+    renderLightsGame(area);
+  }));
+  $$('[data-light-index]', area).forEach((button) => button.addEventListener('click', () => {
+    toggleLights(game.board, Number(button.dataset.lightIndex), game.size);
+    game.moves += 1;
+    if (game.board.every((light) => !light)) {
+      if (game.level < game.maxLevels) {
+        game.level += 1;
+        const nextSize = game.level === 2 ? 4 : 5;
+        game.size = nextSize;
+        game.board = createLightsBoard(nextSize);
+        game.moves = 0;
+        showToast(`💡 第 ${game.level - 1} 关全部熄灭！进入第 ${game.level} 关（${nextSize}×${nextSize}）`);
+        renderLightsGame(area);
+        return;
+      }
+      finishArcadeRound('点灯游戏');
+      return;
+    }
+    renderLightsGame(area);
+  }));
 }
 function ticWinner(board, mark) { const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; return lines.some((line) => line.every((index) => board[index] === mark)); }
 function renderTicTacToeGame(area) {
-  if (!state.arcadeState) state.arcadeState = { board: Array(9).fill(''), turn: 'X', message: '轮到你了' };
+  const MAX_LEVELS = 3;
+  if (!state.arcadeState) {
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, wins: 0, board: Array(9).fill(''), turn: 'X', message: '轮到你了' };
+  }
   const game = state.arcadeState;
-  area.innerHTML = arcadeFrame('井字棋', game.message, `<div class="tic-grid">${game.board.map((mark, index) => `<button class="tic-cell ${mark ? `mark-${mark}` : ''}" type="button" data-tic-index="${index}" ${mark || game.turn !== 'X' ? 'disabled' : ''}>${mark}</button>`).join('')}</div><p class="arcade-rule">你是 X，露娜是 O。先连成三个就赢啦。</p>`);
+  area.innerHTML = arcadeFrame(
+    '井字棋',
+    `${game.message} (已胜 ${game.wins} / 3 局)`,
+    `<div class="tic-grid">${game.board.map((mark, index) => `<button class="tic-cell ${mark ? `mark-${mark}` : ''}" type="button" data-tic-index="${index}" ${mark || game.turn !== 'X' ? 'disabled' : ''}>${mark}</button>`).join('')}</div><p class="arcade-rule">你是 X，露娜是 O。胜出 3 局即可通关。</p>`,
+    arcadeLevelProgress(game.wins + 1, game.maxLevels)
+  );
   bindArcadeBack();
   $$('[data-tic-index]', area).forEach((button) => button.addEventListener('click', () => {
     const index = Number(button.dataset.ticIndex); game.board[index] = 'X';
-    if (ticWinner(game.board, 'X')) { game.message = '你赢啦！'; finishArcadeRound('井字棋'); return; }
-    const empty = game.board.map((value, i) => value ? null : i).filter((value) => value !== null); if (!empty.length) { game.message = '平局，再来一局吧！'; window.setTimeout(() => { state.arcadeState = null; renderArcade(); }, 700); return; }
+    if (ticWinner(game.board, 'X')) {
+      game.wins += 1;
+      if (game.wins >= 3) {
+        game.message = '三局连胜！通关啦！';
+        finishArcadeRound('井字棋');
+        return;
+      }
+      game.message = `你赢了这一局！(已胜 ${game.wins}/3)`;
+      showToast(`🏆 赢下第 ${game.wins} 局！`);
+      window.setTimeout(() => {
+        game.board = Array(9).fill('');
+        game.turn = 'X';
+        game.message = '新的一局，轮到你了';
+        renderTicTacToeGame(area);
+      }, 900);
+      return;
+    }
+    const empty = game.board.map((value, i) => value ? null : i).filter((value) => value !== null);
+    if (!empty.length) {
+      game.message = '平局，再来一局吧！';
+      window.setTimeout(() => {
+        game.board = Array(9).fill('');
+        game.turn = 'X';
+        game.message = '轮到你了';
+        renderTicTacToeGame(area);
+      }, 800);
+      return;
+    }
     const winMove = (mark) => empty.find((candidate) => { game.board[candidate] = mark; const win = ticWinner(game.board, mark); game.board[candidate] = ''; return win; });
     const ai = winMove('O') ?? winMove('X') ?? empty[Math.floor(Math.random() * empty.length)]; game.board[ai] = 'O';
-    if (ticWinner(game.board, 'O')) { game.message = '露娜赢啦，再试一次！'; window.setTimeout(() => { state.arcadeState = null; renderArcade(); }, 700); return; }
+    if (ticWinner(game.board, 'O')) {
+      game.message = '露娜赢啦，再试一次！';
+      window.setTimeout(() => {
+        game.board = Array(9).fill('');
+        game.turn = 'X';
+        game.message = '加油，轮到你了';
+        renderTicTacToeGame(area);
+      }, 900);
+      return;
+    }
     renderTicTacToeGame(area);
   }));
 }

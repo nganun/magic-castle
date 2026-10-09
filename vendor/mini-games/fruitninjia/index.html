@@ -67,7 +67,7 @@
   function isLandscape() { return window.innerWidth > window.innerHeight; }
   function tellHost() {
     if (window.parent === window) return;
-    window.parent.postMessage({ type: 'magic-castle:fruit-landscape-request' }, window.location.origin);
+    window.parent.postMessage({ type: 'magic-castle:fruit-landscape-request' }, '*');
   }
   async function requestLandscape() {
     tellHost();
@@ -79,27 +79,33 @@
       }
       if (screen.orientation && screen.orientation.lock) {
         await screen.orientation.lock('landscape');
-        setLandscapeStatus('已请求横屏模式；退出全屏即可返回。');
+        setLandscapeStatus('已切换为横屏模式。');
       } else if (fullscreenRequested) {
         setLandscapeStatus('已进入全屏，请旋转设备获得更宽画面。');
       } else {
-        setLandscapeStatus('请旋转设备；当前浏览器不能自动切换横屏。');
+        setLandscapeStatus('已请求横屏模式。');
       }
     } catch (error) {
-      setLandscapeStatus(isLandscape() ? '当前已经是横向画面。' : '请旋转设备；当前浏览器不能自动切换横屏。');
+      setLandscapeStatus(isLandscape() ? '当前已经是横向画面。' : '请旋转设备或点击横屏。');
     }
   }
   function leaveGame() {
-    screen.orientation?.unlock?.();
+    try { screen.orientation?.unlock?.(); } catch (e) {}
     if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
-    if (window.parent !== window) window.parent.postMessage({ type: 'magic-castle:fruit-exit-request' }, window.location.origin);
+    if (window.parent !== window) window.parent.postMessage({ type: 'magic-castle:fruit-exit-request' }, '*');
   }
   hint.addEventListener('click', requestLandscape);
   back.addEventListener('click', leaveGame);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(function () {
+      fitFruitNinja();
+      if (isLandscape()) setLandscapeStatus('已是横屏画面。');
+    }, 100);
+  });
   window.addEventListener('message', function (event) {
-    if (event.origin !== window.location.origin) return;
     if (event.data?.type === 'magic-castle:fruit-landscape-result' && event.data.locked) {
       setLandscapeStatus('已切换为横屏模式。');
+      setTimeout(fitFruitNinja, 100);
     }
     if (event.data?.type === 'magic-castle:fruit-landscape-release') leaveGame();
   });

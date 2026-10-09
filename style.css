@@ -962,8 +962,97 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* Give the other original dark-game frames 20% more room than their current compact height. */
 .vendor-bulls iframe,.vendor-sudoku iframe,.vendor-klotski iframe,.vendor-hanoi iframe,.vendor-game2048 iframe{height:min(76.8dvh,672px);min-height:504px}@media(max-width:600px){.vendor-bulls iframe,.vendor-sudoku iframe,.vendor-klotski iframe,.vendor-hanoi iframe,.vendor-game2048 iframe{height:min(81.6dvh,648px);min-height:600px}}
 
-/* Fruit slicing benefits from horizontal room; keep the original canvas large when the device rotates. */
-@media(orientation:landscape) and (max-height:600px){.vendor-fruit iframe{height:calc(100dvh - 155px);min-height:430px}.arcade-layout{padding-top:10px;padding-bottom:10px}.arcade-play>.section-kicker{margin-top:8px}.arcade-play>h1{font-size:23px}}
+/* Fruit slicing benefits from horizontal room; provide immersive full-screen coverage when landscape mode is active. */
+body.fruit-landscape-mode .topbar,
+body.fruit-landscape-mode .bottom-nav{display:none!important}
+body.fruit-landscape-mode main{padding:0!important;margin:0!important;height:100dvh!important;max-height:100dvh!important}
+body.fruit-landscape-mode .arcade-layout{padding:0!important;margin:0!important;height:100dvh!important}
+body.fruit-landscape-mode .arcade-play{padding:0!important;margin:0!important;height:100dvh!important;display:flex!important;flex-direction:column!important}
+body.fruit-landscape-mode .arcade-play>.section-kicker,
+body.fruit-landscape-mode .arcade-play>h1{display:none!important}
+body.fruit-landscape-mode .mini-game-frame.vendor-fruit{width:100vw!important;height:100dvh!important;max-width:100vw!important;margin:0!important;border-radius:0!important;border:none!important;flex:1 1 100%!important}
+body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;border-radius:0!important}
+
+@media(orientation:landscape) and (max-height:600px){
+  body:has(.vendor-fruit) .topbar,
+  body:has(.vendor-fruit) .bottom-nav{display:none!important}
+  body:has(.vendor-fruit) .arcade-play>.section-kicker,
+  body:has(.vendor-fruit) .arcade-play>h1{display:none!important}
+  body:has(.vendor-fruit) main,
+  body:has(.vendor-fruit) .arcade-layout,
+  body:has(.vendor-fruit) .arcade-play{padding:0!important;margin:0!important;height:100dvh!important}
+  .vendor-fruit iframe{height:100dvh!important;min-height:0!important;width:100vw!important;border-radius:0!important}
+  .mini-game-frame.vendor-fruit{width:100vw!important;height:100dvh!important;margin:0!important;border-radius:0!important;border:none!important}
+}
+
+/* Arcade Level Progression and Header Badges */
+.arcade-play-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:8px;
+}
+.arcade-title-group{
+  flex:1 1 auto;
+}
+.arcade-level-bar{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 12px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#f3e8ff 0%,#ede9fe 100%);
+  border:2px solid #ddd6fe;
+  box-shadow:0 3px 0 rgba(139,92,246,.15);
+}
+.arcade-level-badge{
+  font-size:12px;
+  font-weight:900;
+  color:#6d28d9;
+  letter-spacing:.5px;
+}
+.arcade-level-dots{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.level-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#cbd5e1;
+  transition:all .3s ease;
+}
+.level-dot.done{
+  background:#8b5cf6;
+  box-shadow:0 0 4px rgba(139,92,246,.5);
+}
+.level-dot.current{
+  background:#f59e0b;
+  transform:scale(1.25);
+  box-shadow:0 0 6px rgba(245,158,11,.6);
+  animation:levelPulse 1.4s infinite ease-in-out;
+}
+@keyframes levelPulse{
+  0%,100%{transform:scale(1.25)}
+  50%{transform:scale(1.5)}
+}
+.memory-grid.memory-pairs-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:320px}
+.memory-grid.memory-pairs-3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:440px}
+.memory-grid.memory-pairs-4{grid-template-columns:repeat(4,minmax(0,1fr));max-width:520px}
+.memory-grid.memory-pairs-5{grid-template-columns:repeat(5,minmax(0,1fr));max-width:600px}
+.memory-grid.memory-pairs-6{grid-template-columns:repeat(4,minmax(0,1fr));max-width:540px}
+@media(max-width:600px){
+  .arcade-play-header{gap:6px;margin-bottom:6px}
+  .arcade-level-bar{padding:4px 9px;gap:6px}
+  .arcade-level-badge{font-size:11px}
+  .level-dot{width:6px;height:6px}
+  .memory-grid.memory-pairs-5{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .memory-grid.memory-pairs-6{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 
 /* Hanzi Writer (P0) & Celebration Feedback (P1) */
 .hanzi-writer-entry{
