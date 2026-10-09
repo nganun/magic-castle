@@ -20,9 +20,13 @@
 3. **字体栈顺序**：`CastleKai` 提到每栈**第一个 CJK 位置**（即 `"CastleKai","Kaiti SC","STKaiti","KaiTi",...`）。
    例外：栈首已有西文字体（如 `"Baloo 2"`）的，CastleKai 紧跟其后，保证英文/数字仍走西文字体，
    只有汉字落到 CastleKai（UKai 的西文难看）。
+   注：当前 17 处栈中**没有**以西文字体开头的实例，此例外规则目前不会触发，实现时不要主动去造这种栈。
+   无西文字体的栈里若有英文/数字，会落到 UKai 西文——这些位置以汉字为主，影响可接受（用户已确认）。
 4. **加粗（伪粗）**：`@font-face` 的 `font-weight: 400 900` 改为 `400`，
    使所有已请求粗体的元素（`<b>`/`<h2>` 默认 bold、显式 `font-weight:900/800`）自动合成粗体。
-   少数使用楷体但未请求粗体的元素（如 `.content-config-icon` 的汉字图标）补 `font-weight:700`。
+   实施前先**审计** 17 处栈对应元素的实际字重，列出真正"未请求粗体"的清单，
+   仅对清单内的元素补 `font-weight:700`；已请求 800/900 的**不得**改成 700（例如 `.content-config-icon`
+   基础规则已是 `font-weight:900`，无需改动）。审计结果为空则跳过此步。
 5. **许可文件**：删除 `assets/fonts/LICENSE-LXGW-WenKai-OFL.txt`，替换为 Arphic Public License 文本；
    `style.css` 头部注释同步更新为 UKai。
 6. **发布**：版本升至 **v1.0.14**（`versionCode 15`），SW 缓存键、`app.js?v=`、`style.css?v=` 同步；
@@ -30,10 +34,13 @@
 
 ## 实施步骤
 
-1. 获取 `fonts-arphic-ukai` 包，取出 `ukai.ttc` 中简体字面（转为 ttf）。
+1. 获取 `fonts-arphic-ukai` 包，取出 `ukai.ttc` 中简体（KaitiM GB）字面转为 ttf；
+   用 fonttools 读取 ttc 的 face 列表确认简体字面的 font-number（通常按 CN/GB 命名），
+   避免取到 Big5/繁体字面。
 2. 用 scratchpad 中 fonttools venv（fonttools + brotli）按 `assets/fonts/charset.txt`
    （GB2312 全集 + 项目用字）执行 `pyftsubset ... --flavor=woff2 --no-hinting --no-glyph-names --desubroutinize`，
    输出覆盖 `assets/fonts/castle-kai.woff2`。
+   venv 不存在时重建：`python3 -m venv <scratchpad>/ftenv && <scratchpad>/ftenv/bin/pip install fonttools brotli`。
 3. 运行覆盖率检查：对比 charset.txt 与子集后的 cmap，报告任何缺字；缺字需回退到 UKai 另一字面或保留兜底。
 4. 更新 `assets/fonts/` 许可文件（Arphic）与 `style.css` 头部注释。
 5. 调整 `style.css`：
@@ -47,7 +54,8 @@
 
 - Android 与网页端汉字均显示传统楷体 UKai（打包字体优先，系统楷体不再抢占）。
 - 汉字大字、词卡、古诗行等位置呈明显加粗效果。
-- 英文、数字、标点不被 UKai 西文覆盖（西文字体仍排在 CastleKai 之前）。
+- 英文、数字、标点不被 UKai 西文覆盖——仅对**含西文字体的字体栈**验收；
+  无西文字体的栈中英文/数字落到 UKai 属可接受范围。
 - 子集无缺字（charset.txt 全覆盖，或对缺字有明确兜底）。
 - 构建通过、v1.0.14 正常发布。
 
