@@ -288,12 +288,15 @@ function promptMissingChineseVoice(plugin, lang, error) {
   const code = error?.code || '';
   const engineProblem = code === 'ENGINE_UNAVAILABLE' || code === 'NATIVE_TTS_TIMEOUT';
   const silent = code === 'NATIVE_TTS_SILENT';
+  // Root cause seen in the field: when the *system* language is English, some OEM engines accept
+  // a zh request but pick the default (English) voice and never say anything.
+  const languageHint = '若手机系统语言是英文，部分机型无法朗读中文——请把系统语言切换为中文。';
   if (silent) {
-    showToast('汉字朗读没有发出声音。已打开语音设置：请重新下载“中文”语音，或换用其它朗读引擎。');
+    showToast(`${languageHint}也可在已打开的语音设置里重新下载“中文”语音。`, 5000);
   } else if (engineProblem) {
-    showToast('系统朗读引擎暂时不可用，汉字读不出声音。已打开语音设置，请检查或更换“文字转语音”引擎。');
+    showToast(`系统朗读引擎暂时不可用，汉字读不出声音。${languageHint}`, 4200);
   } else {
-    showToast('这台设备缺少中文语音包，汉字暂时读不出声音。已为你打开语音下载页面，请下载“中文（简体）”后回到城堡再试一次。');
+    showToast(`这台设备缺少中文语音包。${languageHint}请下载“中文（简体）”后再试。`, 5000);
   }
   if (requestedTtsLanguageInstall.has(lang)) return;
   requestedTtsLanguageInstall.add(lang);
@@ -412,9 +415,9 @@ function playSuccessChime() {
   if (!state.soundOn) return;
   playSfx('ding');
 }
-function showToast(text) {
+function showToast(text, duration = 2200) {
   const toast = $('#toast'); toast.textContent = text; toast.classList.add('show');
-  clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+  clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), duration);
 }
 function routeFor(name) { return name === 'lesson' ? `#lesson/${state.activeTheme}` : `#${name}`; }
 function renderTopbarContext() {
