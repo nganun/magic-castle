@@ -271,6 +271,29 @@ function nativeTextToSpeech() {
   return window.Capacitor.Plugins?.MagicTextToSpeech || window.Capacitor.registerPlugin?.('MagicTextToSpeech') || null;
 }
 const requestedTtsLanguageInstall = new Set();
+function nativeTtsCall(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      // A stuck engine must not leave the lesson silent: drop it and use the fallback voice.
+      try { nativeTextToSpeech()?.stop?.().catch(() => {}); } catch { /* engine already gone */ }
+      reject({ code: 'NATIVE_TTS_TIMEOUT' });
+    }, ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (error) => { clearTimeout(timer); reject(error); }
+    );
+  });
+}
+function promptMissingChineseVoice(plugin, lang, error) {
+  const code = error?.code || '';
+  const engineProblem = code === 'ENGINE_UNAVAILABLE' || code === 'NATIVE_TTS_TIMEOUT';
+  showToast(engineProblem
+    ? '系统朗读引擎暂时不可用，汉字读不出声音。已打开语音设置，请检查或更换“文字转语音”引擎。'
+    : '这台设备缺少中文语音包，汉字暂时读不出声音。已为你打开语音下载页面，请下载“中文（简体）”后回到城堡再试一次。');
+  if (requestedTtsLanguageInstall.has(lang)) return;
+  requestedTtsLanguageInstall.add(lang);
+  plugin?.openLanguageInstall?.().catch(() => {});
+}
 function speakWithNativeTts(text, options, onend, onUnavailable) {
   const plugin = nativeTextToSpeech();
   if (!plugin) return false;
@@ -278,15 +301,18 @@ function speakWithNativeTts(text, options, onend, onUnavailable) {
   const fallback = () => onUnavailable?.() || finish();
   const languages = options.langCandidates || [options.lang];
   const baseOptions = { ...options }; delete baseOptions.langCandidates;
-  const start = (lang) => plugin.speak({ text, volume: 1, category: 'ambient', queueStrategy: 0, ...baseOptions, lang });
+  const start = (lang) => nativeTtsCall(
+    plugin.speak({ text, volume: 1, category: 'ambient', queueStrategy: 0, ...baseOptions, lang }),
+    9000
+  );
   if (options.lang?.startsWith('zh')) {
+    let lastError = null;
     const tryLanguage = (index) => {
       if (index >= languages.length) {
-        showToast('这台设备还没有可用的中文朗读语音，正在尝试使用浏览器语音。');
-        if (!requestedTtsLanguageInstall.has(options.lang)) { requestedTtsLanguageInstall.add(options.lang); plugin.openLanguageInstall?.().catch(() => {}); }
+        promptMissingChineseVoice(plugin, options.lang, lastError);
         fallback(); return;
       }
-      start(languages[index]).then(finish).catch(() => tryLanguage(index + 1));
+      start(languages[index]).then(finish).catch((error) => { lastError = error; tryLanguage(index + 1); });
     };
     tryLanguage(0);
   } else start(options.lang).then(finish).catch(fallback);
@@ -324,12 +350,16 @@ chooseEnglishVoice();
 chooseChineseVoice();
 if ('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', () => { chooseEnglishVoice(); chooseChineseVoice(); });
 let wardrobeMusic = null;
+// 魔法屋背景音乐音量：原先为 .11，现降为原来的 1/5。
+const WARDROBE_MUSIC_VOLUME = 0.022;
+let wardrobeMusicBackgroundPaused = false;
 function stopWardrobeMusic() {
+  wardrobeMusicBackgroundPaused = false;
   if (!wardrobeMusic) return;
   const { audio } = wardrobeMusic; wardrobeMusic = null;
   const fade = window.setInterval(() => {
-    audio.volume = Math.max(0, audio.volume - .035);
-    if (audio.volume <= .01) {
+    audio.volume = Math.max(0, audio.volume - .007);
+    if (audio.volume <= .005) {
       clearInterval(fade); audio.pause(); audio.currentTime = 0;
     }
   }, 35);
@@ -337,10 +367,35 @@ function stopWardrobeMusic() {
 function startWardrobeMusic() {
   if (wardrobeMusic || !state.soundOn) return;
   const audio = new Audio('assets/audio/magic-house/background-loop.wav');
-  audio.loop = true; audio.volume = .11;
+  audio.loop = true; audio.volume = WARDROBE_MUSIC_VOLUME;
   wardrobeMusic = { audio };
+  wardrobeMusicBackgroundPaused = false;
   audio.play().catch(() => { wardrobeMusic = null; });
 }
+// The magic-house loop must never keep playing while the app is in the background
+// (Android WebView keeps the HTMLAudioElement alive after the activity pauses).
+function pauseWardrobeMusicInBackground() {
+  if (!wardrobeMusic || wardrobeMusicBackgroundPaused) return;
+  wardrobeMusicBackgroundPaused = true;
+  wardrobeMusic.audio.pause();
+}
+function resumeWardrobeMusicFromBackground() {
+  if (!wardrobeMusicBackgroundPaused) return;
+  wardrobeMusicBackgroundPaused = false;
+  if (!wardrobeMusic || !state.soundOn) return;
+  wardrobeMusic.audio.play().catch(() => {});
+}
+function handleAppVisibility(hidden) {
+  if (hidden) pauseWardrobeMusicInBackground();
+  else resumeWardrobeMusicFromBackground();
+}
+document.addEventListener('visibilitychange', () => handleAppVisibility(document.hidden));
+window.addEventListener('pagehide', () => pauseWardrobeMusicInBackground());
+window.addEventListener('pageshow', () => handleAppVisibility(document.hidden));
+try {
+  window.Capacitor?.Plugins?.App?.addListener('appStateChange', ({ isActive }) => handleAppVisibility(!isActive))?.catch?.(() => {});
+  window.Capacitor?.Plugins?.App?.addListener('pause', () => pauseWardrobeMusicInBackground())?.catch?.(() => {});
+} catch { /* The App plugin is only present inside the native shell. */ }
 function playSuccessChime() {
   if (!state.soundOn) return;
   playSfx('ding');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'magic-castle-v1.0.11';
+const CACHE_NAME = 'magic-castle-v1.0.12';
 const APP_SHELL = [
   './',
   './index.html',
@@ -27,6 +27,7 @@ const APP_SHELL = [
   './assets/scenes/adventure-map/magic-castle-adventure-map-mobile.jpeg',
   './assets/ui/cloud-label.svg',
   './assets/audio/magic-house/background-loop.wav',
+  './assets/fonts/castle-kai.woff2',
   './assets/characters/luna/character.js',
   './assets/characters/luna/wardrobe.js',
   './assets/characters/luna/wardrobe-data.js',
