@@ -1,5 +1,5 @@
 // Generated from package.json. Do not edit directly.
 export const BUILD_INFO = {
-  "version": "1.0.13",
+  "version": "1.0.14",
   "releaseRepository": "nganun/magic-castle"
 };
