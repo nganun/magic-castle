@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0fdf4"/>
+  <!-- 粗壮淡绿茎 -->
+  <path d="M106 104v36c0 8 28 8 28 0v-36" fill="#86efac" stroke="#15803d" stroke-width="4"/>
+  <path d="M100 122c-8-6-10-18-6-24M140 122c8-6 10-18 6-24" stroke="#4ade80" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- 茂密深浅绿大花蕾团 (像树冠一样繁茂) -->
+  <circle cx="120" cy="62" r="28" fill="#15803d" stroke="#14532d" stroke-width="3"/>
+  <circle cx="90" cy="78" r="24" fill="#16a34a" stroke="#14532d" stroke-width="3"/>
+  <circle cx="150" cy="78" r="24" fill="#16a34a" stroke="#14532d" stroke-width="3"/>
+  <circle cx="105" cy="94" r="20" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+  <circle cx="135" cy="94" r="20" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+  <circle cx="120" cy="80" r="22" fill="#4ade80" stroke="#15803d" stroke-width="2"/>
+  <!-- 颗粒感花球小圆点 -->
+  <circle cx="120" cy="60" r="3" fill="#86efac"/><circle cx="92" cy="76" r="3" fill="#86efac"/><circle cx="148" cy="76" r="3" fill="#86efac"/>
+</svg>

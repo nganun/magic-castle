@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0faf4"/>
+  <!-- 后方整瓜 -->
+  <circle cx="85" cy="85" r="48" fill="#2b8a3e"/>
+  <path d="M55 55c10 16 10 44 0 60M75 40c12 24 12 66 0 90M95 38c12 24 12 70 0 94M115 45c10 18 10 62 0 80" stroke="#145523" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- 前方切瓣月牙西瓜 -->
+  <path d="M70 100a75 75 0 0 0 140 10l-70 12Z" fill="#1b5e20"/>
+  <path d="M74 99a71 71 0 0 0 132 10l-66 10Z" fill="#a3e635"/>
+  <path d="M78 97a67 67 0 0 0 124 10l-62 9Z" fill="#ef4444"/>
+  <!-- 西瓜籽 -->
+  <ellipse cx="105" cy="108" rx="3" ry="5" transform="rotate(30 105 108)" fill="#18181b"/>
+  <ellipse cx="125" cy="113" rx="3" ry="5" transform="rotate(10 125 113)" fill="#18181b"/>
+  <ellipse cx="145" cy="112" rx="3" ry="5" transform="rotate(-15 145 112)" fill="#18181b"/>
+  <ellipse cx="165" cy="106" rx="3" ry="5" transform="rotate(-35 165 106)" fill="#18181b"/>
+  <ellipse cx="135" cy="120" rx="2.5" ry="4" transform="rotate(5 135 120)" fill="#18181b"/>
+</svg>

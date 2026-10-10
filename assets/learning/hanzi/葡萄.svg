@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#faf5ff"/>
+  <!-- 葡萄藤与大叶 -->
+  <path d="M120 40c-4-15 4-22 14-24" fill="none" stroke="#78350f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M130 24c16-2 22 8 18 16" fill="none" stroke="#78350f" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- 葡萄叶 -->
+  <path d="M132 36l18-12 12 10 12-6-4 16 12 10-14 8 2 14-16-6-10 12-6-16Z" fill="#22c55e" stroke="#15803d" stroke-width="2.5"/>
+  <!-- 串串圆葡萄群 (层次分明) -->
+  <!-- 第一排 -->
+  <circle cx="95" cy="65" r="16" fill="#6b21a8"/><circle cx="122" cy="62" r="16" fill="#7e22ce"/><circle cx="145" cy="70" r="16" fill="#6b21a8"/>
+  <!-- 第二排 -->
+  <circle cx="82" cy="90" r="16" fill="#7e22ce"/><circle cx="108" cy="88" r="17" fill="#9333ea"/><circle cx="134" cy="90" r="16" fill="#a855f7"/><circle cx="156" cy="92" r="15" fill="#7e22ce"/>
+  <!-- 第三排 -->
+  <circle cx="95" cy="114" r="16" fill="#9333ea"/><circle cx="120" cy="115" r="17" fill="#a855f7"/><circle cx="145" cy="116" r="16" fill="#9333ea"/>
+  <!-- 第四排 -->
+  <circle cx="108" cy="138" r="15" fill="#7e22ce"/><circle cx="132" cy="140" r="15" fill="#9333ea"/>
+  <!-- 底端一粒 -->
+  <circle cx="120" cy="158" r="14" fill="#6b21a8"/>
+  <!-- 葡萄颗粒上的水灵高光点 -->
+  <circle cx="78" cy="85" r="4" fill="#d8b4fe"/><circle cx="104" cy="82" r="4.5" fill="#e9d5ff"/><circle cx="116" cy="109" r="4.5" fill="#f3e8ff"/>
+</svg>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <defs>
+    <radialGradient id="melonGround" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="melonRind" cx="38%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#e2e8b0"/>
+      <stop offset="55%" stop-color="#9bb36e"/>
+      <stop offset="85%" stop-color="#60793c"/>
+      <stop offset="100%" stop-color="#3d5224"/>
+    </radialGradient>
+    <linearGradient id="sliceFlesh" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#2d3d18"/>
+      <stop offset="8%" stop-color="#4d7c0f"/>
+      <stop offset="22%" stop-color="#bef264"/>
+      <stop offset="38%" stop-color="#fef08a"/>
+      <stop offset="62%" stop-color="#fb923c"/>
+      <stop offset="90%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="240" height="180" rx="28" fill="#f8fafc"/>
+
+  <!-- 桌面大阴影 -->
+  <ellipse cx="120" cy="154" rx="96" ry="14" fill="url(#melonGround)"/>
+  <ellipse cx="80" cy="152" rx="54" ry="7.5" fill="#3d5224" opacity="0.35"/>
+  <ellipse cx="156" cy="153" rx="50" ry="6.5" fill="#ea580c" opacity="0.3"/>
+
+  <!-- 左后侧：完整大哈密瓜（更饱满大颗，居中自然） -->
+  <g transform="translate(26, 52) rotate(-5)">
+    <ellipse cx="58" cy="50" rx="58" ry="42" fill="url(#melonRind)"/>
+
+    <!-- 天然浅纵沟 -->
+    <g stroke="#3d5224" stroke-width="2" fill="none" opacity="0.24">
+      <path d="M12 50 C26 30 50 22 80 22 C98 22 108 32 114 50"/>
+      <path d="M12 50 C26 70 50 78 80 78 C98 78 108 68 114 50"/>
+      <path d="M18 36 C38 18 70 16 98 26"/>
+      <path d="M18 64 C38 82 70 84 98 74"/>
+    </g>
+
+    <!-- 细腻自然网纹 -->
+    <g stroke="#ffffff" stroke-width="0.85" fill="none" opacity="0.82" stroke-linecap="round">
+      <path d="M16 50 C26 40 40 44 52 38 C64 44 76 38 88 44 C98 38 106 46 112 50"/>
+      <path d="M20 40 C32 34 44 38 56 30 C66 36 78 28 88 34 C98 26 106 36 110 42"/>
+      <path d="M24 60 C36 54 48 60 60 52 C70 58 82 50 94 56 C102 48 108 56 110 60"/>
+      <path d="M30 28 C42 22 54 26 66 20 C76 24 88 18 98 24"/>
+      <path d="M30 72 C42 68 54 74 66 68 C76 72 88 66 98 72"/>
+      <path d="M26 40 L24 60 M40 46 L38 54 M54 38 L52 60 M68 44 L66 52 M82 36 L80 58 M96 42 L94 50"/>
+      <path d="M34 32 L30 40 M48 36 L44 46 M62 28 L58 38 M76 34 L72 44 M90 26 L86 36 M102 32 L98 42"/>
+    </g>
+
+    <path d="M32 30 C50 20 78 20 96 30" stroke="#ffffff" stroke-width="3.5" fill="none" opacity="0.5" stroke-linecap="round"/>
+
+    <!-- T 字木质瓜蒂 -->
+    <g transform="translate(0, 50)">
+      <path d="M8 0 C-2 -2 -6 -8 -12 -12" stroke="#78350f" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+      <path d="M-12 -12 L-16 -16 M-12 -12 L-8 -18" stroke="#a16207" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M-4 -4 C-6 -2 -10 -2 -12 2 C-14 6 -10 8 -8 6" stroke="#ca8a04" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+
+  <!-- 前景：厚实饱满的切片红心哈密瓜牙（大方厚实） -->
+  <g transform="translate(94, 114) rotate(-3)">
+    <path d="M0 36 C38 64 94 64 132 34 C96 14 38 14 0 36 Z" fill="url(#sliceFlesh)" stroke="#274008" stroke-width="1.8"/>
+    <path d="M0 36 C38 64 94 64 132 34" stroke="#274008" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M2 35 C40 61 92 61 130 33" stroke="#65a30d" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <path d="M14 32 C46 16 88 16 122 28" stroke="#fed7aa" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.85"/>
+    <path d="M26 30 C54 18 82 18 110 28" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.95"/>
+
+    <path d="M36 28 C54 25 78 25 98 28" stroke="#c2410c" stroke-width="1.5" fill="none" stroke-dasharray="2 3" opacity="0.75"/>
+    <circle cx="54" cy="27" r="1.6" fill="#ffffff" opacity="0.9"/>
+    <circle cx="78" cy="26" r="1.8" fill="#ffffff" opacity="0.95"/>
+  </g>
+</svg>

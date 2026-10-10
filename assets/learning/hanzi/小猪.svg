@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fdf2f8"/>
+  <!-- 大猪耳朵 -->
+  <path d="M78 65c-10-15-18-18-24-10s0 24 12 28M162 65c10-15 18-18 24-10s0 24-12 28" fill="#f472b6" stroke="#db2777" stroke-width="4"/>
+  <!-- 粉大脸 -->
+  <circle cx="120" cy="98" r="48" fill="#fbcfe8" stroke="#db2777" stroke-width="4"/>
+  <!-- 笑眼 -->
+  <path d="M96 85c4-5 12-5 16 0M128 85c4-5 12-5 16 0" stroke="#831843" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- 标志性朝天大猪鼻子 -->
+  <ellipse cx="120" cy="110" rx="20" ry="14" fill="#f472b6" stroke="#db2777" stroke-width="3"/>
+  <ellipse cx="112" cy="110" rx="4" ry="6" fill="#831843"/>
+  <ellipse cx="128" cy="110" rx="4" ry="6" fill="#831843"/>
+  <!-- 腮红与微笑 -->
+  <circle cx="85" cy="106" r="6" fill="#f472b6" opacity="0.6"/>
+  <circle cx="155" cy="106" r="6" fill="#f472b6" opacity="0.6"/>
+  <path d="M112 130c4 4 12 4 16 0" stroke="#db2777" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

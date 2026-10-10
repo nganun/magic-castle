@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fff7ed"/>
+  <!-- 胡萝卜缨 (羽状分裂大绿叶) -->
+  <path d="M120 54c-12-22-34-32-45-34 5 16 18 28 32 32M120 54v-38M120 54c12-22 34-32 45-34-5 16-18 28-32 32" stroke="#16a34a" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M120 54c-6-16-16-24-22-26M120 54c6-16 16-24 22-26" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- 胡萝卜身 -->
+  <path d="M120 162C102 125 84 75 92 60c4-8 52-8 56 0 8 15-10 65-28 102Z" fill="#f97316" stroke="#c2410c" stroke-width="4"/>
+  <!-- 萝卜身上的特征横纹 -->
+  <path d="M106 82h18M116 104h20M112 126h14M116 144h8" stroke="#fdba74" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M100 70c-2 15 2 35 8 50" stroke="#ea580c" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f5f3ff"/>
+  <!-- 月牙 -->
+  <path d="M145 32c-38 6-65 42-59 80 5 32 32 54 62 50-32 8-68-14-72-52-4-42 31-74 69-78Z" fill="#fbbf24"/>
+  <path d="M141 36c-34 8-57 40-52 74 4 28 28 47 54 44-28 6-60-13-63-46-4-37 28-66 61-72Z" fill="#fef08a"/>
+  <!-- 眼睛与小星星 -->
+  <path d="M102 85q4 4 8 0" fill="none" stroke="#854d0e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M165 52l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#fde047"/>
+  <path d="M178 98l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fde047"/>
+</svg>

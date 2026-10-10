@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#faf5ff"/>
+  <!-- 深紫长弯果身 -->
+  <path d="M112 55c22-8 48 26 38 72-8 40-36 44-52 30-18-16-6-72 14-102Z" fill="#3b0764" stroke="#1e1b4b" stroke-width="4"/>
+  <path d="M104 75c-8 20-4 46 8 62" stroke="#a855f7" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- 果柄 -->
+  <path d="M126 48c0-16-6-24-10-28" fill="none" stroke="#15803d" stroke-width="5" stroke-linecap="round"/>
+  <!-- 标志性深绿多裂茄帽 -->
+  <path d="M118 52l-10 10 12 2-4 12 12-6 4 12 8-12 10 4-6-12 10-2-12-6Z" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/>
+</svg>

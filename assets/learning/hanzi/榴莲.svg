@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <defs>
+    <radialGradient id="durianGround" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="durianShell" cx="36%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="30%" stop-color="#ca8a04"/>
+      <stop offset="65%" stop-color="#854d0e"/>
+      <stop offset="90%" stop-color="#4d7c0f"/>
+      <stop offset="100%" stop-color="#2d3d18"/>
+    </radialGradient>
+    <radialGradient id="durianPulp" cx="42%" cy="26%" r="75%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#fef08a"/>
+      <stop offset="55%" stop-color="#fde047"/>
+      <stop offset="85%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="240" height="180" rx="28" fill="#f8fafc"/>
+
+  <!-- 桌面大阴影 -->
+  <ellipse cx="120" cy="154" rx="92" ry="14" fill="url(#durianGround)"/>
+  <ellipse cx="74" cy="152" rx="48" ry="7" fill="#365314" opacity="0.35"/>
+  <ellipse cx="154" cy="153" rx="46" ry="6" fill="#ca8a04" opacity="0.32"/>
+
+  <!-- 左后侧：完整金枕头大榴莲（稳稳坐落于桌面） -->
+  <g transform="translate(26, 42)">
+    <!-- 粗木柄 -->
+    <path d="M52 14 C51 4 48 -4 44 -10" stroke="#78350f" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <ellipse cx="44" cy="-10" rx="4.5" ry="2.5" fill="#a16207" stroke="#451a03" stroke-width="1.2"/>
+
+    <!-- 壳主体 -->
+    <ellipse cx="50" cy="64" rx="46" ry="52" fill="url(#durianShell)"/>
+
+    <!-- 5 条天然纵向瓣裂凹线 -->
+    <g stroke="#2d3d18" stroke-width="1.6" fill="none" opacity="0.45">
+      <path d="M50 14 C38 34 34 78 46 114"/>
+      <path d="M50 14 C60 34 66 78 54 114"/>
+      <path d="M50 14 C22 40 18 76 26 104"/>
+      <path d="M50 14 C76 40 80 76 74 104"/>
+    </g>
+
+    <!-- 轮廓向外凸出硬刺 -->
+    <g fill="#ca8a04" stroke="#713f12" stroke-width="1">
+      <polygon points="32,16 28,8 38,14"/>
+      <polygon points="42,14 40,5 48,12"/>
+      <polygon points="52,12 54,3 60,12"/>
+      <polygon points="62,16 66,6 70,16"/>
+      <polygon points="18,24 10,20 18,32"/>
+      <polygon points="12,38 4,36 12,46"/>
+      <polygon points="8,54 0,54 8,64"/>
+      <polygon points="8,72 0,74 10,82"/>
+      <polygon points="12,90 4,94 14,100"/>
+      <polygon points="84,28 92,24 86,38"/>
+      <polygon points="88,46 96,44 90,56"/>
+      <polygon points="90,68 98,70 90,78"/>
+      <polygon points="88,88 96,92 88,100"/>
+    </g>
+
+    <!-- 壳面立体三棱小金字塔刺 -->
+    <g transform="translate(14, 18)">
+      <polygon points="10,12 14,4 18,12" fill="#fde047"/><polygon points="18,12 14,4 22,10" fill="#713f12"/>
+      <polygon points="26,10 30,2 34,10" fill="#fde047"/><polygon points="34,10 30,2 38,8" fill="#713f12"/>
+      <polygon points="42,12 46,4 50,12" fill="#fde047"/><polygon points="50,12 46,4 54,10" fill="#713f12"/>
+      <polygon points="8,28 12,20 16,28" fill="#fde047"/><polygon points="16,28 12,20 20,26" fill="#713f12"/>
+      <polygon points="24,26 28,18 32,26" fill="#fde047"/><polygon points="32,26 28,18 36,24" fill="#713f12"/>
+      <polygon points="40,28 44,20 48,28" fill="#fde047"/><polygon points="48,28 44,20 52,26" fill="#713f12"/>
+      <polygon points="6,46 10,38 14,46" fill="#fde047"/><polygon points="14,46 10,38 18,44" fill="#713f12"/>
+      <polygon points="22,44 26,36 30,44" fill="#fde047"/><polygon points="30,44 26,36 34,42" fill="#713f12"/>
+      <polygon points="38,46 42,38 46,46" fill="#fde047"/><polygon points="46,46 42,38 50,44" fill="#713f12"/>
+      <polygon points="8,64 12,56 16,64" fill="#fde047"/><polygon points="16,64 12,56 20,62" fill="#713f12"/>
+      <polygon points="24,62 28,54 32,62" fill="#fde047"/><polygon points="32,62 28,54 36,60" fill="#713f12"/>
+      <polygon points="12,80 16,72 20,80" fill="#fde047"/><polygon points="20,80 16,72 24,78" fill="#713f12"/>
+      <polygon points="28,78 32,70 36,78" fill="#fde047"/><polygon points="36,78 32,70 40,76" fill="#713f12"/>
+    </g>
+  </g>
+
+  <!-- 前景：一整大瓣极度肥美金黄的月牙奶油榴莲肉瓣 -->
+  <g transform="translate(98, 114) rotate(-4)">
+    <path d="M0 24 C14 -4 76 -6 102 16 C108 34 86 46 64 46 C34 46 12 44 0 24 Z" 
+          fill="url(#durianPulp)" stroke="#ca8a04" stroke-width="2.2"/>
+    
+    <path d="M14 18 C28 4 72 4 88 18 C92 28 80 36 62 38" stroke="#ffffff" stroke-width="4.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+    <path d="M20 20 C34 6 66 6 80 20" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.95" stroke-linecap="round"/>
+
+    <path d="M24 24 C34 26 44 24 50 22" stroke="#ca8a04" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M36 34 C46 36 56 34 62 32" stroke="#ca8a04" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M58 24 C66 26 74 24 80 22" stroke="#ca8a04" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+
+    <circle cx="36" cy="18" r="2.2" fill="#ffffff" opacity="0.95"/>
+    <circle cx="68" cy="16" r="2.5" fill="#ffffff" opacity="0.95"/>
+  </g>
+</svg>

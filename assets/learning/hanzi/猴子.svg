@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fffbeb"/>
+  <ellipse cx="120" cy="156" rx="60" ry="10" fill="#fef08a"/>
+
+  <!-- 两只突出招风大圆耳 -->
+  <circle cx="68" cy="92" r="22" fill="#b45309" stroke="#78350f" stroke-width="3.5"/>
+  <circle cx="68" cy="92" r="13" fill="#fed7aa"/>
+  <circle cx="172" cy="92" r="22" fill="#b45309" stroke="#78350f" stroke-width="3.5"/>
+  <circle cx="172" cy="92" r="13" fill="#fed7aa"/>
+
+  <!-- 猴头外轮廓（带头顶小呆毛） -->
+  <circle cx="120" cy="92" r="46" fill="#b45309" stroke="#78350f" stroke-width="4"/>
+  <path d="M120 46 C118 36 124 32 128 30 C124 38 122 42 120 46" stroke="#78350f" stroke-width="3" fill="#b45309"/>
+
+  <!-- 经典桃心形浅肤色猴脸 -->
+  <path d="M120 64 
+    C105 52 86 64 88 84 
+    C90 106 108 122 120 122 
+    C132 122 150 106 152 84 
+    C154 64 135 52 120 64 Z" 
+    fill="#fed7aa"/>
+
+  <!-- 眼睛 -->
+  <circle cx="106" cy="80" r="5.5" fill="#18181b"/><circle cx="108" cy="78" r="2" fill="#ffffff"/>
+  <circle cx="134" cy="80" r="5.5" fill="#18181b"/><circle cx="136" cy="78" r="2" fill="#ffffff"/>
+
+  <!-- 两个小鼻孔与顽皮大笑嘴巴 -->
+  <circle cx="116" cy="92" r="2" fill="#78350f"/><circle cx="124" cy="92" r="2" fill="#78350f"/>
+  <path d="M108 100 C114 110 126 110 132 100" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- 抱在胸前的金黄小香蕉 -->
+  <g transform="translate(136, 126) rotate(15)">
+    <path d="M0 6 C12-4 28-2 34 14 C24 16 12 12 0 6 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2.5"/>
+  </g>
+</svg>

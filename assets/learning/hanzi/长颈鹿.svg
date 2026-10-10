@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fefce8"/>
+  <ellipse cx="120" cy="156" rx="60" ry="10" fill="#fef08a"/>
+
+  <!-- 下部身躯肩膀部分（自然衔接，不再是浮空管子） -->
+  <path d="M85 160 C88 135 102 120 115 110 C125 110 145 125 155 160 Z" fill="#fde047" stroke="#ca8a04" stroke-width="3.5"/>
+  <rect x="120" y="132" width="22" height="18" rx="4" fill="#b45309"/>
+  <rect x="94" y="142" width="18" height="15" rx="3" fill="#b45309"/>
+
+  <!-- 修长优雅的长脖子 -->
+  <rect x="108" y="55" width="24" height="65" rx="6" fill="#fde047" stroke="#ca8a04" stroke-width="3.5"/>
+  <!-- 脖子上的经典斑块（不规则多边形咖啡色斑纹） -->
+  <rect x="111" y="62" width="18" height="12" rx="3" fill="#b45309"/>
+  <rect x="113" y="80" width="15" height="15" rx="3" fill="#b45309"/>
+  <rect x="111" y="101" width="18" height="14" rx="3" fill="#b45309"/>
+
+  <!-- 长颈鹿脑袋 -->
+  <g transform="translate(120, 52)">
+    <!-- 两个头顶小肉角（咖啡色圆球肉角） -->
+    <line x1="-8" y1="-18" x2="-6" y2="-4" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="-9" cy="-20" r="4" fill="#78350f"/>
+    <line x1="8" y1="-18" x2="6" y2="-4" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="9" cy="-20" r="4" fill="#78350f"/>
+
+    <!-- 左右两只大耳朵 -->
+    <ellipse cx="-22" cy="-6" rx="10" ry="5" transform="rotate(-30 -22 -6)" fill="#fde047" stroke="#ca8a04" stroke-width="2.5"/>
+    <ellipse cx="22" cy="-6" rx="10" ry="5" transform="rotate(30 22 -6)" fill="#fde047" stroke="#ca8a04" stroke-width="2.5"/>
+
+    <!-- 圆圆头型 -->
+    <circle cx="0" cy="0" r="22" fill="#fde047" stroke="#ca8a04" stroke-width="3.5"/>
+
+    <!-- 温顺大眼睛 -->
+    <circle cx="-8" cy="-5" r="4.5" fill="#18181b"/><circle cx="-7" cy="-6" r="1.5" fill="#ffffff"/>
+    <circle cx="8" cy="-5" r="4.5" fill="#18181b"/><circle cx="9" cy="-6" r="1.5" fill="#ffffff"/>
+
+    <!-- 突出浅棕色嘴巴吻部 -->
+    <ellipse cx="0" cy="11" rx="14" ry="9" fill="#f59e0b" stroke="#ca8a04" stroke-width="2"/>
+    <circle cx="-5" cy="11" r="2" fill="#78350f"/><circle cx="5" cy="11" r="2" fill="#78350f"/>
+    <path d="M-4 16 C-1 18 1 18 4 16" stroke="#78350f" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

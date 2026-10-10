@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fef2f2"/>
+  <!-- 西红柿主果球 -->
+  <circle cx="120" cy="102" r="50" fill="#dc2626"/>
+  <!-- 弧形高光 -->
+  <ellipse cx="94" cy="85" rx="8" ry="16" transform="rotate(-30 94 85)" fill="#f87171" opacity="0.7"/>
+  <!-- 果柄 -->
+  <path d="M120 52v-18" stroke="#15803d" stroke-width="6" stroke-linecap="round"/>
+  <!-- 标志性五角海星花萼绿叶 -->
+  <path d="M120 52l-18-12 8 14-18 2 16 8-12 12 18-4 2 16 12-14 12 14 2-16 18 4-12-12 16-8-18-2 8-14Z" fill="#22c55e" stroke="#15803d" stroke-width="2.5"/>
+</svg>

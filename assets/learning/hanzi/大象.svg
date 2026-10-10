@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f1f5f9"/>
+  <ellipse cx="120" cy="156" rx="72" ry="10" fill="#e2e8f0"/>
+
+  <!-- 两只巨大的蒲扇象耳 -->
+  <ellipse cx="68" cy="85" rx="30" ry="38" fill="#94a3b8" stroke="#475569" stroke-width="4"/>
+  <ellipse cx="68" cy="85" rx="18" ry="24" fill="#cbd5e1"/>
+  <ellipse cx="172" cy="85" rx="30" ry="38" fill="#94a3b8" stroke="#475569" stroke-width="4"/>
+  <ellipse cx="172" cy="85" rx="18" ry="24" fill="#cbd5e1"/>
+
+  <!-- 大象头部 -->
+  <circle cx="120" cy="88" r="44" fill="#94a3b8" stroke="#475569" stroke-width="4"/>
+
+  <!-- 眼睛 -->
+  <circle cx="98" cy="78" r="4.5" fill="#0f172a"/><circle cx="100" cy="76" r="1.5" fill="#ffffff"/>
+  <circle cx="142" cy="78" r="4.5" fill="#0f172a"/><circle cx="144" cy="76" r="1.5" fill="#ffffff"/>
+
+  <!-- 两根粗壮洁白、向上弯曲的大象牙！ -->
+  <!-- 左象牙 -->
+  <path d="M100 102 C90 120 74 122 68 116 C76 110 88 108 94 98 Z" fill="#ffffff" stroke="#475569" stroke-width="2.5"/>
+  <!-- 右象牙 -->
+  <path d="M140 102 C150 120 166 122 172 116 C164 110 152 108 146 98 Z" fill="#ffffff" stroke="#475569" stroke-width="2.5"/>
+
+  <!-- 向上高高卷起的长象鼻（最标志性动作） -->
+  <path d="M120 92 
+    C120 124 135 142 152 135 
+    C162 130 160 114 148 116 
+    C140 118 136 126 132 120 
+    C126 112 124 102 124 92" 
+    fill="#94a3b8" stroke="#475569" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- 象鼻褶皱 -->
+  <line x1="118" y1="102" x2="126" y2="102" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="120" y1="112" x2="128" y2="112" stroke="#cbd5e1" stroke-width="2"/>
+</svg>

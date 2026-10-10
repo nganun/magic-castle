@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <defs>
+    <radialGradient id="caneGround" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="caneSkin" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#150d1e"/>
+      <stop offset="25%" stop-color="#341740"/>
+      <stop offset="65%" stop-color="#230e2c"/>
+      <stop offset="90%" stop-color="#17091d"/>
+      <stop offset="100%" stop-color="#0a030d"/>
+    </linearGradient>
+    <linearGradient id="bloomWax" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.8"/>
+      <stop offset="30%" stop-color="#f8fafc" stop-opacity="0.95"/>
+      <stop offset="70%" stop-color="#e2e8f0" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="fleshGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="25%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#fef08a"/>
+      <stop offset="85%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <radialGradient id="fleshCut" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#fef9c3"/>
+      <stop offset="85%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="240" height="180" rx="28" fill="#f8fafc"/>
+  <ellipse cx="120" cy="158" rx="88" ry="12" fill="url(#caneGround)"/>
+  <ellipse cx="112" cy="157" rx="68" ry="6" fill="#1b0e22" opacity="0.25"/>
+
+  <!-- 顶部生长挺拔、优美低垂的长甘蔗叶 -->
+  <g stroke-linecap="round">
+    <path d="M125 32 C100 8 60 4 18 16 C62 20 95 28 120 38 Z" fill="#22c55e" stroke="#15803d" stroke-width="1.2"/>
+    <path d="M122 35 C95 24 65 16 18 16" stroke="#bbf7d0" stroke-width="1.4" fill="none"/>
+    <path d="M130 26 C136 4 125 -6 102 -8 C112 6 120 18 126 28 Z" fill="#15803d" stroke="#14532d" stroke-width="1"/>
+    <path d="M127 26 C124 10 118 0 102 -8" stroke="#86efac" stroke-width="1.2" fill="none"/>
+    <path d="M136 28 C165 4 205 2 236 10 C194 18 164 26 142 36 Z" fill="#16a34a" stroke="#15803d" stroke-width="1.2"/>
+    <path d="M138 30 C170 18 202 12 236 10" stroke="#bbf7d0" stroke-width="1.4" fill="none"/>
+  </g>
+
+  <!-- 后方甘蔗 -->
+  <g transform="translate(74, 20)">
+    <rect x="0" y="0" width="16" height="38" rx="2" fill="url(#caneSkin)"/>
+    <rect x="-1.5" y="38" width="19" height="5" rx="1.5" fill="url(#bloomWax)"/>
+    <circle cx="3" cy="40.5" r="0.9" fill="#2e1065"/>
+    <rect x="0" y="42" width="16" height="42" rx="2" fill="url(#caneSkin)"/>
+    <rect x="-1.5" y="84" width="19" height="5" rx="1.5" fill="url(#bloomWax)"/>
+    <circle cx="12" cy="86.5" r="0.9" fill="#2e1065"/>
+    <rect x="0" y="88" width="16" height="44" rx="2" fill="url(#caneSkin)"/>
+    <rect x="-1.5" y="132" width="19" height="5" rx="1.5" fill="url(#bloomWax)"/>
+    <rect x="0" y="136" width="16" height="18" rx="2" fill="url(#caneSkin)"/>
+  </g>
+
+  <!-- 前方主甘蔗 -->
+  <g transform="translate(104, 12)">
+    <rect x="0" y="0" width="19" height="40" rx="2" fill="url(#caneSkin)"/>
+    <rect x="-2" y="40" width="23" height="6" rx="2" fill="url(#bloomWax)"/>
+    <line x1="-1" y1="43" x2="20" y2="43" stroke="#2e1065" stroke-width="0.8" opacity="0.6"/>
+    <circle cx="5" cy="43" r="1.3" fill="#1b0e22"/><circle cx="5" cy="43" r="0.5" fill="#f8fafc"/>
+    <circle cx="10" cy="44.5" r="0.4" fill="#64748b"/><circle cx="14" cy="44.5" r="0.4" fill="#64748b"/>
+    <rect x="0" y="45" width="19" height="44" rx="2" fill="url(#caneSkin)"/>
+    <line x1="4" y1="47" x2="4" y2="87" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" opacity="0.25"/>
+    <rect x="-2" y="89" width="23" height="6" rx="2" fill="url(#bloomWax)"/>
+    <line x1="-1" y1="92" x2="20" y2="92" stroke="#2e1065" stroke-width="0.8" opacity="0.6"/>
+    <circle cx="14" cy="92" r="1.3" fill="#1b0e22"/><circle cx="14" cy="92" r="0.5" fill="#f8fafc"/>
+    <rect x="0" y="94" width="19" height="44" rx="2" fill="url(#caneSkin)"/>
+    <line x1="4" y1="96" x2="4" y2="136" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" opacity="0.25"/>
+    <rect x="-2" y="138" width="23" height="6" rx="2" fill="url(#bloomWax)"/>
+    <rect x="0" y="143" width="19" height="15" rx="2" fill="url(#caneSkin)"/>
+  </g>
+
+  <!-- 削皮甘蔗肉棒与翻开紫皮 -->
+  <g transform="translate(142, 42) rotate(6)">
+    <rect x="0" y="56" width="23" height="60" rx="2.5" fill="url(#caneSkin)"/>
+    <rect x="-2" y="88" width="27" height="6" rx="2" fill="url(#bloomWax)"/>
+    <circle cx="7" cy="91" r="1.2" fill="#1b0e22"/>
+    <rect x="1" y="0" width="21" height="58" rx="2.5" fill="url(#fleshGrad)"/>
+    <ellipse cx="11.5" cy="2" rx="10.5" ry="3.8" fill="url(#fleshCut)" stroke="#ca8a04" stroke-width="1.2"/>
+    <circle cx="8" cy="2" r="0.6" fill="#ca8a04"/><circle cx="12" cy="2" r="0.6" fill="#ca8a04"/><circle cx="15" cy="2" r="0.6" fill="#ca8a04"/>
+    <line x1="5" y1="5" x2="5" y2="56" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.95"/>
+    <line x1="11" y1="5" x2="11" y2="56" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
+    <line x1="17" y1="5" x2="17" y2="56" stroke="#facc15" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="8" y1="12" x2="8" y2="48" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+    <line x1="14" y1="16" x2="14" y2="52" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+    <path d="M1 58 C-10 50 -16 34 -12 20 C-9 32 -3 46 1 58 Z" fill="#23182c" stroke="#181124" stroke-width="1.5"/>
+    <path d="M-12 20 C-9 30 -3 42 1 56" stroke="#f8fafc" stroke-width="1.2" fill="none" opacity="0.8"/>
+    <path d="M22 58 C33 50 39 34 35 20 C32 32 26 46 22 58 Z" fill="#23182c" stroke="#181124" stroke-width="1.5"/>
+    <path d="M35 20 C32 30 26 42 22 56" stroke="#f8fafc" stroke-width="1.2" fill="none" opacity="0.8"/>
+  </g>
+
+  <circle cx="136" cy="70" r="3" fill="#38bdf8" opacity="0.85"/>
+  <circle cx="130" cy="80" r="2" fill="#38bdf8" opacity="0.85"/>
+  <circle cx="186" cy="76" r="2.5" fill="#38bdf8" opacity="0.85"/>
+</svg>

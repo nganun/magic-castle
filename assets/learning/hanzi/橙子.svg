@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fff7ed"/>
+  <!-- 后面整橙 -->
+  <circle cx="90" cy="92" r="46" fill="#ea580c"/>
+  <ellipse cx="76" cy="74" rx="8" ry="14" transform="rotate(-30 76 74)" fill="#fdba74" opacity="0.6"/>
+  <!-- 枝叶 -->
+  <path d="M90 46c0-12 8-18 16-20" fill="none" stroke="#65a30d" stroke-width="5" stroke-linecap="round"/>
+  <path d="M104 32c18-6 28 6 22 18-14 4-22-6-22-18Z" fill="#4ade80" stroke="#16a34a" stroke-width="2.5"/>
+  <!-- 前面切开的半颗橙子 -->
+  <circle cx="150" cy="108" r="42" fill="#ea580c"/>
+  <circle cx="150" cy="108" r="38" fill="#ffedd5"/>
+  <circle cx="150" cy="108" r="34" fill="#f97316"/>
+  <!-- 放射状橙瓣切面 -->
+  <circle cx="150" cy="108" r="7" fill="#ffedd5"/>
+  <path d="M150 101v-26M150 115v26M143 108h-26M157 108h26M145 103l-18-18M155 113l18 18M145 113l-18 18M155 103l18-18" stroke="#ffedd5" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

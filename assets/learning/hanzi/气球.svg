@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fdf2f8"/>
+  <!-- 后方蓝气球 -->
+  <ellipse cx="95" cy="72" rx="32" ry="40" fill="#60a5fa"/>
+  <polygon points="95,110 91,118 99,118" fill="#3b82f6"/>
+  <path d="M95 118q-6 16 8 38" fill="none" stroke="#93c5fd" stroke-width="2.5"/>
+  <!-- 前方粉气球 -->
+  <ellipse cx="145" cy="65" rx="35" ry="44" fill="#f43f5e"/>
+  <ellipse cx="135" cy="52" rx="7" ry="14" fill="#fb7185" transform="rotate(-20 135 52)"/>
+  <polygon points="145,107 140,116 150,116" fill="#e11d48"/>
+  <path d="M145 116q12 18-6 42" fill="none" stroke="#fda4af" stroke-width="2.5"/>
+</svg>

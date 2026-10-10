@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0fdf4"/>
+  <!-- 两只头顶凸出的大眼睛 -->
+  <circle cx="92" cy="65" r="20" fill="#22c55e" stroke="#15803d" stroke-width="3.5"/>
+  <circle cx="92" cy="62" r="7" fill="#ffffff"/>
+  <circle cx="92" cy="62" r="4" fill="#000000"/>
+  <circle cx="148" cy="65" r="20" fill="#22c55e" stroke="#15803d" stroke-width="3.5"/>
+  <circle cx="148" cy="62" r="7" fill="#ffffff"/>
+  <circle cx="148" cy="62" r="4" fill="#000000"/>
+  <!-- 扁宽大头脸 -->
+  <ellipse cx="120" cy="105" rx="50" ry="36" fill="#4ade80" stroke="#15803d" stroke-width="4"/>
+  <!-- 宽宽微笑大嘴 -->
+  <path d="M92 108c16 12 40 12 56 0" stroke="#15803d" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- 两侧粉嫩鼓腮帮鸣囊 -->
+  <circle cx="85" cy="116" r="8" fill="#f472b6" opacity="0.6"/>
+  <circle cx="155" cy="116" r="8" fill="#f472b6" opacity="0.6"/>
+  <!-- 两个小鼻孔 -->
+  <circle cx="114" cy="95" r="1.5" fill="#15803d"/><circle cx="126" cy="95" r="1.5" fill="#15803d"/>
+</svg>

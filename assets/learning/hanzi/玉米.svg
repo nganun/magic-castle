@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fefce8"/>
+  <ellipse cx="120" cy="154" rx="60" ry="10" fill="#fef08a"/>
+
+  <!-- 顶部红褐色飘逸的玉米须 -->
+  <g stroke="#b45309" stroke-width="2.5" stroke-linecap="round" fill="none">
+    <path d="M120 40 C116 20 106 14 96 12"/>
+    <path d="M120 40 C122 18 128 12 134 10"/>
+    <path d="M120 40 C126 24 138 18 146 16"/>
+    <path d="M118 36 C112 24 106 20 102 18"/>
+  </g>
+
+  <!-- 玉米棒主体（圆柱微锥形，金黄底色） -->
+  <path d="M102 46 C110 38 130 38 138 46 C144 65 144 115 136 142 C128 146 112 146 104 142 C96 115 96 65 102 46 Z" fill="#facc15" stroke="#ca8a04" stroke-width="3.5"/>
+
+  <!-- 整齐排列的一颗颗饱满金黄玉米粒（整齐网格 + 圆润颗粒感） -->
+  <g fill="#fde047" stroke="#ca8a04" stroke-width="1.8">
+    <!-- 横排 1 -->
+    <rect x="105" y="46" width="10" height="9" rx="3"/><rect x="115" y="46" width="10" height="9" rx="3"/><rect x="125" y="46" width="10" height="9" rx="3"/>
+    <!-- 横排 2 -->
+    <rect x="103" y="57" width="11" height="10" rx="3"/><rect x="114" y="57" width="12" height="10" rx="3"/><rect x="126" y="57" width="11" height="10" rx="3"/>
+    <!-- 横排 3 -->
+    <rect x="102" y="69" width="11" height="11" rx="3"/><rect x="113" y="69" width="14" height="11" rx="3"/><rect x="127" y="69" width="11" height="11" rx="3"/>
+    <!-- 横排 4 -->
+    <rect x="101" y="82" width="11" height="11" rx="3"/><rect x="112" y="82" width="16" height="11" rx="3"/><rect x="128" y="82" width="11" height="11" rx="3"/>
+    <!-- 横排 5 -->
+    <rect x="101" y="95" width="11" height="11" rx="3"/><rect x="112" y="95" width="16" height="11" rx="3"/><rect x="128" y="95" width="11" height="11" rx="3"/>
+    <!-- 横排 6 -->
+    <rect x="102" y="108" width="11" height="11" rx="3"/><rect x="113" y="108" width="14" height="11" rx="3"/><rect x="127" y="108" width="11" height="11" rx="3"/>
+    <!-- 横排 7 -->
+    <rect x="104" y="121" width="10" height="10" rx="3"/><rect x="114" y="121" width="12" height="10" rx="3"/><rect x="126" y="121" width="10" height="10" rx="3"/>
+  </g>
+
+  <!-- 底部剥开的两片翠绿苞叶（自然向下反卷） -->
+  <g stroke="#15803d" stroke-width="3">
+    <!-- 左苞叶 -->
+    <path d="M102 110 C80 115 62 135 68 155 C82 152 102 145 110 135 Z" fill="#22c55e"/>
+    <path d="M72 138 C84 140 98 140 106 135" stroke="#16a34a" stroke-width="2" fill="none"/>
+    <!-- 右苞叶 -->
+    <path d="M138 110 C160 115 178 135 172 155 C158 152 138 145 130 135 Z" fill="#16a34a"/>
+    <path d="M168 138 C156 140 142 140 134 135" stroke="#15803d" stroke-width="2" fill="none"/>
+  </g>
+  <!-- 底部玉米柄 -->
+  <rect x="115" y="146" width="10" height="14" rx="2" fill="#84cc16" stroke="#4d7c0f" stroke-width="2"/>
+</svg>

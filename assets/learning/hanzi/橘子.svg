@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <defs>
+    <radialGradient id="orgGround" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fdba74" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#fffaf5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mandarinBody" cx="36%" cy="26%" r="70%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="16%" stop-color="#fdba74"/>
+      <stop offset="42%" stop-color="#f97316"/>
+      <stop offset="76%" stop-color="#ea580c"/>
+      <stop offset="94%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </radialGradient>
+    <radialGradient id="stemHollow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c2d12"/>
+      <stop offset="75%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#ea580c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="40%" stop-color="#22c55e"/>
+      <stop offset="85%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <radialGradient id="crescentGrad" cx="42%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#fb923c"/>
+      <stop offset="82%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="240" height="180" rx="28" fill="#fffaf5"/>
+
+  <!-- 漫反射软阴影与接触阴影 -->
+  <ellipse cx="120" cy="154" rx="94" ry="14" fill="url(#orgGround)"/>
+  <ellipse cx="80" cy="152" rx="48" ry="7" fill="#9a3412" opacity="0.35"/>
+  <ellipse cx="154" cy="153" rx="44" ry="6" fill="#9a3412" opacity="0.32"/>
+
+  <!-- 左后侧：完整大蜜橘 -->
+  <g transform="translate(32, 54)">
+    <ellipse cx="50" cy="56" rx="50" ry="40" fill="url(#mandarinBody)"/>
+    <!-- 细腻油胞孔 -->
+    <g fill="#9a3412" opacity="0.18">
+      <circle cx="30" cy="48" r="0.8"/><circle cx="36" cy="42" r="0.8"/><circle cx="44" cy="47" r="0.8"/><circle cx="52" cy="40" r="0.8"/>
+      <circle cx="64" cy="44" r="0.8"/><circle cx="72" cy="50" r="0.8"/><circle cx="24" cy="60" r="0.8"/><circle cx="32" cy="64" r="0.8"/>
+      <circle cx="46" cy="68" r="0.8"/><circle cx="60" cy="66" r="0.8"/><circle cx="70" cy="64" r="0.8"/><circle cx="80" cy="60" r="0.8"/>
+      <circle cx="28" cy="76" r="0.8"/><circle cx="40" cy="80" r="0.8"/><circle cx="54" cy="82" r="0.8"/><circle cx="68" cy="78" r="0.8"/>
+    </g>
+    <!-- 高光弧晕 -->
+    <path d="M26 36 C16 50 18 70 30 82" stroke="#ffffff" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.45"/>
+    <path d="M30 44 C24 54 26 66 32 76" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <!-- 顶部微凹果窝 -->
+    <ellipse cx="50" cy="18" rx="10" ry="4" fill="url(#stemHollow)"/>
+    <path d="M50 18 L46 14 L49 16 L51 13 L52 16 L56 15 L53 18 L55 21 L51 19 L48 22 Z" fill="#65a30d"/>
+    <circle cx="50" cy="18" r="2.2" fill="#3f6212"/>
+    <path d="M50 18 C49 8 41 2 35 -2" stroke="#4d7c0f" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    <path d="M49 17 C48 9 42 3 37 0" stroke="#84cc16" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <!-- 鲜嫩绿叶 -->
+    <g transform="translate(50, 16)">
+      <path d="M0 0 C24 -14 42 -6 36 12 C18 16 6 8 0 0 Z" fill="url(#leafGrad)" stroke="#14532d" stroke-width="1.2"/>
+      <path d="M2 1 C14 2 26 4 33 10" stroke="#86efac" stroke-width="1.4" fill="none" opacity="0.9"/>
+      <path d="M10 2 C16 -2 22 -1 25 3 M18 4 C24 3 28 6 30 8 M8 2 C12 6 16 8 18 10" stroke="#86efac" stroke-width="0.8" fill="none" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- 前景：水灵通透、圆润多汁的月牙橘囊 -->
+  <g transform="translate(136, 108) rotate(14)">
+    <path d="M4 18 C16 -2 54 -2 72 16 C54 34 18 34 4 18 Z" fill="url(#crescentGrad)" stroke="#c2410c" stroke-width="2"/>
+    <path d="M14 16 C26 4 48 4 62 16" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.75"/>
+  </g>
+  <g transform="translate(106, 124) rotate(-8)">
+    <path d="M4 22 C18 -4 64 -4 84 20 C64 42 20 42 4 22 Z" fill="url(#crescentGrad)" stroke="#c2410c" stroke-width="2.2"/>
+    <path d="M14 18 C30 2 58 2 74 18" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+    <path d="M18 19 C34 6 54 6 68 19" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <g stroke="#ffffff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.95">
+      <path d="M6 22 C24 28 50 28 72 24"/>
+      <path d="M16 20 C24 14 36 18 52 24"/>
+      <path d="M40 12 C46 18 54 24 64 26"/>
+    </g>
+    <ellipse cx="44" cy="24" rx="16" ry="5" fill="#ffffff" opacity="0.45"/>
+  </g>
+</svg>

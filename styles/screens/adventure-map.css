@@ -75,3 +75,24 @@
 
 /* Desktop-only placement: keep the Hanzi Library at three-quarters width without touching mobile coordinates. */
 @media(min-width:601px){.map-hanzi{left:75%;right:auto;transform:none}.map-hanzi:hover,.map-hanzi:focus-visible{transform:translateY(-4px)}}
+
+/* Live Luna OC guide standing before the central castle with real-time wardrobe */
+.app-shell.home-active .home-oc-guide{position:absolute;z-index:7;left:34%;top:11%;display:flex;flex-direction:column;align-items:center;padding:0;border:0;background:transparent;transform:translateX(-50%);cursor:pointer;outline:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.app-shell.home-active .home-oc-guide:hover,.app-shell.home-active .home-oc-guide:focus-visible{transform:translateX(-50%) translateY(-4px) scale(1.03)}
+.app-shell.home-active .home-oc-guide:active{transform:translateX(-50%) scale(.96)}
+.app-shell.home-active .home-oc-halo{position:absolute;z-index:0;left:50%;top:50%;width:380px;height:500px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.75) 0%,rgba(255,248,220,.42) 48%,rgba(255,255,255,0) 75%);pointer-events:none}
+.app-shell.home-active .home-oc-guide .home-oc-avatar{position:relative;z-index:1;width:320px;height:480px;display:grid;place-items:center;filter:drop-shadow(0 14px 16px rgba(62,43,108,.32));pointer-events:none}
+.app-shell.home-active .home-oc-guide .home-oc-avatar svg{width:100%;height:100%;overflow:visible}
+.app-shell.home-active .home-oc-speech{position:absolute;z-index:2;top:-10px;right:-28px;padding:6px 15px;border-radius:999px;background:rgba(255,255,255,.96);border:2px solid #ecd9ff;color:#684196;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 4px 12px rgba(65,45,115,.18);pointer-events:none;animation:homeOcFloat 3s ease-in-out infinite alternate}
+.app-shell.home-active .home-oc-speech::after{content:"";position:absolute;bottom:-6px;left:18px;width:8px;height:8px;background:#fff;border-right:2px solid #ecd9ff;border-bottom:2px solid #ecd9ff;transform:rotate(45deg)}
+@keyframes homeOcFloat{0%{transform:translateY(0)}100%{transform:translateY(-4px)}}
+@media(max-width:600px){
+  .app-shell.home-active .home-oc-guide{left:32%;top:11%}
+  .app-shell.home-active .home-oc-halo{width:280px;height:360px}
+  .app-shell.home-active .home-oc-guide .home-oc-avatar{width:228px;height:342px;filter:drop-shadow(0 10px 12px rgba(62,43,108,.28))}
+  .app-shell.home-active .home-oc-speech{top:-8px;right:-14px;padding:4px 11px;font-size:11px;border-width:1.5px}
+  .app-shell.home-active .home-oc-speech::after{bottom:-5px;left:12px;width:6px;height:6px}
+}
+@media(max-width:600px) and (max-aspect-ratio:9/19){
+  .app-shell.home-active .home-oc-guide{left:32%;top:10%}
+}

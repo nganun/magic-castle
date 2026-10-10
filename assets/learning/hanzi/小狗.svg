@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fffbeb"/>
+  <!-- 两只耷拉的大耳朵 -->
+  <path d="M68 85c-14-16-18-45-8-55s28 8 28 30M172 85c14-16 18-45 8-55s-28 8-28 30" fill="#b45309" stroke="#78350f" stroke-width="4"/>
+  <!-- 头部圆脸 -->
+  <circle cx="120" cy="100" r="48" fill="#f59e0b" stroke="#78350f" stroke-width="4"/>
+  <!-- 眼睛 -->
+  <circle cx="102" cy="90" r="6" fill="#18181b"/><circle cx="104" cy="88" r="2" fill="#fff"/>
+  <circle cx="138" cy="90" r="6" fill="#18181b"/><circle cx="140" cy="88" r="2" fill="#fff"/>
+  <!-- 吻部白毛圈 -->
+  <ellipse cx="120" cy="112" rx="18" ry="12" fill="#fef3c7"/>
+  <!-- 黑色湿鼻子 -->
+  <ellipse cx="120" cy="106" rx="9" ry="6" fill="#18181b"/>
+  <!-- 三瓣嘴与粉红小舌头 -->
+  <path d="M120 112v6m0 0c-4 4-8 2-10 0m10 0c4 4 8 2 10 0" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M116 120c0 8 8 8 8 0Z" fill="#f43f5e" stroke="#e11d48" stroke-width="2"/>
+</svg>

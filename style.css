@@ -232,7 +232,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .admin-field{display:block;margin:12px 0;color:#654d83;font-weight:900}.admin-field textarea,.admin-field input{display:block;width:100%;margin-top:6px;padding:10px 12px;border:2px solid #e6d7fa;border-radius:13px;background:#fff;font:inherit;color:#4f3979}.admin-field textarea{resize:vertical;line-height:1.5}
 
 /* Hanzi has its own magic-book card instead of reusing the English picture-card layout. */
-.hanzi-spellbook{position:relative;max-width:520px;margin:12px auto 0;padding:22px 24px 20px;overflow:hidden;border:4px solid #ead5ad;border-radius:30px;background:linear-gradient(135deg,#fffdf3,#f7ead0);box-shadow:0 9px 0 rgba(141,93,53,.14),inset 0 0 0 7px rgba(255,255,255,.58);text-align:center}.hanzi-spellbook::before,.hanzi-spellbook::after{content:"";position:absolute;width:105px;height:105px;border-radius:50%;background:rgba(174,142,221,.12)}.hanzi-spellbook::before{left:-43px;top:-44px}.hanzi-spellbook::after{right:-49px;bottom:-55px}.hanzi-book-kicker{position:relative;z-index:1;margin:0;color:#91653e;font-size:12px;font-weight:900}.hanzi-glyph{position:relative;z-index:1;display:grid;justify-items:center;gap:3px;margin:8px auto 3px;padding:0;background:transparent;color:#51357b}.hanzi-glyph b{font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;font-size:clamp(76px,10vw,118px);line-height:1;color:#5c398e;text-shadow:0 3px 0 rgba(121,81,174,.16)}.hanzi-glyph small{padding:5px 10px;border-radius:999px;background:#eee1ff;color:#7553a6;font-size:11px;font-weight:900}.hanzi-read-copy{position:relative;z-index:1;margin:8px auto;color:#795f71;font-size:14px;font-weight:800}.hanzi-word-trail{position:relative;z-index:1;margin:12px auto 14px;padding:10px;border-top:2px dashed #dec69e;border-bottom:2px dashed #dec69e}.hanzi-word-trail em{display:block;margin-bottom:7px;color:#a0724d;font-size:11px;font-style:normal;font-weight:900}.hanzi-word-trail>div{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}.hanzi-word-trail span{padding:5px 10px;border-radius:10px;background:#fff;color:#6c4994;font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;font-size:20px;font-weight:900;box-shadow:0 2px 0 rgba(127,87,173,.14)}.hanzi-spellbook .primary-button{min-height:49px;font-size:15px}.hanzi-spellbook .record-practice{position:relative;z-index:1}@media(max-width:600px){.hanzi-spellbook{margin-top:4px;padding:15px 15px 13px;border-radius:23px}.hanzi-glyph b{font-size:76px}.hanzi-read-copy{font-size:12px}.hanzi-word-trail{margin:8px auto 10px;padding:7px}.hanzi-word-trail span{font-size:17px}.hanzi-spellbook .primary-button{min-height:43px;font-size:13px}}
+.hanzi-spellbook{position:relative;max-width:520px;margin:12px auto 0;padding:22px 24px 20px;overflow:hidden;border:4px solid #ead5ad;border-radius:30px;background:linear-gradient(135deg,#fffdf3,#f7ead0);box-shadow:0 9px 0 rgba(141,93,53,.14),inset 0 0 0 7px rgba(255,255,255,.58);text-align:center}.hanzi-spellbook::before,.hanzi-spellbook::after{content:"";position:absolute;width:105px;height:105px;border-radius:50%;background:rgba(174,142,221,.12)}.hanzi-spellbook::before{left:-43px;top:-44px}.hanzi-spellbook::after{right:-49px;bottom:-55px}.hanzi-book-kicker{position:relative;z-index:1;margin:0;color:#91653e;font-size:12px;font-weight:900}.hanzi-glyph{position:relative;z-index:1;display:grid;justify-items:center;gap:3px;margin:8px auto 3px;padding:0;background:transparent;color:#51357b}.hanzi-glyph b{font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;font-size:clamp(76px,10vw,118px);line-height:1;color:#5c398e;text-shadow:0 3px 0 rgba(121,81,174,.16)}.hanzi-glyph small{padding:5px 10px;border-radius:999px;background:#eee1ff;color:#7553a6;font-size:11px;font-weight:900}.hanzi-read-copy{position:relative;z-index:1;margin:8px auto;color:#795f71;font-size:14px;font-weight:800}.hanzi-spellbook .primary-button{min-height:49px;font-size:15px}.hanzi-spellbook .record-practice{position:relative;z-index:1}@media(max-width:600px){.hanzi-spellbook{margin-top:4px;padding:15px 15px 13px;border-radius:23px}.hanzi-glyph b{font-size:76px}.hanzi-read-copy{font-size:12px}.hanzi-spellbook .primary-button{min-height:43px;font-size:13px}}
 
 /* Compact icon-led wardrobe categories replace the redundant large helper button. */
 .oc-category-tabs{padding-top:12px}.oc-category-tab{display:inline-flex;align-items:center;justify-content:center;gap:5px}.oc-category-tab svg{width:15px;height:15px;stroke-width:2.1}.oc-category-tab.active svg{filter:drop-shadow(0 1px 0 rgba(77,45,132,.2))}@media(max-width:600px){.oc-category-tabs{padding-top:8px}.oc-category-tab{gap:4px}.oc-category-tab svg{width:13px;height:13px}}
@@ -249,6 +249,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .hanzi-spellbook{width:100%;max-width:100%;padding:12px 10px 10px;box-sizing:border-box;overflow:hidden;margin:4px auto 0}
   .hanzi-glyph[data-hanzi-length="4"] b{font-size:clamp(58px,18vw,72px)}
   .hanzi-book-topline{width:100%;gap:6px}
+  .hanzi-topline-actions{gap:4px}
+  .hanzi-image-toggle-btn{padding:2px 7px;font-size:10px}
+  .hanzi-illustration-img{max-height:86px;width:min(124px,36vw)}
   .hanzi-spellbook-group-btn{padding:4px 8px;font-size:11px;gap:4px}
   .hanzi-spellbook-group-btn svg{width:11px;height:11px}
   .hanzi-book-kicker{font-size:11px}
@@ -260,6 +263,20 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* Hanzi group words display in spellbook & lesson header */
 .hanzi-book-topline{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .hanzi-book-topline .hanzi-book-kicker{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hanzi-topline-actions{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.hanzi-image-toggle-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:2px solid #ecd6b3;background:#fff;color:#85582f;font-size:11px;font-weight:900;box-shadow:0 2px 0 rgba(141,93,53,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s ease}
+.hanzi-image-toggle-btn.is-active{background:#fff8ee;border-color:#f59e0b;color:#b45309;box-shadow:0 2px 0 rgba(245,158,11,.2)}
+.hanzi-image-toggle-btn.is-testing{background:#f1f5f9;border-color:#cbd5e1;color:#475569;box-shadow:0 2px 0 rgba(100,116,139,.1)}
+.hanzi-toggle-switch{position:relative;display:inline-block;width:18px;height:10px;border-radius:999px;background:#cbd5e1;transition:background .2s ease;vertical-align:middle}
+.hanzi-image-toggle-btn.is-active .hanzi-toggle-switch{background:#f59e0b}
+.hanzi-toggle-knob{position:absolute;left:2px;top:1px;width:8px;height:8px;border-radius:50%;background:#fff;transition:transform .2s ease}
+.hanzi-image-toggle-btn.is-active .hanzi-toggle-knob{transform:translateX(6px)}
+
+.hanzi-illustration-holder{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;margin:8px auto 4px;max-height:160px;transition:opacity .2s ease,max-height .2s ease,margin .2s ease;overflow:hidden}
+.hanzi-illustration-holder.is-hidden{opacity:0;max-height:0;margin:0 auto;pointer-events:none}
+.hanzi-illustration-img{width:min(180px,46vw);height:auto;max-height:135px;object-fit:contain;border-radius:20px;background:#fff;border:3px solid #fff;box-shadow:0 8px 18px rgba(141,93,53,.15);transition:transform .2s ease}
+.hanzi-illustration-img:hover{transform:scale(1.03)}
+
 .hanzi-spellbook-group-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;background:#fff;border:2px solid #ecd6b3;color:#85582f;font-size:12px;font-weight:900;box-shadow:0 2px 0 rgba(141,93,53,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:transform .15s ease,border-color .15s ease,background .15s ease}
 .hanzi-spellbook-group-btn svg{width:13px;height:13px;color:#ae7d4c}
 .hanzi-spellbook-group-btn:hover,.hanzi-spellbook-group-btn:focus-visible{border-color:#c89456;background:#fffdf8;transform:translateY(-1px)}
@@ -368,6 +385,55 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   align-items:center;
   gap:6px;
   flex-shrink:0
+}
+.hanzi-fullscreen-toggle-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-height:34px;
+  padding:0 10px;
+  border-radius:10px;
+  background:#fff;
+  color:#704819;
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+  border:1.5px solid #ecd6b3;
+  white-space:nowrap;
+  transition:all .15s ease
+}
+.hanzi-fullscreen-toggle-btn.is-active{
+  background:#fff8ee;
+  border-color:#f59e0b;
+  color:#b45309;
+  box-shadow:0 2px 0 rgba(245,158,11,.18)
+}
+.hanzi-fullscreen-toggle-btn .hanzi-toggle-switch{
+  position:relative;
+  display:inline-block;
+  width:18px;
+  height:10px;
+  border-radius:999px;
+  background:#cbd5e1;
+  transition:background .2s ease;
+  vertical-align:middle;
+  margin-left:2px
+}
+.hanzi-fullscreen-toggle-btn.is-active .hanzi-toggle-switch{
+  background:#f59e0b
+}
+.hanzi-fullscreen-toggle-btn .hanzi-toggle-knob{
+  position:absolute;
+  left:2px;
+  top:1px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#fff;
+  transition:transform .2s ease
+}
+.hanzi-fullscreen-toggle-btn.is-active .hanzi-toggle-knob{
+  transform:translateX(6px)
 }
 .hanzi-fullscreen-play-btn{
   display:inline-flex;
@@ -522,6 +588,29 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   width:100%;
   overflow:hidden
 }
+.hanzi-card-thumbnail{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:2px auto 4px;
+  width:100%;
+  max-height:56px;
+  overflow:hidden;
+  flex-shrink:0
+}
+.hanzi-card-thumbnail img{
+  width:auto;
+  height:44px;
+  max-width:88%;
+  object-fit:contain;
+  border-radius:10px;
+  background:#fff;
+  border:1.5px solid rgba(236,214,179,.5);
+  box-shadow:0 2px 6px rgba(136,92,46,.08)
+}
+.hanzi-fullscreen-card.has-thumb .hanzi-card-big-text{
+  font-size:clamp(16px,2.8vw,34px)
+}
 .hanzi-card-big-text{
   display:block;
   font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;
@@ -662,7 +751,34 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media(max-width:600px){.content-config-launcher .content-config-icon{font-size:12px}.content-config-launcher.hanzi-config-launcher .content-config-icon{font-size:30px}.content-config-launcher .content-config-arrow{font-size:27px}}
 
 /* Recital Stage turns reading practice into a small, calm performance rather than an action drill. */
-.recital-card{position:relative;max-width:620px;margin:16px auto;padding:26px 28px 22px;overflow:hidden;border:4px solid #e5c99b;border-radius:30px;background:linear-gradient(145deg,#fffaf0,#f7e5c3);box-shadow:0 9px 0 rgba(135,83,41,.14);text-align:center}.recital-curtain{position:absolute;z-index:0;inset:0 0 auto;height:74px;display:flex;justify-content:space-between;pointer-events:none}.recital-curtain i{display:block;width:31%;height:74px;background:linear-gradient(90deg,#8d4c7f,#c1699f);opacity:.2}.recital-curtain i:first-child{border-radius:0 0 70% 8%}.recital-curtain i:last-child{border-radius:0 0 8% 70%}.recital-card>*:not(.recital-curtain){position:relative;z-index:1}.recital-kicker{margin:0;color:#9a623d;font-size:12px;font-weight:900;letter-spacing:.06em}.recital-card h2{margin:5px 0 14px;color:#68418d;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:31px}.recital-text{display:grid;gap:10px;width:100%;min-height:124px;padding:20px 18px;border:2px dashed #d5b174;border-radius:19px;background:rgba(255,255,255,.72);color:#5c398e}.recital-text:hover,.recital-text:focus-visible{border-style:solid;border-color:#a879cf;background:#fff}.recital-text span{font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(25px,4.8vw,38px);font-weight:900;line-height:1.45}.recital-text small{color:#99765d;font-size:11px;font-weight:900}.recital-tip{margin:12px 0 8px;color:#846952;font-size:13px;font-weight:800}.recital-listen{display:inline-flex;align-items:center;gap:6px;margin:0 auto 12px;padding:7px 11px;border-radius:10px;background:#f0d48c;color:#71502b;font-size:12px;font-weight:900}.recital-listen svg{width:17px;height:17px}.recital-card .primary-button{min-height:49px}.recital-card .record-practice{margin-top:10px}@media(max-width:600px){.recital-card{margin:5px auto;padding:19px 15px 14px;border-radius:23px}.recital-curtain,.recital-curtain i{height:55px}.recital-card h2{font-size:27px;margin-bottom:10px}.recital-text{min-height:103px;padding:14px 11px}.recital-text span{font-size:25px}.recital-card .primary-button{min-height:43px;font-size:13px}}
+.recital-card{position:relative;width:100%;max-width:760px;min-height:0;margin:6px auto;padding:18px 24px 16px;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:4px solid #e5c99b;border-radius:30px;background:linear-gradient(145deg,#fffaf0,#f7e5c3);box-shadow:0 9px 0 rgba(135,83,41,.14);text-align:center}
+.recital-card.is-whole-piece{min-height:0;max-height:calc(100dvh - 150px);padding:14px 22px 14px}
+.recital-curtain{position:absolute;z-index:0;inset:0 0 auto;height:60px;display:flex;justify-content:space-between;pointer-events:none}
+.recital-curtain i{display:block;width:31%;height:60px;background:linear-gradient(90deg,#8d4c7f,#c1699f);opacity:.2}
+.recital-curtain i:first-child{border-radius:0 0 70% 8%}
+.recital-curtain i:last-child{border-radius:0 0 8% 70%}
+.recital-card>*:not(.recital-curtain){position:relative;z-index:1}
+.recital-kicker{margin:0;color:#9a623d;font-size:12px;font-weight:900;letter-spacing:.06em}
+.recital-card h2{margin:2px 0 4px;color:#68418d;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:26px}
+.recital-text{display:grid;gap:10px;width:100%;min-height:100px;padding:16px 14px;border:2px dashed #d5b174;border-radius:19px;background:rgba(255,255,255,.72);color:#5c398e;box-sizing:border-box}
+.recital-card.is-whole-piece .recital-text{flex:1 1 auto;min-height:160px}
+.recital-text:hover,.recital-text:focus-visible{border-style:solid;border-color:#a879cf;background:#fff}
+.recital-text span{font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(22px,4vw,32px);font-weight:900;line-height:1.4}
+.recital-text small{color:#99765d;font-size:11px;font-weight:900}
+.recital-tip{margin:4px 0 2px;color:#846952;font-size:12px;font-weight:800}
+.recital-listen{display:inline-flex;align-items:center;gap:6px;margin:0 auto 8px;padding:6px 10px;border-radius:10px;background:#f0d48c;color:#71502b;font-size:12px;font-weight:900}
+.recital-listen svg{width:17px;height:17px}
+.recital-card .primary-button{min-height:46px}
+.recital-card .record-practice{margin-top:6px}
+@media(max-width:600px){
+  .recital-card{min-height:0;max-height:calc(100% - 6px);margin:2px auto;padding:10px 10px 8px;border-radius:20px}
+  .recital-card.is-whole-piece{min-height:0;max-height:calc(100% - 4px);padding:8px 10px 6px}
+  .recital-curtain,.recital-curtain i{height:36px}
+  .recital-card h2{font-size:20px;margin-bottom:2px}
+  .recital-text{min-height:80px;padding:8px 8px}
+  .recital-card.is-whole-piece .recital-text{min-height:130px}
+  .recital-tip{margin:2px 0 2px;font-size:11px}
+}.recital-text span{font-size:22px}.recital-card .primary-button{min-height:40px;font-size:13px}}
 
 /* Recital authoring uses a line-first editor so a whole text becomes a sequence of small readings. */
 .recital-config-launcher{background:linear-gradient(105deg,#fff1ed,#fff 56%);border-color:#f1d3c8}.recital-config-launcher .content-config-icon{background:#b95c55;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:32px}.recital-config-launcher .content-config-copy strong{color:#984840}.recital-config-launcher .content-config-arrow{color:#b95c55}.field-hint{display:block;margin-top:5px;color:#938095;font-size:11px;font-weight:800;line-height:1.45}@media(max-width:600px){.recital-config-launcher .content-config-icon{font-size:29px}}
@@ -698,10 +814,21 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .round-navigation{display:flex;align-items:center;gap:6px}.round-nav-button{display:grid;place-items:center;width:36px;height:36px;border:2px solid #e5d8f7;border-radius:12px;background:#fff;color:#7652c2;box-shadow:0 2px 0 rgba(105,70,160,.1);transition:transform .16s ease,background .16s ease}.round-nav-button svg{width:18px;height:18px}.round-nav-button:hover:not(:disabled),.round-nav-button:focus-visible:not(:disabled){background:#f1e7ff;transform:translateY(-2px)}.round-nav-button:disabled{cursor:not-allowed;color:#c9bdd8;background:#faf8fc;box-shadow:none}@media(max-width:600px){.round-navigation{gap:4px}.round-nav-button{width:31px;height:31px;border-radius:10px}.round-nav-button svg{width:16px;height:16px}}
 
 /* Whole-piece recital keeps long manuscripts inside the card and follows each spoken line. */
-.recital-text.whole-piece{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:0;max-height:min(34dvh,300px);padding:14px 12px 10px;overflow:hidden}.recital-text.whole-piece .recital-manuscript{display:grid;gap:7px;max-height:220px;padding:4px 7px 5px;overflow-y:auto;scroll-behavior:smooth;text-align:left}.recital-text.whole-piece .recital-line{display:block;padding:7px 9px;border-radius:10px;color:#65458a;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(21px,3.4vw,30px);font-weight:900;line-height:1.45;transition:background .18s ease,color .18s ease,transform .18s ease}.recital-text.whole-piece .recital-line.speaking{background:#f3d77f;color:#70452c;transform:scale(1.01);box-shadow:0 2px 0 rgba(158,107,41,.13)}.recital-text.whole-piece .recital-manuscript::-webkit-scrollbar{width:7px}.recital-text.whole-piece .recital-manuscript::-webkit-scrollbar-thumb{border-radius:99px;background:#d6b36c}.recital-text.whole-piece small{margin-top:6px}@media(max-width:600px){.recital-text.whole-piece{max-height:31dvh;padding:10px 8px 8px}.recital-text.whole-piece .recital-manuscript{max-height:19dvh;gap:5px;padding:3px 4px}.recital-text.whole-piece .recital-line{padding:6px 7px;font-size:22px}}
+.recital-text.whole-piece{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:160px;max-height:min(48dvh,380px);padding:10px 14px 6px;overflow:hidden}
+.recital-text.whole-piece .recital-manuscript{display:grid;gap:6px;max-height:100%;padding:4px 10px 5px;overflow-y:auto;scroll-behavior:smooth;text-align:left}
+.recital-text.whole-piece .recital-line{display:block;padding:5px 12px;border-radius:12px;color:#65458a;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(19px,2.8vw,24px);font-weight:900;line-height:1.44;transition:background .18s ease,color .18s ease,transform .18s ease}
+.recital-text.whole-piece .recital-line.speaking{background:#f3d77f;color:#70452c;transform:scale(1.01);box-shadow:0 2px 0 rgba(158,107,41,.13)}
+.recital-text.whole-piece .recital-manuscript::-webkit-scrollbar{width:8px}
+.recital-text.whole-piece .recital-manuscript::-webkit-scrollbar-thumb{border-radius:99px;background:#d6b36c}
+.recital-text.whole-piece small{margin-top:4px}
+@media(max-width:600px){
+  .recital-text.whole-piece{min-height:130px;max-height:min(44dvh,260px);padding:6px 6px 4px}
+  .recital-text.whole-piece .recital-manuscript{max-height:100%;gap:4px;padding:2px 4px}
+  .recital-text.whole-piece .recital-line{padding:4px 8px;font-size:16px}
+}
 
-/* Extra manuscript padding lets the first and last spoken lines reach the visual center too. */
-.recital-text.whole-piece .recital-manuscript{padding-top:110px;padding-bottom:110px}@media(max-width:600px){.recital-text.whole-piece .recital-manuscript{padding-top:72px;padding-bottom:72px}}
+/* Manuscript padding lets spoken lines scroll comfortably without forcing card overflow. */
+.recital-text.whole-piece .recital-manuscript{padding-top:8px;padding-bottom:8px}@media(max-width:600px){.recital-text.whole-piece .recital-manuscript{padding-top:6px;padding-bottom:6px}}
 
 /* The replay key lives beside every listen-first completion action. */
 .lesson-primary-actions{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}.lesson-primary-actions .primary-button{margin-top:0;min-width:min(100%,300px)}.repeat-current-button{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:5px;min-width:96px;padding:7px 9px;border:2px solid #e5d6f5;border-radius:17px;background:#f7f1ff;color:#704bad;font-size:11px;font-weight:900;line-height:1;box-shadow:0 4px 0 rgba(108,70,167,.12)}.repeat-current-button svg{width:18px;height:18px}.repeat-current-button kbd{padding:2px 5px;border-radius:5px;background:#e7dafa;color:#68449c;font-family:inherit;font-size:9px;line-height:1}.repeat-current-button:hover,.repeat-current-button:focus-visible{border-color:#a77ae0;background:#eee2ff;transform:translateY(-2px)}.hanzi-spellbook .lesson-primary-actions{position:relative;z-index:1}@media(max-width:600px){.lesson-primary-actions{gap:7px;margin-top:7px;width:100%}.lesson-primary-actions .primary-button{min-width:0;flex:1}.repeat-current-button{min-width:88px;padding:5px 6px;border-radius:14px;font-size:10px}.repeat-current-button svg{width:16px;height:16px}.repeat-current-button kbd{font-size:8px}}
@@ -1053,18 +1180,85 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
   0%,100%{transform:scale(1.25)}
   50%{transform:scale(1.5)}
 }
-.memory-grid.memory-pairs-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:320px}
-.memory-grid.memory-pairs-3{grid-template-columns:repeat(3,minmax(0,1fr));max-width:440px}
-.memory-grid.memory-pairs-4{grid-template-columns:repeat(4,minmax(0,1fr));max-width:520px}
-.memory-grid.memory-pairs-5{grid-template-columns:repeat(5,minmax(0,1fr));max-width:600px}
-.memory-grid.memory-pairs-6{grid-template-columns:repeat(4,minmax(0,1fr));max-width:540px}
+/* Magic Memory Game: 2x2, 4x4, 6x6, 8x8, 10x10 responsive stage */
+.memory-grid{display:grid;justify-content:center;width:100%;box-sizing:border-box;margin:16px auto}
+.memory-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;min-width:0;min-height:0;box-sizing:border-box;border:2.5px solid #e8ddf2;background:#8d73cf;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .14s ease,background .14s ease,border-color .14s ease}
+.memory-card:hover:not(:disabled){transform:translateY(-2px);border-color:#bda6eb}
+.memory-card:active:not(:disabled){transform:scale(.95)}
+.memory-card.open{background:#fff;border-color:#d5bfe8;cursor:default}
+.memory-card.matched{border-color:#92d16d;background:#f5ffe8;box-shadow:0 2px 0 rgba(110,182,69,.22);cursor:default}
+.memory-card img{display:block;width:100%;object-fit:contain;pointer-events:none}
+.memory-card span{display:block;color:#674595;font-weight:900;text-align:center;pointer-events:none}
+.memory-card>b{display:grid;place-items:center;font-family:"Baloo 2",sans-serif;pointer-events:none}
+
+/* Grid sizes: 2x2 */
+.memory-grid.memory-grid-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:320px;gap:12px}
+.memory-grid-2 .memory-card{padding:12px;border-radius:24px;border-width:3px;box-shadow:0 5px 0 rgba(94,59,154,.18)}
+.memory-grid-2 .memory-card>b{font-size:38px}
+.memory-grid-2 .memory-card img{height:70%}
+.memory-grid-2 .memory-card span{font-size:15px;margin-top:4px}
+
+/* Grid sizes: 4x4 */
+.memory-grid.memory-grid-4{grid-template-columns:repeat(4,minmax(0,1fr));max-width:500px;gap:9px}
+.memory-grid-4 .memory-card{padding:6px;border-radius:16px;border-width:2.5px;box-shadow:0 4px 0 rgba(94,59,154,.15)}
+.memory-grid-4 .memory-card>b{font-size:24px}
+.memory-grid-4 .memory-card img{height:68%}
+.memory-grid-4 .memory-card span{font-size:11px;margin-top:2px}
+
+/* Grid sizes: 6x6 */
+.memory-grid.memory-grid-6{grid-template-columns:repeat(6,minmax(0,1fr));max-width:580px;gap:6px}
+.memory-grid-6 .memory-card{padding:3px;border-radius:11px;border-width:2px;box-shadow:0 3px 0 rgba(94,59,154,.12)}
+.memory-grid-6 .memory-card>b{font-size:18px}
+.memory-grid-6 .memory-card img{height:72%}
+.memory-grid-6 .memory-card span{font-size:9px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* Grid sizes: 8x8 */
+.memory-grid.memory-grid-8{grid-template-columns:repeat(8,minmax(0,1fr));max-width:660px;gap:4.5px}
+.memory-grid-8 .memory-card{padding:2px;border-radius:7px;border-width:1.5px;box-shadow:0 2px 0 rgba(94,59,154,.1)}
+.memory-grid-8 .memory-card>b{font-size:14px}
+.memory-grid-8 .memory-card img{height:74%}
+.memory-grid-8 .memory-card span{font-size:8px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+/* Grid sizes: 10x10 */
+.memory-grid.memory-grid-10{grid-template-columns:repeat(10,minmax(0,1fr));max-width:720px;gap:3.5px}
+.memory-grid-10 .memory-card{padding:2px;border-radius:5px;border-width:1.5px;box-shadow:0 1px 0 rgba(94,59,154,.08)}
+.memory-grid-10 .memory-card>b{font-size:12px}
+.memory-grid-10 .memory-card img{height:76%}
+.memory-grid-10 .memory-card span{font-size:7px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
 @media(max-width:600px){
   .arcade-play-header{gap:6px;margin-bottom:6px}
   .arcade-level-bar{padding:4px 9px;gap:6px}
   .arcade-level-badge{font-size:11px}
   .level-dot{width:6px;height:6px}
-  .memory-grid.memory-pairs-5{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .memory-grid.memory-pairs-6{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .memory-grid{margin:8px auto}
+  .memory-grid.memory-grid-2{gap:8px;max-width:240px}
+  .memory-grid-2 .memory-card{padding:8px;border-radius:18px}
+  .memory-grid-2 .memory-card>b{font-size:28px}
+  .memory-grid-2 .memory-card span{font-size:13px}
+
+  .memory-grid.memory-grid-4{gap:4.5px;max-width:min(92vw,320px)}
+  .memory-grid-4 .memory-card{padding:3px;border-radius:10px;border-width:2px}
+  .memory-grid-4 .memory-card>b{font-size:17px}
+  .memory-grid-4 .memory-card span{font-size:10px}
+
+  .memory-grid.memory-grid-6{gap:3px;max-width:min(95vw,340px)}
+  .memory-grid-6 .memory-card{padding:1.5px;border-radius:6px;border-width:1.5px}
+  .memory-grid-6 .memory-card>b{font-size:12px}
+  .memory-grid-6 .memory-card img{height:78%}
+  .memory-grid-6 .memory-card span{font-size:7.5px}
+
+  .memory-grid.memory-grid-8{gap:2px;max-width:min(96vw,350px)}
+  .memory-grid-8 .memory-card{padding:1px;border-radius:4.5px;border-width:1px}
+  .memory-grid-8 .memory-card>b{font-size:10px}
+  .memory-grid-8 .memory-card img{height:90%}
+  .memory-grid-8 .memory-card span{display:none}
+
+  .memory-grid.memory-grid-10{gap:1.5px;max-width:min(98vw,355px)}
+  .memory-grid-10 .memory-card{padding:.5px;border-radius:3.5px;border-width:1px}
+  .memory-grid-10 .memory-card>b{font-size:8px}
+  .memory-grid-10 .memory-card img{height:95%}
+  .memory-grid-10 .memory-card span{display:none}
 }
 
 /* Hanzi Writer (P0) & Celebration Feedback (P1) */

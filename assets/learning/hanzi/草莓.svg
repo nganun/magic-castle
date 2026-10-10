@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fef2f2"/>
+  <!-- 草莓果身 -->
+  <path d="M120 156C75 140 50 95 65 65c12-25 45-12 55 4 10-16 43-29 55-4 15 30-10 75-55 91Z" fill="#dc2626"/>
+  <!-- 高光 -->
+  <path d="M85 65c-8 15-4 40 10 55" stroke="#f87171" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- 草莓籽点 -->
+  <g fill="#fde047">
+    <ellipse cx="95" cy="80" rx="2.5" ry="4" transform="rotate(-15 95 80)"/>
+    <ellipse cx="120" cy="75" rx="2.5" ry="4"/>
+    <ellipse cx="145" cy="80" rx="2.5" ry="4" transform="rotate(15 145 80)"/>
+    <ellipse cx="85" cy="100" rx="2.5" ry="4" transform="rotate(-25 85 100)"/>
+    <ellipse cx="110" cy="98" rx="2.5" ry="4" transform="rotate(-10 110 98)"/>
+    <ellipse cx="135" cy="98" rx="2.5" ry="4" transform="rotate(10 135 98)"/>
+    <ellipse cx="155" cy="100" rx="2.5" ry="4" transform="rotate(25 155 100)"/>
+    <ellipse cx="102" cy="120" rx="2.5" ry="4" transform="rotate(-15 102 120)"/>
+    <ellipse cx="125" cy="122" rx="2.5" ry="4" transform="rotate(10 125 122)"/>
+    <ellipse cx="145" cy="118" rx="2.5" ry="4" transform="rotate(20 145 118)"/>
+    <ellipse cx="118" cy="140" rx="2" ry="3"/>
+  </g>
+  <!-- 果柄与绿叶萼片 -->
+  <path d="M120 42c0-14 8-20 14-22" fill="none" stroke="#15803d" stroke-width="5" stroke-linecap="round"/>
+  <path d="M120 48c-15-18-35-10-40 0 15 8 28 12 40 4 12 8 25 4 40-4-5-10-25-18-40 0Z" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+  <path d="M120 48c-8 12-18 20-30 20 8-12 18-18 30-20 12 2 22 8 30 20-12 0-22-8-30-20Z" fill="#16a34a"/>
+</svg>

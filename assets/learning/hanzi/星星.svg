@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fefce8"/>
+  <!-- 星星外廓与本体 -->
+  <polygon points="120,28 135,74 184,74 144,103 159,149 120,121 81,149 96,103 56,74 105,74" fill="#facc15" stroke="#eab308" stroke-width="4" stroke-linejoin="round"/>
+  <!-- 眼睛与笑脸 -->
+  <circle cx="111" cy="85" r="4" fill="#713f12"/>
+  <circle cx="129" cy="85" r="4" fill="#713f12"/>
+  <ellipse cx="104" cy="92" rx="4" ry="2.5" fill="#f87171" opacity="0.6"/>
+  <ellipse cx="136" cy="92" rx="4" ry="2.5" fill="#f87171" opacity="0.6"/>
+  <path d="M115 93q5 5 10 0" fill="none" stroke="#713f12" stroke-width="3" stroke-linecap="round"/>
+</svg>

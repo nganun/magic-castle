@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fff1f2"/>
+  <ellipse cx="120" cy="154" rx="78" ry="12" fill="#ffe4e6"/>
+
+  <!-- 背后斜躺的一颗红枣 -->
+  <g transform="translate(68, 72) rotate(-32)">
+    <path d="M22 6 C20-2 24-8 28-10" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="22" cy="38" rx="22" ry="34" fill="#991b1b" stroke="#450a0a" stroke-width="3"/>
+    <!-- 凹陷干纹褶皱 -->
+    <path d="M8 24 C16 30 16 46 10 56" stroke="#450a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M26 22 C30 30 30 46 24 54" stroke="#450a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M12 20 C10 28 12 44 18 56" stroke="#ef4444" stroke-width="2" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- 背后右侧的一颗红枣 -->
+  <g transform="translate(136, 68) rotate(26)">
+    <path d="M22 6 C24-2 30-6 34-8" stroke="#78350f" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <ellipse cx="22" cy="38" rx="22" ry="34" fill="#991b1b" stroke="#450a0a" stroke-width="3"/>
+    <path d="M8 24 C16 30 16 46 10 56" stroke="#450a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M24 22 C30 30 28 46 22 54" stroke="#450a0a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- 前景正中央最饱满的大红枣（两头窄、中间鼓、极其典型的干制大枣形态） -->
+  <g transform="translate(88, 42)">
+    <!-- 枣柄小木枝 -->
+    <path d="M32 14 C30 4 34-4 40-7" stroke="#78350f" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- 果蒂凹窝 -->
+    <ellipse cx="32" cy="14" rx="6" ry="3" fill="#450a0a"/>
+    
+    <!-- 饱满干枣轮廓：两头窄、中间圆润鼓起 -->
+    <path d="M32 14 
+      C14 16 4 38 6 65 
+      C8 92 18 106 32 106 
+      C46 106 56 92 58 65 
+      C60 38 50 16 32 14 Z" 
+      fill="#b91c1c" stroke="#450a0a" stroke-width="3.5"/>
+    
+    <!-- 标志性干制深层凹凸褶皱（层层横向波浪干纹） -->
+    <path d="M16 32 C26 38 40 36 50 28" stroke="#7f1d1d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M10 52 C24 60 42 58 52 46" stroke="#7f1d1d" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M12 74 C26 82 44 80 54 68" stroke="#7f1d1d" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M18 92 C28 98 42 96 48 88" stroke="#7f1d1d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+    <!-- 红枣表皮蜡质反光高光弧线（油光锃亮） -->
+    <path d="M14 30 C8 48 10 74 18 90" stroke="#fca5a5" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M16 38 C12 52 14 68 18 82" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

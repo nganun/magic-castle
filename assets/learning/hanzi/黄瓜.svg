@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0fdf4"/>
+  <ellipse cx="120" cy="154" rx="72" ry="12" fill="#dcfce7"/>
+
+  <!-- 黄瓜瓜体（修长条形、自然微弧弯曲，典型的水灵嫩黄瓜） -->
+  <g transform="translate(42, 60) rotate(-10)">
+    <!-- 瓜柄 -->
+    <path d="M6 32 L-10 26" stroke="#15803d" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- 黄瓜修长瓜身 -->
+    <path d="M6 32 
+      C35 22 95 24 150 48 
+      C156 52 156 64 150 68 
+      C95 44 35 44 6 52 
+      C0 50-2 34 6 32 Z" 
+      fill="#16a34a" stroke="#14532d" stroke-width="4"/>
+
+    <!-- 黄瓜背部与腹部的纵向浅绿棱线 -->
+    <path d="M12 36 C50 28 100 32 144 54" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M12 44 C50 36 100 40 142 60" stroke="#86efac" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- 表面标志性的嫩刺疙瘩小圆点 -->
+    <g fill="#bbf7d0">
+      <circle cx="36" cy="38" r="2.5"/><circle cx="68" cy="36" r="2.5"/><circle cx="102" cy="42" r="2.5"/><circle cx="130" cy="52" r="2.5"/>
+      <circle cx="52" cy="45" r="2.5"/><circle cx="85" cy="44" r="2.5"/><circle cx="118" cy="52" r="2.5"/>
+    </g>
+
+    <!-- 瓜尾盛开的金黄色五角小黄花（顶花带刺是嫩黄瓜的绝杀标志！） -->
+    <g transform="translate(152, 58)">
+      <polygon points="0,0 8,-8 14,-2 10,6 16,10 8,14 2,8 -4,12 -2,4 -10,0" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+      <circle cx="3" cy="3" r="2.5" fill="#f59e0b"/>
+    </g>
+  </g>
+</svg>

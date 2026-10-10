@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fff7ed"/>
+  <!-- 最外侧大瓣 -->
+  <ellipse cx="120" cy="105" rx="60" ry="42" fill="#ea580c" stroke="#9a3412" stroke-width="4"/>
+  <!-- 中间瓣片 -->
+  <ellipse cx="120" cy="105" rx="40" ry="43" fill="#f97316" stroke="#9a3412" stroke-width="3"/>
+  <!-- 最中心凸起主瓣 -->
+  <ellipse cx="120" cy="105" rx="18" ry="44" fill="#fb923c" stroke="#9a3412" stroke-width="2.5"/>
+  <!-- 纵棱阴影线条 -->
+  <path d="M102 63c-15 15-20 60 0 84M138 63c15 15 20 60 0 84" stroke="#c2410c" stroke-width="3" fill="none"/>
+  <!-- 粗壮弯瓜柄 -->
+  <path d="M120 65c-4-22 14-30 22-32" fill="none" stroke="#15803d" stroke-width="7" stroke-linecap="round"/>
+  <polygon points="120,62 112,68 128,68" fill="#15803d"/>
+</svg>

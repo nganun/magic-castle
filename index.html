@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="preload" href="assets/fonts/castle-kai.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="style.css?v=1.0.14" />
+    <link rel="stylesheet" href="style.css?v=1.0.15" />
     <link rel="stylesheet" href="styles/screens/adventure-map.css" />
   </head>
   <body>
@@ -40,14 +40,14 @@
       <main id="main" tabindex="-1">
         <section class="screen active" id="homeScreen" aria-label="魔法城堡地图">
           <div class="garden-scene">
-            <section class="theme-map" aria-labelledby="themeMapTitle"><div class="lesson-mode-switch" id="lessonModeSwitch" role="tablist" aria-label="学习模式"><button class="lesson-mode-button active" type="button" role="tab" aria-selected="true" data-lesson-mode="learn">探索新知识</button><button class="lesson-mode-button" type="button" role="tab" aria-selected="false" data-lesson-mode="review">魔法回顾</button></div><div id="themeCards" class="theme-cards"></div><button id="magicHouse" class="magic-house-cloud" type="button" aria-label="魔法屋，前往魔法屋"><span>魔法屋</span></button><button id="dailyRoute" class="daily-route" type="button" hidden></button></section>
+            <section class="theme-map" aria-labelledby="themeMapTitle"><div class="lesson-mode-switch" id="lessonModeSwitch" role="tablist" aria-label="学习模式"><button class="lesson-mode-button active" type="button" role="tab" aria-selected="true" data-lesson-mode="learn">探索新知识</button><button class="lesson-mode-button" type="button" role="tab" aria-selected="false" data-lesson-mode="review">魔法回顾</button></div><div id="themeCards" class="theme-cards"></div><button id="magicHouse" class="magic-house-cloud" type="button" aria-label="魔法屋，前往魔法屋"><span>魔法屋</span></button><button class="home-oc-guide" id="homeOcGuide" type="button" aria-label="露娜，前往魔法屋换装"><span class="home-oc-halo" aria-hidden="true"></span><span class="home-oc-avatar" id="homeOcAvatar" aria-hidden="true"></span><span class="home-oc-speech" id="homeOcSpeech" aria-hidden="true"><span id="speechChildName">Hi, 荆宝!</span></span></button><button id="dailyRoute" class="daily-route" type="button" hidden></button></section>
           </div>
         </section>
 
         <section class="screen" id="lessonScreen" aria-label="学习课程">
           <div class="lesson-layout">
             <aside class="lesson-side">
-              <div class="progress-label"><span id="progressLabel">第 1 关，共 3 关</span><b id="progressStars">0 / 3</b></div>
+              <div class="progress-label"><span id="progressLabel">第 1 关，共 3 关</span><div class="round-navigation" aria-label="卡片切换"><button class="round-nav-button" id="prevCardBtn" type="button" aria-label="上一张卡片 (←)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><b id="progressStars">0 / 3</b><button class="round-nav-button" id="nextCardBtn" type="button" aria-label="下一张卡片 (→)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
               <div class="progress-track"><span id="progressFill"></span></div>
               <div class="lesson-group-switcher" id="lessonGroupSwitcher" hidden aria-label="学习分组"></div>
               <div class="lesson-princess"><div class="tiny-crown"></div><div class="tiny-head"></div><div class="tiny-dress"></div></div>
@@ -129,6 +129,11 @@
               <span class="hanzi-fullscreen-count" id="hanziGroupModalCount">共 0 字</span>
             </div>
             <div class="hanzi-fullscreen-actions">
+              <button class="hanzi-fullscreen-toggle-btn" id="hanziModalImageToggleBtn" type="button" aria-label="切换是否开启看图识字" hidden>
+                <span class="toggle-icon">🖼️</span>
+                <span class="toggle-label" id="hanziModalImageToggleLabel">看图识字</span>
+                <span class="hanzi-toggle-switch" aria-hidden="true"><i class="hanzi-toggle-knob"></i></span>
+              </button>
               <button class="hanzi-fullscreen-play-btn" id="hanziGroupPlayAllBtn" type="button" aria-label="连续朗读本组汉字">
                 <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
                 <span id="hanziGroupPlayAllLabel">连续朗读</span>
@@ -185,6 +190,6 @@
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="vendor/hanzi-writer/hanzi-writer.min.js?v=1.0.10"></script>
-    <script type="module" src="app.js?v=1.0.14"></script>
+    <script type="module" src="app.js?v=1.0.15"></script>
   </body>
 </html>

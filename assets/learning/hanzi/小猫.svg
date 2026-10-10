@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fff7ed"/>
+  <!-- 两只直立尖尖耳 -->
+  <polygon points="76,68 62,35 95,50" fill="#ea580c" stroke="#9a3412" stroke-width="3.5"/>
+  <polygon points="76,64 68,44 90,52" fill="#fca5a5"/>
+  <polygon points="164,68 178,35 145,50" fill="#ea580c" stroke="#9a3412" stroke-width="3.5"/>
+  <polygon points="164,64 172,44 150,52" fill="#fca5a5"/>
+  <!-- 猫脸 -->
+  <circle cx="120" cy="98" r="46" fill="#fb923c" stroke="#9a3412" stroke-width="4"/>
+  <!-- 头顶虎斑花纹 -->
+  <path d="M120 54v14M110 56l4 12M130 56l-4 12" stroke="#9a3412" stroke-width="3" stroke-linecap="round"/>
+  <!-- 猫眼 -->
+  <ellipse cx="102" cy="92" rx="6" ry="8" fill="#18181b"/><circle cx="104" cy="89" r="2.5" fill="#fff"/>
+  <ellipse cx="138" cy="92" rx="6" ry="8" fill="#18181b"/><circle cx="140" cy="89" r="2.5" fill="#fff"/>
+  <!-- 粉红倒三角小鼻 -->
+  <polygon points="120,105 114,99 126,99" fill="#f43f5e"/>
+  <!-- 猫嘴 -->
+  <path d="M120 105v5m0 0c-4 4-8 2-10 0m10 0c4 4 8 2 10 0" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- 左右各三根胡须 -->
+  <line x1="88" y1="98" x2="60" y2="95" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="88" y1="105" x2="58" y2="108" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="88" y1="112" x2="62" y2="120" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="152" y1="98" x2="180" y2="95" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="152" y1="105" x2="182" y2="108" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="152" y1="112" x2="178" y2="120" stroke="#7c2d12" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

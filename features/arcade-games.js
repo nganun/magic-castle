@@ -20,6 +20,61 @@ export const ARCADE_GAMES = [
   { id: 'bulls', name: '猜数字', icon: '1234', description: '推理出隐藏的四位数字。', meta: '逻辑 · 原始玩法' },
 ];
 
+export const ARCADE_HANZI_PICTURE_ITEMS = [
+  { id: 'turtle', label: '乌龟', image: 'assets/learning/hanzi/乌龟.svg' },
+  { id: 'rabbit', label: '兔子', image: 'assets/learning/hanzi/兔子.svg' },
+  { id: 'pumpkin', label: '南瓜', image: 'assets/learning/hanzi/南瓜.svg' },
+  { id: 'cantaloupe', label: '哈密瓜', image: 'assets/learning/hanzi/哈密瓜.svg' },
+  { id: 'potato', label: '土豆', image: 'assets/learning/hanzi/土豆.svg' },
+  { id: 'elephant', label: '大象', image: 'assets/learning/hanzi/大象.svg' },
+  { id: 'sun', label: '太阳', image: 'assets/learning/hanzi/太阳.svg' },
+  { id: 'dog', label: '小狗', image: 'assets/learning/hanzi/小狗.svg' },
+  { id: 'pig', label: '小猪', image: 'assets/learning/hanzi/小猪.svg' },
+  { id: 'cat', label: '小猫', image: 'assets/learning/hanzi/小猫.svg' },
+  { id: 'star', label: '星星', image: 'assets/learning/hanzi/星星.svg' },
+  { id: 'moon', label: '月亮', image: 'assets/learning/hanzi/月亮.svg' },
+  { id: 'pear', label: '梨子', image: 'assets/learning/hanzi/梨子.svg' },
+  { id: 'durian', label: '榴莲', image: 'assets/learning/hanzi/榴莲.svg' },
+  { id: 'cherry', label: '樱桃', image: 'assets/learning/hanzi/樱桃.svg' },
+  { id: 'mandarin', label: '橘子', image: 'assets/learning/hanzi/橘子.svg' },
+  { id: 'orange', label: '橙子', image: 'assets/learning/hanzi/橙子.svg' },
+  { id: 'balloon', label: '气球', image: 'assets/learning/hanzi/气球.svg' },
+  { id: 'panda', label: '熊猫', image: 'assets/learning/hanzi/熊猫.svg' },
+  { id: 'lion', label: '狮子', image: 'assets/learning/hanzi/狮子.svg' },
+  { id: 'monkey', label: '猴子', image: 'assets/learning/hanzi/猴子.svg' },
+  { id: 'corn', label: '玉米', image: 'assets/learning/hanzi/玉米.svg' },
+  { id: 'wandou', label: '琬豆', image: 'assets/learning/hanzi/琬豆.svg' },
+  { id: 'sugarcane', label: '甘蔗', image: 'assets/learning/hanzi/甘蔗.svg' },
+  { id: 'white', label: '白色', image: 'assets/learning/hanzi/白色.svg' },
+  { id: 'pink', label: '粉色', image: 'assets/learning/hanzi/粉色.svg' },
+  { id: 'purple', label: '紫色', image: 'assets/learning/hanzi/紫色.svg' },
+  { id: 'jujube', label: '红枣', image: 'assets/learning/hanzi/红枣.svg' },
+  { id: 'red', label: '红色', image: 'assets/learning/hanzi/红色.svg' },
+  { id: 'green', label: '绿色', image: 'assets/learning/hanzi/绿色.svg' },
+  { id: 'carrot', label: '胡萝卜', image: 'assets/learning/hanzi/胡萝卜.svg' },
+  { id: 'mango', label: '芒果', image: 'assets/learning/hanzi/芒果.svg' },
+  { id: 'apple', label: '苹果', image: 'assets/learning/hanzi/苹果.svg' },
+  { id: 'eggplant', label: '茄子', image: 'assets/learning/hanzi/茄子.svg' },
+  { id: 'strawberry', label: '草莓', image: 'assets/learning/hanzi/草莓.svg' },
+  { id: 'grape', label: '葡萄', image: 'assets/learning/hanzi/葡萄.svg' },
+  { id: 'blue', label: '蓝色', image: 'assets/learning/hanzi/蓝色.svg' },
+  { id: 'blueberry', label: '蓝莓', image: 'assets/learning/hanzi/蓝莓.svg' },
+  { id: 'mushroom', label: '蘑菇', image: 'assets/learning/hanzi/蘑菇.svg' },
+  { id: 'butterfly', label: '蝴蝶', image: 'assets/learning/hanzi/蝴蝶.svg' },
+  { id: 'broccoli', label: '西兰花', image: 'assets/learning/hanzi/西兰花.svg' },
+  { id: 'watermelon', label: '西瓜', image: 'assets/learning/hanzi/西瓜.svg' },
+  { id: 'tomato', label: '西红柿', image: 'assets/learning/hanzi/西红柿.svg' },
+  { id: 'pea', label: '豌豆', image: 'assets/learning/hanzi/豌豆.svg' },
+  { id: 'giraffe', label: '长颈鹿', image: 'assets/learning/hanzi/长颈鹿.svg' },
+  { id: 'frog', label: '青蛙', image: 'assets/learning/hanzi/青蛙.svg' },
+  { id: 'banana', label: '香蕉', image: 'assets/learning/hanzi/香蕉.svg' },
+  { id: 'fish', label: '鱼', image: 'assets/learning/hanzi/鱼.svg' },
+  { id: 'duck', label: '鸭子', image: 'assets/learning/hanzi/鸭子.svg' },
+  { id: 'cucumber', label: '黄瓜', image: 'assets/learning/hanzi/黄瓜.svg' },
+  { id: 'yellow', label: '黄色', image: 'assets/learning/hanzi/黄色.svg' },
+  { id: 'black', label: '黑色', image: 'assets/learning/hanzi/黑色.svg' },
+];
+
 export const ARCADE_PICTURE_ITEMS = [
   { id: 'cat', label: '小猫', image: 'assets/learning/vocabulary/cat.svg' },
   { id: 'dog', label: '小狗', image: 'assets/learning/vocabulary/dog.svg' },
@@ -55,9 +110,17 @@ export function shuffled(values) {
   return copy;
 }
 
-export function createMemoryDeck(pairCount = 3) {
-  const count = Math.max(2, Math.min(pairCount, ARCADE_PICTURE_ITEMS.length));
-  const pool = shuffled(ARCADE_PICTURE_ITEMS).slice(0, count);
+export function createMemoryDeck(pairCount = 2) {
+  const source = ARCADE_HANZI_PICTURE_ITEMS.length ? ARCADE_HANZI_PICTURE_ITEMS : ARCADE_PICTURE_ITEMS;
+  let pool = [];
+  if (pairCount <= source.length) {
+    pool = shuffled(source).slice(0, pairCount);
+  } else {
+    while (pool.length < pairCount) {
+      pool.push(...shuffled(source));
+    }
+    pool = pool.slice(0, pairCount).map((item, i) => ({ ...item, id: `${item.id}_${i}` }));
+  }
   return shuffled([...pool, ...pool].map((item, index) => ({ ...item, cardId: `${item.id}-${index}` })));
 }
 

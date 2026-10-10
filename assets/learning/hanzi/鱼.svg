@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0f9ff"/>
+  <!-- 飘逸大尾鳍 (如丝带般展开) -->
+  <path d="M165 92c24-25 45-20 45-2 0 18-20 35-45 12Z" fill="#f87171" stroke="#dc2626" stroke-width="3"/>
+  <path d="M165 92c20-8 35 15 30 25-10 15-25 5-30-25Z" fill="#ef4444"/>
+  <!-- 鱼身 -->
+  <ellipse cx="115" cy="95" rx="55" ry="36" fill="#f97316" stroke="#c2410c" stroke-width="4"/>
+  <!-- 背鳍与胸鳍 -->
+  <path d="M105 59c15-12 35-8 32 6Z" fill="#fb923c" stroke="#c2410c" stroke-width="2.5"/>
+  <path d="M105 108c10 8 16 16 12 18-6 2-10-8-12-18Z" fill="#fb923c"/>
+  <!-- 大眼睛与鱼嘴 -->
+  <circle cx="80" cy="88" r="8" fill="#ffffff" stroke="#c2410c" stroke-width="2"/>
+  <circle cx="78" cy="88" r="4.5" fill="#18181b"/>
+  <path d="M60 95c4-4 8 0 6 4" stroke="#c2410c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 鱼鳃与鱼鳞纹理 -->
+  <path d="M102 75c8 10 8 28 0 38" stroke="#ea580c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M125 78c6 8 6 16 0 24M140 82c5 6 5 14 0 18" stroke="#ea580c" stroke-width="2.5" fill="none"/>
+  <!-- 吐出的水泡泡 -->
+  <circle cx="60" cy="74" r="5" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/>
+  <circle cx="48" cy="62" r="3.5" fill="#bae6fd" stroke="#38bdf8" stroke-width="1.5"/>
+</svg>

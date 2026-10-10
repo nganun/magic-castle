@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fffbeb"/>
+  <!-- 蘑菇柄 -->
+  <path d="M104 100v38c0 10 32 10 32 0v-38" fill="#f8fafc" stroke="#64748b" stroke-width="4"/>
+  <!-- 菌褶层 -->
+  <ellipse cx="120" cy="100" rx="60" ry="12" fill="#fed7aa" stroke="#ea580c" stroke-width="3"/>
+  <path d="M80 102l12-3M98 103l8-3M134 103l8-3M152 102l10-3" stroke="#ea580c" stroke-width="2"/>
+  <!-- 红色圆顶大伞盖 -->
+  <path d="M58 100c0-42 28-66 62-66s62 24 62 66c0 4-4 8-12 8H70c-8 0-12-4-12-8Z" fill="#ef4444" stroke="#b91c1c" stroke-width="4"/>
+  <!-- 标志性白圆斑点 -->
+  <circle cx="120" cy="62" r="12" fill="#ffffff"/><circle cx="85" cy="80" r="9" fill="#ffffff"/><circle cx="155" cy="80" r="9" fill="#ffffff"/>
+  <circle cx="100" cy="52" r="5" fill="#ffffff"/><circle cx="140" cy="52" r="5" fill="#ffffff"/>
+</svg>

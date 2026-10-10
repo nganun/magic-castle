@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#fefce8"/>
+  <!-- 大土豆不规则外形 -->
+  <path d="M80 72c28-20 85-15 105 12 18 25 10 60-12 75-28 18-74 15-92-8-16-22-16-62-1-79Z" fill="#ca8a04" stroke="#854d0e" stroke-width="4"/>
+  <ellipse cx="98" cy="82" rx="12" ry="6" transform="rotate(-15 98 82)" fill="#eab308" opacity="0.6"/>
+  <!-- 特征芽眼凹坑 -->
+  <g fill="#713f12">
+    <!-- 芽眼 1 -->
+    <ellipse cx="105" cy="88" rx="4" ry="2"/>
+    <path d="M102 87c3-2 6-2 8 0" stroke="#854d0e" stroke-width="2" fill="none"/>
+    <!-- 芽眼 2 -->
+    <ellipse cx="145" cy="82" rx="4" ry="2"/>
+    <path d="M142 81c3-2 6-2 8 0" stroke="#854d0e" stroke-width="2" fill="none"/>
+    <!-- 芽眼 3 -->
+    <ellipse cx="120" cy="115" rx="5" ry="2.5"/>
+    <path d="M117 114c3-2 6-2 8 0" stroke="#854d0e" stroke-width="2" fill="none"/>
+    <!-- 芽眼 4 -->
+    <ellipse cx="155" cy="122" rx="4" ry="2"/>
+    <!-- 散落小斑点 -->
+    <circle cx="86" cy="110" r="2.5"/><circle cx="165" cy="100" r="2.5"/><circle cx="135" cy="142" r="2.5"/>
+  </g>
+</svg>

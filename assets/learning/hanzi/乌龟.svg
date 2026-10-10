@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0fdf4"/>
+  <ellipse cx="120" cy="154" rx="76" ry="12" fill="#dcfce7"/>
+
+  <!-- 后面伸出的小尖尾巴 -->
+  <path d="M182 116 C198 118 210 124 212 128 C202 126 188 122 182 118 Z" fill="#22c55e" stroke="#15803d" stroke-width="2.5"/>
+
+  <!-- 着地爬行的肉肉小脚爪 -->
+  <!-- 右后爪 -->
+  <ellipse cx="168" cy="130" rx="14" ry="9" fill="#22c55e" stroke="#15803d" stroke-width="2.5"/>
+  <circle cx="166" cy="137" r="1.5" fill="#15803d"/><circle cx="172" cy="137" r="1.5" fill="#15803d"/>
+  <!-- 右前爪 -->
+  <ellipse cx="84" cy="132" rx="15" ry="10" transform="rotate(-15 84 132)" fill="#4ade80" stroke="#15803d" stroke-width="2.5"/>
+  <circle cx="78" cy="140" r="1.5" fill="#15803d"/><circle cx="84" cy="141" r="1.5" fill="#15803d"/><circle cx="90" cy="140" r="1.5" fill="#15803d"/>
+
+  <!-- 探头探脑的可爱呆萌乌龟脑袋 -->
+  <g transform="translate(38, 72)">
+    <!-- 伸出的脖子 -->
+    <path d="M28 38 C36 30 46 32 54 40" stroke="#4ade80" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <path d="M28 38 C36 30 46 32 54 40" stroke="#15803d" stroke-width="3" fill="none"/>
+    <!-- 圆圆脑袋 -->
+    <circle cx="22" cy="28" r="17" fill="#4ade80" stroke="#15803d" stroke-width="3"/>
+    <!-- 大眼睛 -->
+    <circle cx="17" cy="23" r="5" fill="#ffffff" stroke="#15803d" stroke-width="1.5"/>
+    <circle cx="16" cy="23" r="3" fill="#0f172a"/>
+    <circle cx="17" cy="21" r="1" fill="#ffffff"/>
+    <!-- 微笑嘴巴 -->
+    <path d="M12 34 C17 38 24 38 28 33" stroke="#15803d" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- 小腮红 -->
+    <circle cx="26" cy="31" r="3.5" fill="#f472b6" opacity="0.6"/>
+  </g>
+
+  <!-- 核心：圆拱形饱满大龟壳！ -->
+  <g transform="translate(68, 52)">
+    <!-- 龟壳穹顶大半圆弧 -->
+    <path d="M10 74 C10 14 106 14 118 74 Z" fill="#15803d" stroke="#14532d" stroke-width="4"/>
+    <!-- 底部裙边 -->
+    <path d="M6 74 C35 80 95 80 122 74 C115 82 15 82 6 74 Z" fill="#166534" stroke="#14532d" stroke-width="2.5"/>
+
+    <!-- 排列规则的六边形大龟甲图案！ -->
+    <polygon points="56,22 74,22 84,38 72,48 48,46 44,32" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+    <polygon points="48,46 72,48 78,66 52,68 34,58" fill="#22c55e" stroke="#14532d" stroke-width="2.5"/>
+    <!-- 侧甲片群 -->
+    <polygon points="26,36 44,32 48,46 34,58 18,52" fill="#4ade80" stroke="#14532d" stroke-width="2"/>
+    <polygon points="18,52 34,58 42,72 14,72" fill="#22c55e" stroke="#14532d" stroke-width="2"/>
+    <polygon points="74,22 96,28 104,44 84,38" fill="#16a34a" stroke="#14532d" stroke-width="2"/>
+    <polygon points="84,38 104,44 110,66 78,66 72,48" fill="#16a34a" stroke="#14532d" stroke-width="2"/>
+    <polygon points="52,68 78,66 86,72 50,72" fill="#22c55e" stroke="#14532d" stroke-width="2"/>
+  </g>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180">
+  <rect width="240" height="180" rx="28" fill="#f0fdf4"/>
+  <!-- 背后豆荚壳 -->
+  <path d="M52 88c50-24 118-18 145 28-30 40-108 40-145-28Z" fill="#15803d" stroke="#14532d" stroke-width="3.5"/>
+  <!-- 里面裂开的浅绿豆荚内槽 -->
+  <path d="M56 88c46-20 110-14 136 26-28 34-100 34-136-26Z" fill="#86efac"/>
+  <!-- 4 粒圆滚滚大豌豆 -->
+  <circle cx="82" cy="94" r="14" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+  <circle cx="112" cy="97" r="15" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+  <circle cx="142" cy="100" r="15" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+  <circle cx="170" cy="104" r="13" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+  <!-- 豌豆高光小圆点 -->
+  <circle cx="78" cy="90" r="3.5" fill="#bbf7d0"/><circle cx="108" cy="93" r="4" fill="#bbf7d0"/>
+  <circle cx="138" cy="96" r="4" fill="#bbf7d0"/><circle cx="166" cy="100" r="3.5" fill="#bbf7d0"/>
+  <!-- 荚尖卷须 -->
+  <path d="M48 88c-8-6-14-2-16 4" stroke="#15803d" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+</svg>
