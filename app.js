@@ -12,6 +12,7 @@ import { BUILD_INFO } from './features/build-info.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
 import { DEFAULT_HANZI_CHARS } from './vendor/hanzi-writer/default-chars.js';
+import { getStrokeName } from './vendor/hanzi-writer/stroke-names.js';
 
 const CHILD_NAME = '荆宝';
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -1563,9 +1564,9 @@ function renderHanziGroupModal() {
     } else if (isMastered) {
       cornerTag = '<span class="hanzi-card-tag is-mastered">已掌握 ✓</span>';
     } else if (isLearned) {
-      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学过 · 再学 ›</button>`;
+      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学过 · 再学</button>`;
     } else {
-      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学这个 ›</button>`;
+      cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学这个</button>`;
     }
     const thumbnailHtml = showImage ? `
       <div class="hanzi-card-thumbnail">
@@ -1727,6 +1728,7 @@ function renderHanziWriterWord() {
     radicalColor: '#9c301c',
     outlineColor: '#dfb79e',
     drawingColor: '#9c301c',
+    highlightColor: '#ff9800',
     drawingWidth: 28,
     showOutline: true,
     showCharacter: false,
@@ -1738,6 +1740,9 @@ function renderHanziWriterWord() {
     },
   });
 
+  speakChinese(currentChar, () => {
+    promptCurrentStroke(currentChar, 0);
+  });
   startHanziQuiz();
 }
 
@@ -1755,7 +1760,16 @@ function animateHanziWriter() {
   });
 }
 
-function startHanziQuiz() {
+function promptCurrentStroke(char, strokeIndex) {
+  const strokeName = getStrokeName(char, strokeIndex);
+  if (!strokeName) return;
+  const total = currentHanziWriter?._character?.strokes?.length || 0;
+  const progressDesc = total > 0 ? `（第 ${strokeIndex + 1}/${total} 笔）` : '';
+  $('#hanziWriterStatus').textContent = `请写【${strokeName}】${progressDesc}`;
+  speakChinese(strokeName);
+}
+
+function startHanziQuiz(shouldPromptFirst = false) {
   if (!currentHanziWriter) return;
   const currentChar = hanziWriterChars[hanziWriterCurrentCharIndex];
   $('#hanziWriterStatus').textContent = `跟着橙色笔画描红【${currentChar}】吧~`;
@@ -1763,19 +1777,30 @@ function startHanziQuiz() {
   currentHanziWriter.cancelQuiz();
   currentHanziWriter.showOutline();
   currentHanziWriter.hideCharacter();
+
+  if (shouldPromptFirst) {
+    promptCurrentStroke(currentChar, 0);
+  }
+
   currentHanziWriter.quiz({
     onCorrectStroke: (strokeData) => {
       playSfx('ding');
       const totalStrokes = currentHanziWriter._character?.strokes?.length || (strokeData.strokeNum + 1);
-      if (strokeData.strokeNum + 1 < totalStrokes) {
-        $('#hanziWriterStatus').textContent = `第 ${strokeData.strokeNum + 1} 笔写对啦！⭐ 继续描橙色笔画`;
+      const nextStrokeIndex = strokeData.strokeNum + 1;
+      if (nextStrokeIndex < totalStrokes) {
+        promptCurrentStroke(currentChar, nextStrokeIndex);
       } else {
         $('#hanziWriterStatus').textContent = `最后一笔写对啦！⭐`;
       }
     },
     onMistake: (strokeData) => {
       playSfx('wrong');
-      $('#hanziWriterStatus').textContent = `笔画不太对哦，跟着橙色虚线再试一次吧~ (${strokeData.mistakesOnStroke + 1}次尝试)`;
+      const currentName = getStrokeName(currentChar, strokeData.strokeNum);
+      const nameText = currentName ? `【${currentName}】` : '这一笔';
+      $('#hanziWriterStatus').textContent = `${nameText}不太对哦，跟着橙色笔画再试一次~`;
+      if (currentName) {
+        speakChinese(currentName);
+      }
     },
     onComplete: (summary) => {
       hanziWriterCompletedChars.add(currentChar);
@@ -1877,12 +1902,14 @@ function handleLessonShortcuts(event) {
   }
 }
 let recitalPlaybackId = 0;
-function playRecitalLines(lines, card) {
+function playRecitalLines(lines, card, startIndex = 0, title = '') {
   const playbackId = ++recitalPlaybackId;
   window.speechSynthesis?.cancel();
+  const lineNodes = $$('[data-recital-line]', card);
+  const titleNode = card.closest('.recital-card')?.querySelector('h2');
+
   const readLine = (index) => {
     if (playbackId !== recitalPlaybackId || index >= lines.length) return;
-    const lineNodes = $$('[data-recital-line]', card);
     lineNodes.forEach((line, lineIndex) => line.classList.toggle('speaking', lineIndex === index));
     const currentLine = lineNodes[index];
     const manuscript = currentLine?.closest('.recital-manuscript');
@@ -1893,7 +1920,17 @@ function playRecitalLines(lines, card) {
       else lineNodes.forEach((line) => line.classList.remove('speaking'));
     });
   };
-  readLine(0);
+
+  if (title && startIndex === 0) {
+    if (titleNode) titleNode.classList.add('speaking');
+    speakChinese(title, () => {
+      if (playbackId !== recitalPlaybackId) return;
+      if (titleNode) titleNode.classList.remove('speaking');
+      window.setTimeout(() => readLine(0), 400);
+    });
+  } else {
+    readLine(Math.max(0, startIndex));
+  }
 }
 function renderRound() {
   const theme = currentTheme();
@@ -1925,13 +1962,32 @@ function renderRound() {
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
       : `<span>“${escapeHtml(recitalText)}”</span>`;
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small>${wholePiece ? '文稿可上下滚动；朗读时会自动定位到当前句' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
-    const readText = () => wholePiece ? playRecitalLines(piece.lines, $('#reciteListen')) : (recitalPlaybackId += 1, speakChinese(recitalText));
-    $('#reciteListen').addEventListener('click', readText);
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small>${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    const pieceTitle = game.title || game.word || piece.name || '';
+    const readText = (startIndex = 0, readTitle = false) => {
+      if (wholePiece) {
+        playRecitalLines(piece.lines, $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
+      } else {
+        recitalPlaybackId += 1;
+        const textToRead = readTitle && pieceTitle ? `${pieceTitle}。${recitalText}` : recitalText;
+        speakChinese(textToRead);
+      }
+    };
+    $('#reciteListen').addEventListener('click', (event) => {
+      const clickedLine = event.target.closest('[data-recital-line]');
+      if (wholePiece && clickedLine) {
+        const lineIndex = parseInt(clickedLine.dataset.recitalLine, 10);
+        if (!Number.isNaN(lineIndex)) {
+          readText(lineIndex, false);
+          return;
+        }
+      }
+      readText(0, false);
+    });
     $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { recitalPlaybackId += 1; state.recitalMode = mode; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, state.lessonMode === 'review' ? 'review' : 'learn'));
     $('#recordPractice')?.addEventListener('click', recordPractice);
-    startLearnCountdown(3); window.setTimeout(readText, 180);
+    startLearnCountdown(3); window.setTimeout(() => readText(0, true), 180);
   } else if (game.type === 'action') {
     area.innerHTML = `<div class="number-action-card"><img src="${game.image}" alt="拍手动作" /><div><p>数字动作</p><h2>${game.prompt}</h2><strong>${game.zh}</strong></div><button class="primary-button" id="actionDone" type="button">${game.actionLabel || '我做完啦'}</button></div>`;
     $('#actionDone').addEventListener('click', () => handleCorrect(game.word, 'action'));
@@ -2107,8 +2163,15 @@ function renderSpeechRateControl() {
   input.value = String(globalSpeechRate); input.setAttribute('aria-valuetext', `${speechRateLabel()}，${globalSpeechRate.toFixed(2)} 倍`);
   label.textContent = `${speechRateLabel()} · ${globalSpeechRate.toFixed(2)}×`;
 }
-const DAILY_LIMIT_OPTIONS = [5, 10, 0];
-function dailyLimitLabel(limit) { return limit ? `${limit} 分钟` : '不限时'; }
+const DAILY_LIMIT_OPTIONS = [10, 30, 60, 120, 0];
+function dailyLimitLabel(limit) {
+  if (!limit) return '不限时长';
+  if (limit >= 60) {
+    const hours = limit / 60;
+    return `${hours} 小时`;
+  }
+  return `${limit} 分钟`;
+}
 function renderDailyLimitControl() {
   const input = $('#dailyLimitRange'); const label = $('#dailyLimitValue');
   if (!input || !label) return;
@@ -2289,7 +2352,7 @@ $('#parentGateForm').addEventListener('submit', (event) => { event.preventDefaul
 $('#profileSelect').addEventListener('change', (event) => switchProfile(event.target.value));
 $('#createProfile').addEventListener('click', () => { const input = $('#newProfileName'); const name = input.value.trim(); if (!name) { input.focus(); return; } const profile = createProfile(name); profiles.push(profile); input.value = ''; switchProfile(profile.id); showToast(`已为 ${profile.name} 建立新的学习档案。`); });
 $('#dailyLimitRange').addEventListener('input', (event) => { const index = Number(event.target.value); state.study.limitMinutes = DAILY_LIMIT_OPTIONS[index]; renderDailyLimitControl(); });
-$('#dailyLimitRange').addEventListener('change', () => { persistProgress(); showToast(state.study.limitMinutes ? `已设置每日 ${state.study.limitMinutes} 分钟探险时间。` : '已取消每日探险时间限制。'); });
+$('#dailyLimitRange').addEventListener('change', () => { persistProgress(); showToast(state.study.limitMinutes ? `已设置每日 ${dailyLimitLabel(state.study.limitMinutes)}探险时间。` : '已取消每日探险时间限制。'); });
 $('#speechRate').addEventListener('input', (event) => { globalSpeechRate = clamp(Number(event.target.value), .5, 1.5); saveText('luna-global-speech-rate', String(globalSpeechRate)); renderSpeechRateControl(); });
 $('#speechRate').addEventListener('change', () => { window.speechSynthesis?.cancel(); showToast(`全局朗读语速已设为${speechRateLabel()}。`); });
 $('#recordingToggle').addEventListener('click', () => { state.recordingEnabled = !state.recordingEnabled; persistProgress(); renderParentProfileControls(); showToast(state.recordingEnabled ? '已开启录音跟读；录音只留在当前页面。' : '已关闭录音跟读。'); });
@@ -2334,9 +2397,8 @@ $('#closeHanziGroupModal')?.addEventListener('click', closeHanziGroupModal);
 $('#closeHanziGroupModalPrimary')?.addEventListener('click', closeHanziGroupModal);
 $('#hanziGroupModal')?.addEventListener('click', (event) => { if (event.target === $('#hanziGroupModal')) closeHanziGroupModal(); });
 $('#closeHanziWriterModal')?.addEventListener('click', closeHanziWriter);
-$('#hanziWriterModal')?.addEventListener('click', (event) => { if (event.target === $('#hanziWriterModal')) closeHanziWriter(); });
 $('#hanziWriterAnimateBtn')?.addEventListener('click', animateHanziWriter);
-$('#hanziWriterQuizBtn')?.addEventListener('click', startHanziQuiz);
+$('#hanziWriterQuizBtn')?.addEventListener('click', () => startHanziQuiz(true));
 $('#hanziWriterResetBtn')?.addEventListener('click', () => {
   renderHanziWriterWord();
 });

@@ -402,6 +402,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   white-space:nowrap;
   transition:all .15s ease
 }
+.hanzi-fullscreen-toggle-btn[hidden]{
+  display:none !important;
+}
 .hanzi-fullscreen-toggle-btn.is-active{
   background:#fff8ee;
   border-color:#f59e0b;
@@ -529,13 +532,19 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   100%{transform:scale(1.025)}
 }
 .hanzi-card-topline{
+  position:absolute;
+  top:clamp(4px,0.6vw,7px);
+  left:clamp(5px,0.8vw,9px);
+  right:clamp(5px,0.8vw,9px);
+  z-index:2;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:4px;
-  width:100%;
-  flex-shrink:0;
-  min-height:20px
+  pointer-events:none
+}
+.hanzi-card-topline > *{
+  pointer-events:auto
 }
 .hanzi-card-index{
   font-size:clamp(10px,1vw,12px);
@@ -582,11 +591,14 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .hanzi-card-body{
   flex:1;
   min-height:0;
+  height:100%;
   display:flex;
   align-items:center;
   justify-content:center;
   width:100%;
-  overflow:hidden
+  padding:0 clamp(4px,0.8vw,8px);
+  box-sizing:border-box;
+  overflow:visible
 }
 .hanzi-card-thumbnail{
   display:flex;
@@ -616,7 +628,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;
   font-weight:900;
   color:#53347c;
-  line-height:1;
+  line-height:1.05;
   text-shadow:0 2px 0 rgba(119,77,171,.12);
   white-space:nowrap;
   transition:transform .15s ease;
@@ -634,7 +646,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size:clamp(46px,min(11vw,14vh),86px);
 }
 .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{
-  font-size:clamp(36px,min(8.5vw,11vh),68px);
+  font-size:clamp(44px,min(11vw,14vh),84px);
 }
 
 .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
@@ -645,8 +657,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size:clamp(34px,min(8.5vw,11vh),70px);
 }
 .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{
-  font-size:clamp(26px,min(6.5vw,8.5vh),54px);
-  letter-spacing:.02em;
+  font-size:clamp(34px,min(8.5vw,11vh),72px);
+  letter-spacing:.01em;
 }
 
 .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
@@ -657,7 +669,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size:clamp(26px,min(6vw,8vh),52px);
 }
 .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{
-  font-size:clamp(20px,min(4.5vw,6vh),40px);
+  font-size:clamp(28px,min(6.5vw,8.5vh),56px);
 }
 
 .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
@@ -668,7 +680,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size:clamp(20px,min(4.5vw,6vh),38px);
 }
 .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{
-  font-size:clamp(16px,min(3.5vw,4.5vh),30px);
+  font-size:clamp(22px,min(5vw,6.5vh),44px);
 }
 
 @media(max-width:600px){
@@ -689,22 +701,22 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
   .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(56px,min(16vw,17vh),88px)}
   .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(38px,min(11vw,12vh),62px)}
-  .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(28px,min(8.5vw,9.5vh),46px)}
+  .hanzi-fullscreen-grid[data-density="few"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(36px,min(10.5vw,12vh),58px)}
 
   .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
   .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(46px,min(13.5vw,14vh),72px)}
   .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(30px,min(9.5vw,10vh),48px)}
-  .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(22px,min(7vw,7.5vh),36px)}
+  .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(30px,min(9vw,10vh),48px)}
 
   .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
   .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(34px,min(10vw,10.5vh),54px)}
   .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(24px,min(7.5vw,8vh),38px)}
-  .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(18px,min(5.5vw,6vh),28px)}
+  .hanzi-fullscreen-grid[data-density="many"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(24px,min(7.5vw,8.5vh),40px)}
 
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="1"] .hanzi-card-big-text,
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(26px,min(8vw,8vh),42px)}
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(19px,min(6vw,6vh),30px)}
-  .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(15px,min(4.5vw,4.5vh),24px)}
+  .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(19px,min(6vw,6.5vh),32px)}
   .hanzi-spellbook-group-btn{padding:4px 9px;font-size:11px}
 }
 
@@ -759,7 +771,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .recital-curtain i:last-child{border-radius:0 0 8% 70%}
 .recital-card>*:not(.recital-curtain){position:relative;z-index:1}
 .recital-kicker{margin:0;color:#9a623d;font-size:12px;font-weight:900;letter-spacing:.06em}
-.recital-card h2{margin:2px 0 4px;color:#68418d;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:26px}
+.recital-card h2{margin:2px 0 4px;color:#68418d;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:26px;transition:color .18s ease}
+.recital-card h2.speaking{color:#e68222}
 .recital-text{display:grid;gap:10px;width:100%;min-height:100px;padding:16px 14px;border:2px dashed #d5b174;border-radius:19px;background:rgba(255,255,255,.72);color:#5c398e;box-sizing:border-box}
 .recital-card.is-whole-piece .recital-text{flex:1 1 auto;min-height:160px}
 .recital-text:hover,.recital-text:focus-visible{border-style:solid;border-color:#a879cf;background:#fff}
@@ -816,7 +829,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* Whole-piece recital keeps long manuscripts inside the card and follows each spoken line. */
 .recital-text.whole-piece{display:grid;grid-template-rows:minmax(0,1fr) auto;min-height:160px;max-height:min(48dvh,380px);padding:10px 14px 6px;overflow:hidden}
 .recital-text.whole-piece .recital-manuscript{display:grid;gap:6px;max-height:100%;padding:4px 10px 5px;overflow-y:auto;scroll-behavior:smooth;text-align:left}
-.recital-text.whole-piece .recital-line{display:block;padding:5px 12px;border-radius:12px;color:#65458a;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(19px,2.8vw,24px);font-weight:900;line-height:1.44;transition:background .18s ease,color .18s ease,transform .18s ease}
+.recital-text.whole-piece .recital-line{display:block;padding:6px 12px;border-radius:12px;color:#65458a;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:clamp(22px,3.2vw,28px);font-weight:900;line-height:1.48;cursor:pointer;transition:background .18s ease,color .18s ease,transform .18s ease}
+.recital-text.whole-piece .recital-line:hover{background:rgba(235,214,249,.42);color:#4a2b6e}
 .recital-text.whole-piece .recital-line.speaking{background:#f3d77f;color:#70452c;transform:scale(1.01);box-shadow:0 2px 0 rgba(158,107,41,.13)}
 .recital-text.whole-piece .recital-manuscript::-webkit-scrollbar{width:8px}
 .recital-text.whole-piece .recital-manuscript::-webkit-scrollbar-thumb{border-radius:99px;background:#d6b36c}
@@ -824,7 +838,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media(max-width:600px){
   .recital-text.whole-piece{min-height:130px;max-height:min(44dvh,260px);padding:6px 6px 4px}
   .recital-text.whole-piece .recital-manuscript{max-height:100%;gap:4px;padding:2px 4px}
-  .recital-text.whole-piece .recital-line{padding:4px 8px;font-size:16px}
+  .recital-text.whole-piece .recital-line{padding:4px 8px;font-size:19px;line-height:1.44}
 }
 
 /* Manuscript padding lets spoken lines scroll comfortably without forcing card overflow. */
