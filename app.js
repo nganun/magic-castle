@@ -21,6 +21,8 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => (
 const { getText: storageGet, load, save, saveText } = createStorage(() => showToast?.('这台设备暂时无法保存学习记录。'));
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 let globalSpeechRate = clamp(Number(storageGet('luna-global-speech-rate') || 1), .5, 1.5);
+// 中文 TTS 的实际语速系数（speakChinese 使用）。
+const CHINESE_TTS_RATE_SCALE = .82;
 
 let THEMES = createBuiltInThemes();
 
@@ -430,7 +432,7 @@ function speakChinese(text, onend) {
   const run = ++speechRun;
   if (!state.soundOn) { onend?.(); return false; }
   const finish = () => { if (run === speechRun) onend?.(); };
-  const rate = clamp(.82 * globalSpeechRate, .1, 10); const voice = preferredChineseVoice || chooseChineseVoice();
+  const rate = clamp(CHINESE_TTS_RATE_SCALE * globalSpeechRate, .1, 10); const voice = preferredChineseVoice || chooseChineseVoice();
   const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'zh-CN', voice, rate, pitch: 1.04 }, finish);
   if (speakWithNativeTts(text, { lang: 'zh-CN', langCandidates: ['zh-CN', 'cmn-CN', 'zh'], rate, pitch: 1.04 }, finish, browserFallback)) return true;
   return browserFallback();
@@ -1902,37 +1904,122 @@ function handleLessonShortcuts(event) {
   }
 }
 let recitalPlaybackId = 0;
+let recitalAutoReadTimer = 0;
+const RECITAL_GAP_OPTIONS = [500, 1000, 2000, 3000];
+let recitalLineGapMs = (() => { const saved = Number(storageGet('luna-recital-line-gap')); return RECITAL_GAP_OPTIONS.includes(saved) ? saved : 500; })();
+function recitalGapLabel(ms) { return `${ms / 1000} 秒`; }
+const recitalPlayer = { active: false, paused: false, playbackId: 0, title: '', lines: [], card: null, phase: 'lines', lineIndex: 0, pendingIndex: null, gapTimer: 0, delayTimer: 0 };
+function recitalPlayerValid() { return recitalPlayer.active && recitalPlayer.playbackId === recitalPlaybackId; }
+function clearRecitalTimers() {
+  if (recitalPlayer.gapTimer) { window.clearTimeout(recitalPlayer.gapTimer); recitalPlayer.gapTimer = 0; }
+  if (recitalPlayer.delayTimer) { window.clearTimeout(recitalPlayer.delayTimer); recitalPlayer.delayTimer = 0; }
+}
+function clearRecitalHighlights() {
+  const card = recitalPlayer.card;
+  if (card) $$('.recital-line.speaking', card).forEach((el) => el.classList.remove('speaking'));
+  $$('.recital-card h2.speaking').forEach((el) => el.classList.remove('speaking'));
+}
+function stopRecitalPlayer() {
+  recitalPlayer.active = false;
+  recitalPlayer.paused = false;
+  recitalPlayer.pendingIndex = null;
+  clearRecitalTimers();
+}
+function updateRecitalHint() {
+  const hint = $('#reciteHint');
+  if (!hint) return;
+  if (!hint.dataset.base) hint.dataset.base = hint.textContent;
+  if (!recitalPlayerValid()) hint.textContent = hint.dataset.base;
+  else if (recitalPlayer.paused) hint.textContent = '⏸ 已暂停 · 点击继续朗读';
+  else hint.textContent = '🔊 朗读中 · 点击暂停';
+}
+function recitalLineNode(index) {
+  if (!recitalPlayer.card) return null;
+  return $$('[data-recital-line]', recitalPlayer.card)[index] || null;
+}
+function finishRecitalPlayback() {
+  clearRecitalTimers();
+  recitalPlayer.active = false;
+  recitalPlayer.paused = false;
+  recitalPlayer.pendingIndex = null;
+  clearRecitalHighlights();
+  updateRecitalHint();
+}
+function advanceRecitalLine(index) {
+  const p = recitalPlayer;
+  if (!recitalPlayerValid() || p.paused) return;
+  if (index + 1 < p.lines.length) {
+    p.pendingIndex = index + 1;
+    p.gapTimer = window.setTimeout(() => { p.gapTimer = 0; p.pendingIndex = null; readRecitalLine(index + 1); }, recitalLineGapMs);
+  } else finishRecitalPlayback();
+}
+function readRecitalLine(index) {
+  const p = recitalPlayer;
+  if (!recitalPlayerValid() || p.paused) return;
+  if (index >= p.lines.length) { finishRecitalPlayback(); return; }
+  p.lineIndex = index;
+  p.phase = 'lines';
+  p.pendingIndex = null;
+  const currentLine = recitalLineNode(index);
+  $$('[data-recital-line]', p.card).forEach((line, i) => line.classList.toggle('speaking', i === index));
+  const manuscript = currentLine?.closest('.recital-manuscript');
+  if (currentLine && manuscript) manuscript.scrollTo({ top: currentLine.offsetTop - (manuscript.clientHeight - currentLine.offsetHeight) / 2, behavior: 'smooth' });
+  const text = p.lines[index] || '';
+  if (!text) { advanceRecitalLine(index); return; }
+  speakChinese(text, () => {
+    if (!recitalPlayerValid() || p.paused) return;
+    advanceRecitalLine(index);
+  });
+}
+function readRecitalTitle() {
+  const p = recitalPlayer;
+  if (!recitalPlayerValid() || p.paused) return;
+  const titleNode = p.card?.closest('.recital-card')?.querySelector('h2');
+  if (titleNode) titleNode.classList.add('speaking');
+  speakChinese(p.title, () => {
+    if (!recitalPlayerValid() || p.paused) return;
+    if (titleNode) titleNode.classList.remove('speaking');
+    p.phase = 'lines';
+    p.delayTimer = window.setTimeout(() => { p.delayTimer = 0; readRecitalLine(p.lineIndex); }, 400);
+  });
+}
+function pauseRecital() {
+  const p = recitalPlayer;
+  if (!recitalPlayerValid() || p.paused) return;
+  p.paused = true;
+  clearRecitalTimers();
+  window.speechSynthesis?.cancel();
+  stopNativeTts();
+  updateRecitalHint();
+}
+function resumeRecital() {
+  const p = recitalPlayer;
+  if (!recitalPlayerValid() || !p.paused) return;
+  p.paused = false;
+  updateRecitalHint();
+  if (p.phase === 'title') { readRecitalTitle(); return; }
+  if (p.pendingIndex != null) { const next = p.pendingIndex; p.pendingIndex = null; readRecitalLine(next); return; }
+  readRecitalLine(p.lineIndex);
+}
 function playRecitalLines(lines, card, startIndex = 0, title = '') {
+  stopRecitalPlayer();
+  clearRecitalHighlights();
   const playbackId = ++recitalPlaybackId;
   window.speechSynthesis?.cancel();
-  const lineNodes = $$('[data-recital-line]', card);
-  const titleNode = card.closest('.recital-card')?.querySelector('h2');
-
-  const readLine = (index) => {
-    if (playbackId !== recitalPlaybackId || index >= lines.length) return;
-    lineNodes.forEach((line, lineIndex) => line.classList.toggle('speaking', lineIndex === index));
-    const currentLine = lineNodes[index];
-    const manuscript = currentLine?.closest('.recital-manuscript');
-    if (currentLine && manuscript) manuscript.scrollTo({ top: currentLine.offsetTop - (manuscript.clientHeight - currentLine.offsetHeight) / 2, behavior: 'smooth' });
-    speakChinese(lines[index], () => {
-      if (playbackId !== recitalPlaybackId) return;
-      if (index + 1 < lines.length) window.setTimeout(() => readLine(index + 1), 260);
-      else lineNodes.forEach((line) => line.classList.remove('speaking'));
-    });
-  };
-
-  if (title && startIndex === 0) {
-    if (titleNode) titleNode.classList.add('speaking');
-    speakChinese(title, () => {
-      if (playbackId !== recitalPlaybackId) return;
-      if (titleNode) titleNode.classList.remove('speaking');
-      window.setTimeout(() => readLine(0), 400);
-    });
-  } else {
-    readLine(Math.max(0, startIndex));
-  }
+  stopNativeTts();
+  Object.assign(recitalPlayer, {
+    active: true, paused: false, playbackId, title, lines, card,
+    lineIndex: Math.max(0, startIndex), pendingIndex: null,
+    phase: title && startIndex === 0 ? 'title' : 'lines',
+  });
+  updateRecitalHint();
+  if (recitalPlayer.phase === 'title') readRecitalTitle();
+  else readRecitalLine(recitalPlayer.lineIndex);
 }
 function renderRound() {
+  stopRecitalPlayer();
+  window.clearTimeout(recitalAutoReadTimer);
+  clearRecitalHighlights();
   const theme = currentTheme();
   renderLessonGroupSwitcher();
   renderTopbarContext();
@@ -1960,34 +2047,41 @@ function renderRound() {
     const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text; const lineLabel = wholePiece ? `整篇朗诵 · 共 ${piece.lines.length} 句` : game.lineLabel || '朗诵文本';
     const manuscript = wholePiece
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
-      : `<span>“${escapeHtml(recitalText)}”</span>`;
+      : `<span class="recital-line recital-line-single" data-recital-line="0">“${escapeHtml(recitalText)}”</span>`;
+    const gapRow = wholePiece
+      ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
+      : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small>${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p>${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
-      if (wholePiece) {
-        playRecitalLines(piece.lines, $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
-      } else {
-        recitalPlaybackId += 1;
-        const textToRead = readTitle && pieceTitle ? `${pieceTitle}。${recitalText}` : recitalText;
-        speakChinese(textToRead);
-      }
+      playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
     };
     $('#reciteListen').addEventListener('click', (event) => {
       const clickedLine = event.target.closest('[data-recital-line]');
-      if (wholePiece && clickedLine) {
-        const lineIndex = parseInt(clickedLine.dataset.recitalLine, 10);
-        if (!Number.isNaN(lineIndex)) {
-          readText(lineIndex, false);
+      const clickedIndex = clickedLine ? parseInt(clickedLine.dataset.recitalLine, 10) : NaN;
+      if (recitalPlayerValid()) {
+        if (recitalPlayer.paused) {
+          if (!Number.isNaN(clickedIndex) && clickedIndex !== recitalPlayer.lineIndex) readText(clickedIndex, false);
+          else resumeRecital();
           return;
         }
+        pauseRecital();
+        return;
       }
-      readText(0, false);
+      readText(Number.isNaN(clickedIndex) ? 0 : clickedIndex, false);
     });
-    $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { recitalPlaybackId += 1; state.recitalMode = mode; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
+    $('#recitalGapSelect')?.addEventListener('change', (event) => {
+      const next = Number(event.target.value);
+      recitalLineGapMs = RECITAL_GAP_OPTIONS.includes(next) ? next : 500;
+      save('luna-recital-line-gap', recitalLineGapMs);
+      showToast(`句间停顿已设为 ${recitalGapLabel(recitalLineGapMs)}`);
+    });
+    $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { stopRecitalPlayer(); recitalPlaybackId += 1; state.recitalMode = mode; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, state.lessonMode === 'review' ? 'review' : 'learn'));
     $('#recordPractice')?.addEventListener('click', recordPractice);
-    startLearnCountdown(3); window.setTimeout(() => readText(0, true), 180);
+    startLearnCountdown(3);
+    recitalAutoReadTimer = window.setTimeout(() => readText(0, state.round === 0), 180);
   } else if (game.type === 'action') {
     area.innerHTML = `<div class="number-action-card"><img src="${game.image}" alt="拍手动作" /><div><p>数字动作</p><h2>${game.prompt}</h2><strong>${game.zh}</strong></div><button class="primary-button" id="actionDone" type="button">${game.actionLabel || '我做完啦'}</button></div>`;
     $('#actionDone').addEventListener('click', () => handleCorrect(game.word, 'action'));
