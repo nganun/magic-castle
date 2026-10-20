@@ -1,7 +1,7 @@
 # 设计：内容远程同步 + 文本文件内容源
 
 日期：2026-10-20
-状态：已获用户批准（对话中逐条确认后口头批准）
+状态：已获用户批准（对话中逐条确认后口头批准）；经 spec review 修订（v3）
 
 ## 背景与目标
 
@@ -18,7 +18,7 @@
 4. **本地编辑不被覆盖**：家长在 App 工作台里的修改要保留，并与官方新版本智能合并。
 
 非目标（YAGNI）：多设备账号同步、离线内容分发（离线用内置内容）、自动定时同步、目录层级进入
-学习流程（地图选组逻辑不变）。
+学习流程（地图选组逻辑不变）、App 内创建/删除目录。
 
 ## 已确认的决策
 
@@ -62,7 +62,11 @@ data/
 - **目录名 = 类型**：`hanzi` / `english` / `recital`。其它目录名 → 构建报错（不静默忽略）。
 - **文件 = 分组**，文件名可中文。**子目录 = 学期/单元**，任意深度都支持（建议 ≤ 2 层）。
 - **每行 = 一个内容项**：汉字/词组一行一个，英文单词一行一个，朗诵一行一句。
-- 同一分组内不允许重复行（重复 → 构建报错，提示文件名与行号）。
+- **同一分组内重复行 → 解析时保留首次出现，其余丢弃并记 warning**（不报错）。
+  现有内容确有 2 处完全相同的重复行（hanzi `xiao-si-ban-xia-xue-qi` 的「消息」、
+  recital `three=little-cats` 的「你看看我，我看看你，」），迁移时按此规则去重，
+  属于"零信息丢失"的清理。
+- `data/version.txt` 是特例，**不参与扫描/复制/清单**（它不在类型目录下）。
 
 ### ② 文件内指令语法
 
@@ -77,7 +81,12 @@ data/
 英文指令别名同样接受：`# id:` / `# name:` / `# image: on|off`。
 
 内容行可带**可选竖线注释**：`西瓜|一种圆圆的绿色水果` → 词 = `西瓜`，注释 = `一种圆圆的绿色水果`。
-注释只用于 App 有位置展示的地方（英文单词的词义提示）；没有展示位置时忽略，不影响内容。
+注释在**解析时从词条里剥离**（词条仍是纯字符串，`safeHanzi` / `safeEnglishWords` 的校验不受影响），
+并记入**该分组的** `notes` 映射 `{ 词: 注释 }`（随分组走，不放在 kind 级，
+否则增量同步按文件替换时会把未变更文件的注释丢掉）。
+App 端在展示英文单词词义时：`WORD_TRANSLATIONS[word] || group.notes[word] || word`
+（三个调用点：app.js 中"中文：…"主按钮提示、learn 卡片副标题、recital 卡片副标题）；
+没有展示位置时注释不显示，但不丢失。
 
 ### ③ 分组 id 规则
 
@@ -89,24 +98,52 @@ data/
 
 ### ④ 解析器只有一份（Node 与 App 共用）
 
-新增 `features/content-files.js`：**纯函数、无 DOM、无网络**。
+新增 `features/content-files.js`：**纯函数、无 DOM、无网络、无存储**。导出：
 
-- `parseContentFiles(files)`：`files` 为 `[{path, text}]`（path 相对 `data/`），
-  返回 `{ resourceVersion, kinds: { hanzi: {terms:[{id,name,groups:[…]}]}, english: […], recital: […] } }`，
-  外加 `errors: []`（每条含文件与行号）。
-- `parseContentFile(path, text)`：单文件解析，供测试直接调用。
-- 构建脚本（Node ESM，可直接 import 该模块）与 App 端使用**同一份解析代码**，避免规则漂移。
+| 导出 | 作用 |
+|---|---|
+| `parseContentFiles(files, options)` | `files: [{path, text}]`（path 相对 `data/`）→ 解析结果对象 |
+| `parseContentFile(path, text)` | 单文件解析 |
+| `safeEnglishWords(value)` / `safeHanzi(value)` | 从 `app.js` 移入的既有校验函数（导出后 app.js 继续 import） |
+| `normaliseContentWords(kind, words)` / `normaliseRecitalLines(value)` | 从 `app.js` 移入的既有归一化函数 |
+| `normaliseGroupRecord(kind, raw)` | **唯一权威的分组归一化函数**（见 ⑧） |
+
+解析结果**精确形状**（构建脚本与合并算法都消费它）：
+
+```js
+{
+  resourceVersion: 4,                       // 来自 data/version.txt
+  kinds: {
+    english: { groups: [ { id, name, directory, image: false, notes: {}, words: [...] } ] },
+    hanzi:   { groups: [ { id, name, directory, image: true,  notes: {}, words: [...] } ] },
+    recital: { groups: [ { id, name, directory, image: false, notes: {}, lines: [...] } ] }
+  },
+  errors: [],      // { path, line, message } —— 构建失败
+  warnings: []     // { path, line, message } —— 例如重复行
+}
+```
+
+- `directory` = 该分组所在**目录**（相对 `data/`，根目录为 `''`），用于工作台按目录折叠展示；
+  与"源文件路径"（含文件名）是两个不同概念，命名上以 `directory` / `file` 区分。
+- 三个 kind 形状一致；目录树由 `directory` 在展示时还原（解析结果不嵌套 `terms`）。
+- 构建脚本（Node ESM，直接 import 该模块）与 App 端使用**同一份解析代码**，避免规则漂移。
 
 ### ⑤ 构建与发布
 
 新增 `scripts/build-content.mjs`：
 
-1. 扫描 `data/**`（只认 `.txt`），用 `parseContentFiles` 解析；**有 error 即退出码 1**（构建失败，
-   防止错误内容进包）。
-2. 生成 `features/default-content.js`：`export const DEFAULT_LEARNING_CONTENT = {...}`
-   —— 形状与今天的 `data/default-learning-content.json` 完全一致（`resourceVersion` +
-   `english/hanzi/recital` 三个 kind，每个 kind 含 `activeGroupId` / `deletedGroupIds` / `groups`），
-   App 端业务代码基本不用改。
+1. 扫描 `data/**`（只认 `.txt`，**排除 `data/version.txt`**），读 `data/version.txt`，
+   用 `parseContentFiles` 解析；**有 error 即退出码 1**（构建失败，防止错误内容进包）；
+   warning 打印到控制台。
+2. 生成 `features/default-content.js`：
+   `export const DEFAULT_LEARNING_CONTENT = { resourceVersion, english, hanzi, recital }`，
+   每个 kind 含 `activeGroupId`（官方默认，仅作 L2 首次初始化的初值）、`deletedGroupIds: []`、
+   以及带 `directory` / `notes` 的 `groups`。
+   与今天的 `default-learning-content.json` **词句内容一致**，结构上多两个字段
+   （分组级 `directory`、分组级 `notes`）；**删除 `fallbackItems`**（唯一用处是"一个分组都没有"
+   时的兜底，由 `buildCustomTheme()` 里既有的内置兜底词表
+   `['人','大人','人口']` / `['red','yellow','blue']` 接管；`app.js` 中读 `subject.fallbackItems`
+   的分支与未使用的 `defaultContentWords()` 一并清理）。
 3. 生成 `dist/content/manifest.json`（内容分发索引）：
 
 ```json
@@ -117,102 +154,166 @@ data/
 }
 ```
 
-4. 复制 `data/**/*.txt` → `dist/content/**`（原样托管，App 直接下载文本文件）。
-5. `dist/content/manifest.json` 与 `dist/content/**` 由 GitHub Pages 部署（`deploy-pages.yml`
-   在每次 push 到 main 时自动执行，产物约 30~60 秒后上线）。
+`path` 是**源文件路径**（含文件名），`sha256` 对**原始文件字节**计算。
 
-`package.json` 新增脚本 `"content:build": "node scripts/build-content.mjs"`；
-`build:web` 改为先跑 `content:build`（保证 `features/default-content.js` 与 `dist/content/` 同源）。
+4. 复制 `data/**/*.txt`（同样排除 `version.txt`）→ `dist/content/**`（原样托管，App 直接下载文本文件）。
+5. `dist/content/manifest.json` 与 `dist/content/**` 随 GitHub Pages 部署上线
+   （`deploy-pages.yml` 跑 `node scripts/build-web.mjs`，上传整个 `dist/`）。
+
+**执行顺序（关键）**：`scripts/build-web.mjs` 第一步是 `rm -rf dist`，因此内容构建必须在
+`rm` **之后**执行，否则 `dist/content/` 会被删掉、Pages 上没有清单、功能静默失效。
+固定顺序为：`rm dist` → 拷贝既有 entries → 调用内容构建（写 `features/default-content.js`
+与 `dist/content/**`）→ 结束。因此 `npm run build:web`、`node scripts/build-web.mjs`、
+Pages CI 三条路径产物一致。
+
+`package.json` 脚本调整：
+
+- 新增 `"content:build": "node scripts/build-content.mjs"`（单独跑内容构建）
+- 删除 `"content:sync": "node scripts/sync-default-content.mjs"` 与 `scripts/sync-default-content.mjs`
+  （被 `content:build` 取代）
+- 新增 `"test": "node --test tests/*.test.mjs"`（**注意**：Node 自动匹配只认 `*.test.mjs` /
+  `*-test.mjs` / `test-*.js` / `test/**`，目录形式的 `node --test tests/` 匹配不到
+  `verify-*.mjs`，必须用 glob 或把测试文件改名为 `*.test.mjs`——本设计采用后者：
+  现有 `tests/verify-hanzi-image-feature.mjs` 改名为 `tests/verify-hanzi-image-feature.test.mjs`）
+- 新增 `"type": "module"`（仓库所有 Node 脚本都是 `.mjs`，加 `type` 只影响 `features/*.js`
+  被 Node 解析的方式，浏览器端不受影响；可消除 `MODULE_TYPELESS_PACKAGE_JSON` 警告）
+- 新增 `"contentBaseUrl"` 字段（默认 `https://nganun.github.io/magic-castle/content`），
+  由 `features/build-info.js` 带给 App（便于 fork 或本地构建改指向）
+
 `data/default-learning-content.json` **迁移完成后从仓库删除**（内容已转移到文本文件）。
 
 ### ⑥ App 端同步链路
 
-家长设置 → 学习内容工作台 → 新增「内容同步」区块：
+位置：家长设置 → 学习内容工作台（`#adminModal`，紧邻"英文单词/汉字与词组/朗诵文本"三个入口下方）。
 
-- 状态区：当前内容版本（内置 v3 / 远程 v4）、最后同步时间
+- 状态区：当前内置内容版本（v4）、当前远程内容版本（vN 或"未同步"）、最后同步时间
 - 主按钮「同步最新内容」（同步中转圈 + 禁用）
-- 结果面板：新增 N 个 / 更新 M 个 / 保留本地修改 K 个（列出分组名）
+- 结果面板：新增 N 个 / 更新 M 个 / 保留本地修改 K 个 / 随官方删除 N 个（列出分组名）
 - 次要按钮「恢复官方内容」（二次确认，丢弃本地编辑回到最新官方层）
 
 流程：
 
 ```text
 点「同步最新内容」
-  → GET  https://nganun.github.io/magic-castle/content/manifest.json   （带 ?t=时间戳 防 CDN 缓存）
+  → GET  {contentBaseUrl}/manifest.json?t=<时间戳>      （cache: 'no-store'）
       → 与本机缓存的 manifest 比对
           ├─ resourceVersion 与全部 sha256 都没变 → 提示"内容已是最新"，结束
-          └─ 有变化 → 只下载变化/新增的 .txt（缺失文件视为删除）
-                → 全部下载成功才继续；任一失败 → 保留旧内容并报错
-                → 用共享解析器解析 → 得到新的官方内容 N
-                → 三方合并（见 ⑧）→ 写入存储 → 重建 THEMES + 重渲染当前页
+          └─ 有变化 → 计算 新增/变更/删除 的文件清单
+                → 下载变更与新增的 .txt（同样带 ?t= 且 cache: 'no-store'）
+                  ※ Pages 静态资源默认 cache-control: max-age=600，
+                    不绕过缓存会拿到旧文件并误判为"内容损坏"
+                → 任一文件下载失败 → 整体中止，保留全部旧内容并报错
+                → 用共享解析器解析下载到的文件 → 得到这些文件对应的分组
+                → 在本机缓存的官方快照（L1）上"按源文件替换/删除"→ 得到完整官方内容 N
+                → 三方合并（见 ⑧）→ 写入 L1 与 L2 → 重建 THEMES + 重渲染当前页
 ```
 
-- 端点：`https://nganun.github.io/magic-castle/content/...`（Pages，托管 manifest 与全部 .txt）。
-  备用端点 `https://raw.githubusercontent.com/nganun/magic-castle/main/data/...` 缺少 manifest，
-  **不做**双端点；Pages 不可用时保留旧内容并提示。
+- sha256 校验：下载后比对 manifest 中的 sha256；**`crypto.subtle` 不可用时跳过校验并告警**
+  （非安全上下文），不阻断同步。
+- 端点：`{contentBaseUrl}` = `https://nganun.github.io/magic-castle/content`（Pages，托管 manifest
+  与全部 .txt）。备用端点 `raw.githubusercontent.com/.../data/...` **不提供 manifest，不做双端点**；
+  Pages 不可用时保留旧内容并提示。
 - 跨域：已验证 Pages 与 raw 均返回 `access-control-allow-origin: *`；Android 端
   `https://localhost` 源可跨域取；`AndroidManifest.xml` 已有 `INTERNET` 权限；`index.html` 无 CSP。
-- 内容来源地址写入 `features/build-info.js`（由 `package.json` 生成，字段 `contentBaseUrl`），
-  便于 fork 或本地构建时改指向。
 
-### ⑦ 三层内容模型
+### ⑦ 三层内容模型（合并副本式）
 
 ```text
-内置（打进 APK，离线兜底）⊂ 远程官方层（同步下来的）⊂ 本地编辑层（家长改的）
+L0 内置默认    = features/default-content.js（随 APK，离线兜底）
+L1 远程官方快照 = localStorage: luna-remote-content-v1（同步下来的完整官方内容，仅供比较与恢复）
+L2 本机生效层   = localStorage: luna-admin-content-v4（现有 adminContent，结构不变）★ 实际生效的就是它
 ```
 
-| 层 | 存储 | 生命周期 |
+- **L2 是"合并后的完整副本"**：同步时把官方新版本按规则合并进 L2，L2 即生效内容。
+- L1 结构：`{ resourceVersion, manifest, entries: [ { kind, file, group } ], syncedAt }`
+  - `kind`：`'english' | 'hanzi' | 'recital'`（**必须有 kind 判别位**，否则无法还原
+    `{english, hanzi, recital}` 的 kind 分层结构）。
+  - `file`：该分组的**源文件路径**（如 `hanzi/主题/水果.txt`）——增量替换与删除判定都靠它。
+  - `group`：该分组的完整记录（含 `id / name / directory / image / notes / words|lines`）。
+  - `entries` 是**完整**官方快照；`officialContent()` 由 `entries` 按 `kind` 还原成 kind 分层结构
+    （与 L0 同形），供三方比较与「恢复官方内容」使用。
+- `officialContent()` = `L1` 还原出的 kind 分层结构（存在且有效）否则 `L0` —— 只用于
+  （a）三方比较的 O、（b）「恢复官方内容」的来源、（c）L2 首次初始化时的初值。
+- `contentGroups(kind)` / `recitalGroups()` 改为**读 L2**；并保留一条兜底：
+  「官方层有、L2 里没有的分组 → 补进 L2（含 `directory` 字段，老用户现有分组因此也能落到
+  正确目录而不是「未分类」）」，但**绝不覆盖 L2 已存在分组的词/句内容**
+  （否则又退化成"本地永远赢"，见 ⑨）。
+
+**字段归属（重要）**：
+
+| 字段 | 归属 | 同步时的行为 |
 |---|---|---|
-| L0 内置 | `features/default-content.js` | 随 APK |
-| L1 远程官方 | `localStorage: luna-remote-content-v1` = `{resourceVersion, manifest, groups, syncedAt}` | 同步成功后覆盖 |
-| L2 本地编辑 | `localStorage: luna-admin-content-v4`（现有 `adminContent`，结构不变） | 用户在工作台编辑时写入 |
-
-生效顺序按**分组 id 粒度**：L2 覆盖 L1 覆盖 L0。
-
-改造点：现在写死的常量 `ADMIN_DEFAULT` 改为函数 `officialContent()`，返回 L1（存在且有效）否则 L0；
-`contentGroups()` / `recitalGroups()` 里引用 `ADMIN_DEFAULT` 的地方改用 `officialContent()`。
+| 分组词/句内容、名称、显示名、`notes` | L2（用户可改） | 按 ⑧ 的三方规则合并 |
+| `activeGroupId`（正在学习/正在朗诵的分组） | **L2，用户所有** | **同步永不覆盖**；仅 L2 首次初始化时取官方值作初值 |
+| `deletedGroupIds`（用户删掉的分组） | **L2，用户所有** | **同步永不复活**（官方有也不显示） |
+| `image`（看图识字开关） | L2（用户可改） | 参与三方比较 |
+| `directory`（所属目录） | 官方所有 | 官方挪了目录 → 直接采用 N 的 `directory` |
 
 ### ⑧ 三方智能合并
 
-同步得到新官方内容 `N`；`O` = 上次同步的官方内容（无记录时 = L0 内置内容）；`U` = 本地编辑层。
+同步得到新官方内容 `N`（完整，来自 L1 的按源文件替换）；`O` = 上次同步的官方快照
+（无记录时 = L0 内置内容）；`U` = L2 本机生效层。
+
+**比较口径（唯一）**：三方都用 `normaliseGroupRecord(kind, raw)` 归一化后再比较，
+该函数定义在 `features/content-files.js`：
+
+```js
+normaliseGroupRecord(kind, raw) → {
+  id, name: String(raw.name).trim().slice(0, 24),
+  image: Boolean(raw.image),
+  words | lines: 归一化后的词句数组   // english/hanzi → normaliseContentWords；recital → normaliseRecitalLines
+}
+```
+
+必须统一口径的原因（真实代码事实）：
+- 现有 `recitalGroups()` 写入本机的分组**没有 `image` 键**，而新解析结果恒带 `image: false`；
+  不统一就会把"所有老用户的朗诵组"误判为"用户改过"，官方更新永远传不下去。
+- `name` 在 `contentGroups()` 里截断到 16 字符、`recitalGroups()` 截断到 24 字符；统一按 24。
+- `safeHanzi` / `safeEnglishWords` 有 **24 条上限**：归一化会截断到 24。
+  这带来一个必须说清的口径差异：**存储**保留文件里的全部词（迁移后 `xiao-si-ban-xia-xue-qi`
+  仍是 33 个词，与今天的 JSON 一致），**比较**使用截断后的形式（两侧同为 24，
+  不会被误判为"用户改过"）；App 的显示条数与今天完全一致（仍显示 24 条）。
 
 对每个 kind、每个分组 id：
 
 | 情况 | 处理 |
 |---|---|
-| `N` 有、`U` 无 | 新增（写入 `U`） |
-| `N` 有、`U` 有，且 `U` 归一化后 == `O` 中同名分组（用户没改过） | 换成 `N` 的版本 |
-| `N` 有、`U` 有，且 `U` != `O`（用户改过） | **保留 `U`**，记入"保留本地修改"清单 |
-| `O` 有、`N` 无（官方删了） | 保留 `U`（不自动删用户数据） |
+| `N` 有、`U` 无 | 新增（写入 U） |
+| `N` 有、`U` 有，且 `U` 归一化后 == `O` 中同名分组（用户没改过） | 换成 `N` 的版本（含 `notes`） |
+| `N` 有、`U` 有，且 `U` != `O`（用户改过） | **保留 `U`**（含 `U` 自己的 `notes`），记入"保留本地修改"清单 |
+| `O` 有、`N` 无（官方删了），且 `U` 中该分组 == `O`（用户没改过） | **一并从 U 移除**（官方删除要真正生效） |
+| `O` 有、`N` 无（官方删了），且 `U` != `O`（用户改过） | **保留 `U`**，记入"保留本地修改"清单 |
+| `N` 无、`O` 无、`U` 有（用户自建分组） | 保留，不计入"保留本地修改"（它本就是用户自己的） |
 | `U` 在 `deletedGroupIds` | 保持删除（官方也不复活） |
 
-比较前双方都过一遍现有归一化函数（`normaliseContentWords` / `normaliseRecitalLines`），
-避免大小写/空白差异被误判为"用户改过"。
-
-同步成功后：L1 写入 `N`（含 manifest 与同步时间），L2 保留用户自己的新增与修改。
-「恢复官方内容」= 清空 L2 的用户覆盖（保留 `deletedGroupIds`），并用 L1 重新生成。
+- `directory` 变化（官方把文件挪了目录）视为官方更新，直接采用 N 的 `directory`。
+- 同步成功后：L1 写入新的 `manifest` + `entries` + `syncedAt`；L2 写入合并结果。
+- 「恢复官方内容」= 用 `officialContent()`（L1 或 L0）重建 L2 的分组内容，
+  保留 `deletedGroupIds` 与用户的 `activeGroupId`。
 
 ### ⑨ 必须修掉的现存缺陷
 
 现在 `contentGroups()`（english/hanzi）会把官方分组**拷贝进本机后本地永远赢**，所以官方改了词表
-老用户也看不到；recital 靠"官方行数更多就覆盖"的补丁凑合。本次改成 ⑧ 的三层模型后，该缺陷消失，
+老用户也看不到；recital 靠"官方行数更多就覆盖"的补丁凑合。本次改成 ⑦ 的模型后该缺陷消失，
 两条分支统一走同一套合并规则。
 
 ### ⑩ 目录层级的展示（仅整理用）
 
 - 学习流程不变：地图上仍是"一个正在学习的分组"（`activeGroupId` 语义不变）。
 - 学习内容工作台（`contentConfigModal` / `recitalConfigModal`）的分组列表改为**按目录折叠展示**：
-  一级是目录（学期/单元），二级是分组文件；分组标题带路径（如 `一年级上册 · 识字一`）。
-- 「+ 新增分组」默认落到当前展开的目录（无展开目录时落到该 kind 的根目录）。
-- 删除仍只到分组级；不提供目录级增删（目录由仓库定义）。
-- 地图/课程副标题可显示分组名 + 上级目录名，便于区分同名分组。
+  按 `directory` 分组，一级是目录（学期/单元），二级是分组文件；分组标题带上级目录名
+  （如 `一年级上册 · 识字一`）。`directory` 为空的分组归入「未分类」区。
+- App 内新建的分组 `directory` 为空 → 落在「未分类」区。**不提供目录级增删**（目录由仓库定义）。
+- 课程副标题可显示分组名 + 上级目录名，便于区分同名分组。
 
 ### ⑪ Service Worker 与 PWA
 
 - `service-worker.js` 对 `/content/` 路径走**仅网络**（不缓存、不回退缓存），
   避免 PWA 模式下拿到旧 manifest / 旧文本文件。
 - `content/manifest.json` 不进 `APP_SHELL` 预缓存清单。
-- Pages 部署的是 `dist/`，`dist/content/` 随之上线。
+- **新增的 `features/content-files.js`、`features/content-sync.js`、`features/content-channel.js`
+  必须加入 `APP_SHELL`**：`app.js` 以 `<script type="module">` 加载，它 import 的任一模块
+  不在预缓存里，离线启动就会因模块 import 失败而整个应用起不来。
 
 ### ⑫ 迁移方案（现有 21 个分组）
 
@@ -228,68 +329,95 @@ data/
 | recital | `recital/故事/` | `three=little-cats`（三只小猫）、`xiao-xiang-sheng-bieng-le`（小象生病了）、`delious-foods`（美食播报） |
 
 每个文件写入 `# id: <原 id>`；hanzi 的 4 个主题组写入 `# 图片：开`；
-文件名即显示名（与原 `name` 一致）。`data/version.txt` 初始写 `4`（原 `resourceVersion: 3` → 4，
-表示"文本化后的第一版"）。
+文件名即显示名（与原 `name` 一致）。`data/version.txt` 初始写 `4`
+（原 `resourceVersion: 3` → 4，表示"文本化后的第一版"）。
+迁移后内置版本即 v4，同步状态区显示为「内置 v4 / 远程 vN」。
+
+### ⑬ 工具链与测试接线
+
+- `package.json`：新增 `"test": "node --test tests/*.test.mjs"`、`"type": "module"`、
+  `"contentBaseUrl"`；删除 `"content:sync"`。
+- `scripts/sync-default-content.mjs` 删除（被 `scripts/build-content.mjs` 取代）。
+- `tests/verify-hanzi-image-feature.mjs` → 改名为 `tests/verify-hanzi-image-feature.test.mjs`，
+  内容改为：读新文本源（`parseContentFiles` 解析 `data/**`），与 `features/default-content.js`
+  比对一致性。
+- 新增 `tests/verify-content-files.test.mjs`（解析器：指令、去重、注释剥离、错误定位、id 规则、
+  `version.txt` 排除）与 `tests/verify-content-sync.test.mjs`（三方合并：未改动/已改动/官方删除/
+  用户自建/已删除分组/`activeGroupId` 不被覆盖/统一归一化口径）。
+- `docs/ARCHITECTURE.md` 更新：第 17 行的 `default-content.js` 说明、第 49 行的
+  "只修改 `data/default-learning-content.json` + `npm run content:sync`" 流程改为
+  "编辑 `data/**` 文本文件 → push → App 内点同步"。
 
 ## 需要改动的代码
 
 | 文件 | 改动 |
 |---|---|
-| `features/content-files.js` | **新增**：共享解析器（纯函数） |
-| `features/content-sync.js` | **新增**：`mergeSyncedContent()`、`validateRemoteContent()`、`contentHash()` 等纯函数 |
+| `features/content-files.js` | **新增**：共享解析器 + 归一化函数（含 `normaliseGroupRecord`）（纯函数） |
+| `features/content-sync.js` | **新增**：三方合并 `mergeSyncedContent()` 等纯函数 |
 | `features/content-channel.js` | **新增**：fetch manifest / 下载文本文件 / 读写 L1 存储（浏览器侧） |
 | `scripts/build-content.mjs` | **新增**：解析 `data/` → 生成 `features/default-content.js` + `dist/content/**` + manifest |
-| `scripts/build-web.mjs` | 改为先跑 `content:build`；复制 `data/version.txt` 等 |
-| `app.js` | `ADMIN_DEFAULT` → `officialContent()`；`contentGroups()`/`recitalGroups()` 改用官方层；工作台列表改按目录折叠；新增同步区块 UI 与事件；`applyAdminContent()` 后重渲染当前页 |
-| `index.html` | 学习内容工作台新增「内容同步」区块（含状态区、按钮、结果面板、恢复官方内容） |
+| `scripts/build-web.mjs` | 调整顺序：`rm dist` → 拷贝 entries → **之后**调用内容构建；不再读 `data/default-learning-content.json` |
+| `scripts/sync-default-content.mjs` | **删除**（被 build-content 取代） |
+| `app.js` | `ADMIN_DEFAULT` → `officialContent()`；`contentGroups()`/`recitalGroups()` 改读 L2 + 兜底（含 `directory` 回填）；归一化函数改为 import；清理 `subject.fallbackItems` 分支与未使用的 `defaultContentWords()`；工作台列表改按目录折叠；新增同步区块 UI 与事件；英文词义兜底改为 `WORD_TRANSLATIONS[w] \|\| group.notes[w] \|\| w`（**三处调用点**：主按钮"中文：…"提示、learn 卡片副标题、recital 卡片副标题）；同步后 `applyAdminContent()` + 重渲染当前页 |
+| `index.html` | `#adminModal` 内新增「内容同步」区块（状态区、按钮、结果面板、恢复官方内容） |
 | `style.css` | 同步区块与目录折叠列表样式 |
-| `service-worker.js` | `/content/` 仅网络；不预缓存 manifest |
-| `package.json` | 新增 `content:build` 脚本；`build:web` 串联；新增 `contentBaseUrl` 字段 |
+| `service-worker.js` | `/content/` 仅网络；不预缓存 manifest；**新增三个 features 模块进 `APP_SHELL`** |
+| `package.json` | 新增 `test` / `content:build` / `type: module` / `contentBaseUrl`；删除 `content:sync` |
 | `features/build-info.js` | 由构建脚本生成，新增 `contentBaseUrl` |
-| `data/**` | 新增文本文件；`data/default-learning-content.json` 迁移后删除 |
-| `tests/` | 新增解析器与合并算法的 Node 测试 |
+| `data/**` | 新增文本文件 + `version.txt`；`data/default-learning-content.json` 迁移后删除 |
+| `tests/**` | 现有测试改名 `*.test.mjs` 并改读新源；新增解析器与合并算法测试 |
+| `docs/ARCHITECTURE.md` | 更新内容源与发布流程说明 |
+| `.github/workflows/deploy-pages.yml` | 无需改动（`build-web.mjs` 内部已产出 `dist/content/`）；发布后需验证线上可取 |
 
 ## 实施步骤
 
-1. 新建 `features/content-files.js`（解析器）与 `scripts/build-content.mjs`（构建），
-   先只做"文本 → `features/default-content.js`"，验证生成的 JS 与今天 JSON 生成的完全一致。
-2. 写迁移脚本，把现有 21 个分组导出为 `data/**` 文本文件（带 `# id:`），删除
-   `data/default-learning-content.json`，新增 `data/version.txt`。
-3. 改 `build:web` 串联 `content:build`；本地 `npm run build:web` 后 diff `features/default-content.js`
-   与迁移前内容，确认零丢失。
-4. 抽出 `officialContent()`，把 `contentGroups()` / `recitalGroups()` 改为读官方层（此时 L1 为空，
+1. 新建 `features/content-files.js`（解析器 + 归一化函数）与 `scripts/build-content.mjs`，
+   先只做"文本 → `features/default-content.js`"，验证生成的 JS 与今天 JSON 生成的**词句内容一致**。
+2. 写迁移脚本，把现有 21 个分组导出为 `data/**` 文本文件（带 `# id:`），去重 2 处相同重复行，
+   删除 `data/default-learning-content.json`，新增 `data/version.txt`。
+3. 改 `scripts/build-web.mjs` 顺序并串联内容构建；本地 `npm run build:web` 后 diff
+   `features/default-content.js` 与迁移前内容，确认零丢失（仅 2 处重复行去重、33 词组不被截断）。
+4. 抽出 `officialContent()`，把 `contentGroups()` / `recitalGroups()` 改为读 L2（此时 L1 为空，
    行为应与现在完全一致）——回归：App 现有内容显示不变。
-5. 实现 `features/content-sync.js`（合并算法）+ `features/content-channel.js`（网络与存储），
-   配 Node 测试（`tests/verify-content-files.mjs`、`tests/verify-content-sync.mjs`）。
+5. 实现 `features/content-sync.js`（三方合并）+ `features/content-channel.js`（网络与存储），
+   配 Node 测试。
 6. 工作台加「内容同步」区块：状态、按钮、结果面板、恢复官方内容；接上合并与生效流程。
-7. 工作台分组列表改按目录折叠展示；分组标题带上级目录名。
-8. Service Worker 改 `/content/` 仅网络；`index.html`/`style.css` 补同步区块与折叠列表样式。
-9. 构建脚本把 `data/**` 与 manifest 发到 `dist/content/`；`deploy-pages.yml` 验证线上可取。
-10. 全量验证：`node --check app.js`、`npm test`、`npm run build:web`、本地起服务点同步
-    （用本地 Pages 镜像或临时改 `contentBaseUrl` 指到本地目录）、APK 真机验证同步后内容生效。
+7. 工作台分组列表改按目录折叠展示（按 `directory`）；分组标题带上级目录名。
+8. Service Worker 改 `/content/` 仅网络并补 `APP_SHELL`；`index.html`/`style.css` 补同步区块与折叠列表样式。
+9. 验证 Pages 线上可取：`https://nganun.github.io/magic-castle/content/manifest.json` 与
+   任一 `.txt` 均 200 且带 CORS 头。
+10. 全量验证：`node --check app.js`、`npm test`、`npm run build:web`、真机验证同步后内容生效
+    （改仓库一个词 → push → 等 Pages → App 点同步 → 生效）。
 11. 发版 v1.0.19（versionCode 20）：版本号、SW 缓存键、`?v=`、`build-info.js` 全量同步，
     `cap:sync` → commit → tag → push → 等 Actions 出 APK → 校验 Release。
 12. 发版后写一篇"如何加内容"的说明（放 `docs/`）：改 `data/**` → push → App 点同步。
 
 ## 验收标准
 
-- `data/**` 文本文件解析结果与迁移前的 `default-learning-content.json` **逐字段一致**（21 组、
-  全部词与句、`image` 开关、`resourceVersion`）。
-- 迁移后老用户（已有 `luna-admin-content-v4`）本机的"正在学习分组""已删除分组"不错位。
+- `data/**` 文本文件解析结果与迁移前的 `default-learning-content.json` **词句内容一致**
+  （21 组、全部词与句、`image` 开关；仅 2 处完全相同的重复行按规则去重；
+  `xiao-si-ban-xia-xue-qi` 仍是 33 个词，App 显示条数与今天一致）。
+- 迁移后老用户（已有 `luna-admin-content-v4`）本机的"正在学习分组""已删除分组"不错位；
+  同步不会覆盖用户的 `activeGroupId`；老用户现有分组在同步后落到正确目录而非「未分类」。
 - App 内点「同步内容」：无变化时提示"已是最新"；有变化时更新并列出新增/更新/保留本地修改三类结果。
 - 仓库改一个词 → push → 等 Pages 部署 → App 点同步 → 该词生效，**不需要重装 APK**。
-- 本地改过的分组在同步后保留本地内容，并出现在"保留本地修改"清单里。
+- 本地改过的分组在同步后保留本地内容（含 `notes`），并出现在"保留本地修改"清单里。
+- 官方删除的分组：用户没改过 → 一并消失；用户改过 → 保留并提示。
 - 断网 / manifest 404 / 文本文件损坏 / 解析报错 → 现有内容完全不受影响，并有明确提示。
-- PWA 模式下不会拿到旧 manifest（`/content/` 仅网络）。
-- `npm test` 全绿；`node --check app.js`、`npm run build:web` 通过；APK 构建并发布 v1.0.19。
+- PWA 模式下不会拿到旧 manifest（`/content/` 仅网络）；同步不会因 10 分钟 CDN 缓存误报"内容损坏"。
+- 离线状态下 App 仍能正常启动（新增模块在 `APP_SHELL` 内）。
+- `npm test` **真的跑到测试**（`# tests N > 0`）且全绿；`node --check app.js`、
+  `npm run build:web` 通过；APK 构建并发布 v1.0.19。
 
 ## 风险与对策
 
 | 风险 | 对策 |
 |---|---|
-| Pages 部署有 30~60 秒延迟，push 后立刻同步拿不到新内容 | 同步结果里显示"远程内容版本 vN"与最后同步时间，版本未变即提示"已是最新"；作者可等一分钟再点 |
-| 仓库里某个文本文件写错 → 内容错乱 | 构建脚本遇错即失败（不进包）；App 端解析错误保留旧内容并报错定位到文件+行号 |
+| Pages 部署有 30~60 秒延迟，push 后立刻同步拿不到新内容 | 状态区显示"远程内容版本 vN"与最后同步时间，版本未变即提示"已是最新"；作者可等一分钟再点 |
+| Pages 静态资源 10 分钟 CDN 缓存导致下载到旧 `.txt` | 同步请求一律 `cache: 'no-store'` + `?t=` 时间戳；下载后按 manifest 的 sha256 校验（`crypto.subtle` 不可用时跳过并告警） |
+| 仓库里某个文本文件写错 → 内容错乱 | 构建脚本遇 error 即失败（不进包）；App 端解析错误保留旧内容并报错定位到文件+行号 |
 | 分组 id 随路径变化 → 本机记录错位 | 迁移组写死 `# id:`；新组用路径 id；`# id:` 也可随时手动指定 |
-| 官方删除分组后本机仍保留 | 有意为之（不自动删用户数据）；工作台提供删除入口 |
+| 官方删除分组后本机仍保留 | 规则：用户没改过就一并删除，改过则保留并提示；工作台另有删除入口 |
 | 现有 `contentGroups()` 的"本地永远赢"缺陷若未彻底改造，内容更新传不到老用户 | 步骤 4~6 专门处理，并以"仓库改一个词 → 同步后生效"作为验收项 |
-| `data/` 目录内容与 App 内置内容不一致（忘了重新构建） | CI 增加漂移检查：`content:build` 后 diff `features/default-content.js` 与已提交版本，不一致则失败 |
+| 统一归一化口径写错 → 老用户内容被判为"改过"，更新传不下去 | 口径集中在 `normaliseGroupRecord()`，并有单测覆盖"老格式分组（无 image 键、name 16 截断）与官方新格式比较结果为相等" |
+| `package.json` 加 `"type": "module"` 影响既有 Node 脚本 | 仓库所有 Node 脚本均为 `.mjs`（天然 ESM），`features/*.js` 仅被浏览器与测试 import；列为必测项 |
