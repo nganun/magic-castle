@@ -14,7 +14,10 @@
 
 - `theme-catalog.js`：内置课程主题和回合数据工厂。
 - `content-catalog.js`：翻译、例句、汉字场景和地图展示元数据。
-- `default-content.js`：由 `data/default-learning-content.json` 生成的默认分组与朗诵内容模块。
+- `default-content.js`：由 `data/**` 文本源生成的默认分组与朗诵内容模块。
+- `content-files.js`：学习内容文本源的共享解析器与归一化函数（构建脚本与 App 共用）。
+- `content-sync.js`：官方内容与本机编辑的三方合并（纯函数）。
+- `content-channel.js`：内容清单与文本文件的下载、校验与本机快照。
 - `map-route.js`：每日路线、推荐课程与复习判断。
 - `achievements.js`：徽章定义和解锁规则。
 - `storage.js`：浏览器本机存储的安全读写适配。
@@ -39,16 +42,21 @@ assets/
 
 ## 平台与构建
 
-- `scripts/build-web.mjs`：从源目录生成 `dist/` 静态包。
+- `scripts/build-content.mjs`：解析 `data/**` 文本源，生成 `features/default-content.js`（内置内容）与
+  `dist/content/**`（供 App 同步下载的清单与文本文件）。
+- `scripts/build-web.mjs`：从源目录生成 `dist/` 静态包（内部先跑内容构建）。
 - `android/`：Capacitor Android 外壳、原生 TTS、系统栏和图标资源。
 - `.github/workflows/deploy-pages.yml`：发布 `dist/` 到 GitHub Pages。
 - `.github/workflows/release-android-apk.yml`：推送 `v*` Tag 后构建并发布 Android Debug APK。
 
 ## 维护规则
 
-1. 默认英文、汉字分组、朗诵篇目与兼容兜底内容只修改 `data/default-learning-content.json`，然后运行 `npm run content:sync`。
-2. 新课程的静态定义放入 `features/theme-catalog.js`。
-3. 新的翻译、示例句、地图名称放入 `features/content-catalog.js`。
+1. 学习内容写在 `data/<类型>/[目录/]<分组>.txt`：类型目录为 `english` / `hanzi` / `recital`，
+   每行一个词或一句；改完运行 `npm run content:build`（或 `npm run build:web`）重新生成内置内容。
+   提交并 push 后，App 内「家长设置 → 学习内容工作台 → 同步最新内容」即可拉到新内容，**不需要发版**。
+2. 新的翻译、示例句、地图名称放入 `features/content-catalog.js`。
+3. 新媒体的静态定义放入 `features/theme-catalog.js`。
 4. 新媒体资源按用途放入 `assets/` 的对应子目录，避免直接堆放在根目录。
 5. 新屏幕样式放入 `styles/screens/`；共享视觉规则保留在 `style.css`。
 6. `dist/`、Gradle 构建输出、APK 和本机学习导出数据均是生成或本机数据，不提交到仓库。
+7. 解析规则只写在 `features/content-files.js`（构建脚本与 App 共用），不要在别处重复实现。

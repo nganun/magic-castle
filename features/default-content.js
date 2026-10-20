@@ -1,12 +1,18 @@
-// Generated from data/default-learning-content.json. Do not edit directly.
+// Generated from data/**. Do not edit directly.
 export const DEFAULT_LEARNING_CONTENT = {
-  "resourceVersion": 3,
+  "resourceVersion": 4,
   "english": {
     "activeGroupId": "english-colors",
+    "deletedGroupIds": [],
     "groups": [
       {
         "id": "english-colors",
         "name": "颜色单词",
+        "file": "english/基础/颜色单词.txt",
+        "directory": "基础",
+        "order": 9007199254740991,
+        "image": false,
+        "notes": {},
         "words": [
           "red",
           "green",
@@ -18,20 +24,20 @@ export const DEFAULT_LEARNING_CONTENT = {
           "yellow"
         ]
       }
-    ],
-    "fallbackItems": [
-      "red",
-      "green",
-      "black"
     ]
   },
   "hanzi": {
     "activeGroupId": "middle-forth-1h",
+    "deletedGroupIds": [],
     "groups": [
       {
         "id": "middle-forth-1h",
         "name": "中四班-上学期",
+        "file": "hanzi/课堂/01-中四班-上学期.txt",
+        "directory": "课堂",
+        "order": 1,
         "image": false,
+        "notes": {},
         "words": [
           "灶台",
           "面粉",
@@ -46,7 +52,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "xiao-si-ban-xia-xue-qi",
         "name": "小四班-下学期",
+        "file": "hanzi/课堂/02-小四班-下学期.txt",
+        "directory": "课堂",
+        "order": 2,
         "image": false,
+        "notes": {},
         "words": [
           "跳舞",
           "干净",
@@ -71,7 +81,6 @@ export const DEFAULT_LEARNING_CONTENT = {
           "苹果",
           "蓝莓",
           "葡萄",
-          "消息",
           "响亮",
           "排队",
           "小免",
@@ -86,7 +95,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "color",
         "name": "颜色",
+        "file": "hanzi/主题/01-颜色.txt",
+        "directory": "主题",
+        "order": 1,
         "image": true,
+        "notes": {},
         "words": [
           "白色",
           "黑色",
@@ -101,7 +114,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "fruit",
         "name": "水果",
+        "file": "hanzi/主题/02-水果.txt",
+        "directory": "主题",
+        "order": 2,
         "image": true,
+        "notes": {},
         "words": [
           "西瓜",
           "蓝莓",
@@ -121,7 +138,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "vegitable",
         "name": "蔬菜",
+        "file": "hanzi/主题/03-蔬菜.txt",
+        "directory": "主题",
+        "order": 3,
         "image": true,
+        "notes": {},
         "words": [
           "胡萝卜",
           "西红柿",
@@ -138,7 +159,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "animal",
         "name": "动物",
+        "file": "hanzi/主题/04-动物.txt",
+        "directory": "主题",
+        "order": 4,
         "image": true,
+        "notes": {},
         "words": [
           "小狗",
           "小猫",
@@ -155,24 +180,202 @@ export const DEFAULT_LEARNING_CONTENT = {
           "蝴蝶"
         ]
       }
-    ],
-    "fallbackItems": [
-      "灶台",
-      "面粉",
-      "厨房",
-      "小猫",
-      "胡须",
-      "入口",
-      "兴高采烈",
-      "白色"
     ]
   },
   "recital": {
-    "activeGroupId": "delious-foods",
+    "activeGroupId": "kai-men",
+    "deletedGroupIds": [],
     "groups": [
+      {
+        "id": "kai-men",
+        "name": "开门",
+        "file": "recital/儿歌/01-开门.txt",
+        "directory": "儿歌",
+        "order": 1,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "小狗开门，脑袋顶顶。",
+          "老鼠开门，嘴巴啃啃。",
+          "猫咪开门，脚爪蹬蹬。",
+          "娃娃开门，按按门铃。"
+        ]
+      },
+      {
+        "id": "shu-ye-ge",
+        "name": "树叶歌",
+        "file": "recital/儿歌/02-树叶歌.txt",
+        "directory": "儿歌",
+        "order": 2,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "桃叶尖，杏叶圆，",
+          "梧桐叶大杨叶宽，",
+          "桑叶像把小蒲扇，",
+          "柳叶弯弯枣叶扁。"
+        ]
+      },
+      {
+        "id": "wen-da-ge",
+        "name": "问答歌",
+        "file": "recital/儿歌/03-问答歌.txt",
+        "directory": "儿歌",
+        "order": 3,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "谁在水里穿裙子？",
+          "金鱼水里穿裙子。",
+          "谁在天上推剪子？",
+          "燕子天上推剪子。",
+          "谁在草丛拉锯子？",
+          "螳螂草丛拉锯子。",
+          "谁在屋角织网子？",
+          "蜘蛛屋角织网子。"
+        ]
+      },
+      {
+        "id": "shang-lou",
+        "name": "上楼",
+        "file": "recital/儿歌/04-上楼.txt",
+        "directory": "儿歌",
+        "order": 4,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "爷爷要抱小牛牛，",
+          "牛牛偏要自己走，",
+          "一步一步上五楼。",
+          "一楼，二楼，三楼，四楼，五楼。",
+          "哦！",
+          "到了家门口。"
+        ]
+      },
+      {
+        "id": "qiu-feng-qing-qing-chui",
+        "name": "秋风轻轻吹",
+        "file": "recital/儿歌/05-秋风轻轻吹.txt",
+        "directory": "儿歌",
+        "order": 5,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "秋风轻轻吹过果园，",
+          "苹果悄悄羞红了脸，",
+          "秋风轻轻吹过树林，",
+          "树叶慢慢松开了手，",
+          "秋风轻轻吹过稻田，",
+          "稻穗渐渐笑弯了腰。",
+          "秋风轻轻吹过草地，",
+          "小草调皮地挠着我的脚。"
+        ]
+      },
+      {
+        "id": "tu-he-du",
+        "name": "兔和肚",
+        "file": "recital/儿歌/06-兔和肚.txt",
+        "directory": "儿歌",
+        "order": 6,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "白兔是白肚，",
+          "黑兔是黑肚。",
+          "白兔白肚不是黑肚。",
+          "黑兔黑肚不是白肚。"
+        ]
+      },
+      {
+        "id": "qiao-qiao-ban",
+        "name": "跷跷板",
+        "file": "recital/儿歌/07-跷跷板.txt",
+        "directory": "儿歌",
+        "order": 7,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "跷跷板，真好玩儿。",
+          "你一高，我一低，",
+          "你一落，我一起。",
+          "一高，一低，一落，一起，",
+          "大家玩得笑嘻嘻。"
+        ]
+      },
+      {
+        "id": "lao-su-xiu-zhe-you-dou-xiang",
+        "name": "老鼠嗅着油豆香",
+        "file": "recital/儿歌/08-老鼠嗅着油豆香.txt",
+        "directory": "儿歌",
+        "order": 8,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "油一缸，豆一筐，",
+          "老鼠嗅着油豆香。",
+          "爬上缸，跳进筐，",
+          "偷油偷豆两头忙。",
+          "又豪兴，又慌张，",
+          "脚一滑，身一晃，",
+          "“扑通”一声跌进缸。"
+        ]
+      },
+      {
+        "id": "huan-huan-xi-xi-guo-nian-le",
+        "name": "欢欢喜喜过年了",
+        "file": "recital/儿歌/09-欢欢喜喜过年了.txt",
+        "directory": "儿歌",
+        "order": 9,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "备桌子，剁馅子，",
+          "蒸包子，捏饺子，",
+          "捏好了，煮完了，",
+          "欢欢喜喜过年了。",
+          "东来一只狗，西来一只狗，",
+          "咱们对头拍拍手。"
+        ]
+      },
+      {
+        "id": "recital-spring-dawn",
+        "name": "春晓",
+        "file": "recital/古诗/01-春晓.txt",
+        "directory": "古诗",
+        "order": 1,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "春眠不觉晓，",
+          "处处闻啼鸟。",
+          "夜来风雨声，",
+          "花落知多少。"
+        ]
+      },
+      {
+        "id": "deng-guan-que-lou",
+        "name": "登鹳雀楼",
+        "file": "recital/古诗/02-登鹳雀楼.txt",
+        "directory": "古诗",
+        "order": 2,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "唐，王之涣",
+          "白日依山尽，",
+          "黄河入海流。",
+          "欲穷千里目，",
+          "更上一层楼。"
+        ]
+      },
       {
         "id": "delious-foods",
         "name": "美食播报",
+        "file": "recital/故事/01-美食播报.txt",
+        "directory": "故事",
+        "order": 1,
+        "image": false,
+        "notes": {},
         "lines": [
           "大家好，",
           "我是今天的美食播报员 —— 王清澄。",
@@ -188,6 +391,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "three=little-cats",
         "name": "三只小猫",
+        "file": "recital/故事/02-三只小猫.txt",
+        "directory": "故事",
+        "order": 2,
+        "image": false,
+        "notes": {},
         "lines": [
           "猫妈妈有三只小猫，",
           "一只是小白猫，",
@@ -225,6 +433,11 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "xiao-xiang-sheng-bieng-le",
         "name": "小象生病了",
+        "file": "recital/故事/03-小象生病了.txt",
+        "directory": "故事",
+        "order": 3,
+        "image": false,
+        "notes": {},
         "lines": [
           "非洲草原上的小象豆豆生病了，",
           "猩猩医生来给他看病：”",
@@ -272,133 +485,6 @@ export const DEFAULT_LEARNING_CONTENT = {
           "非洲玫瑰和猴面包树，",
           "希望你们喜欢。",
           "你们的好朋友：豆豆"
-        ]
-      },
-      {
-        "id": "recital-spring-dawn",
-        "name": "春晓",
-        "lines": [
-          "春眠不觉晓，",
-          "处处闻啼鸟。",
-          "夜来风雨声，",
-          "花落知多少。"
-        ]
-      },
-      {
-        "id": "kai-men",
-        "name": "开门",
-        "lines": [
-          "小狗开门，脑袋顶顶。",
-          "老鼠开门，嘴巴啃啃。",
-          "猫咪开门，脚爪蹬蹬。",
-          "娃娃开门，按按门铃。"
-        ]
-      },
-      {
-        "id": "shu-ye-ge",
-        "name": "树叶歌",
-        "lines": [
-          "桃叶尖，杏叶圆，",
-          "梧桐叶大杨叶宽，",
-          "桑叶像把小蒲扇，",
-          "柳叶弯弯枣叶扁。"
-        ]
-      },
-      {
-        "id": "wen-da-ge",
-        "name": "问答歌",
-        "lines": [
-          "谁在水里穿裙子？",
-          "金鱼水里穿裙子。",
-          "谁在天上推剪子？",
-          "燕子天上推剪子。",
-          "谁在草丛拉锯子？",
-          "螳螂草丛拉锯子。",
-          "谁在屋角织网子？",
-          "蜘蛛屋角织网子。"
-        ]
-      },
-      {
-        "id": "shang-lou",
-        "name": "上楼",
-        "lines": [
-          "爷爷要抱小牛牛，",
-          "牛牛偏要自己走，",
-          "一步一步上五楼。",
-          "一楼，二楼，三楼，四楼，五楼。",
-          "哦！",
-          "到了家门口。"
-        ]
-      },
-      {
-        "id": "qiu-feng-qing-qing-chui",
-        "name": "秋风轻轻吹",
-        "lines": [
-          "秋风轻轻吹过果园，",
-          "苹果悄悄羞红了脸，",
-          "秋风轻轻吹过树林，",
-          "树叶慢慢松开了手，",
-          "秋风轻轻吹过稻田，",
-          "稻穗渐渐笑弯了腰。",
-          "秋风轻轻吹过草地，",
-          "小草调皮地挠着我的脚。"
-        ]
-      },
-      {
-        "id": "tu-he-du",
-        "name": "兔和肚",
-        "lines": [
-          "白兔是白肚，",
-          "黑兔是黑肚。",
-          "白兔白肚不是黑肚。",
-          "黑兔黑肚不是白肚。"
-        ]
-      },
-      {
-        "id": "qiao-qiao-ban",
-        "name": "跷跷板",
-        "lines": [
-          "跷跷板，真好玩儿。",
-          "你一高，我一低，",
-          "你一落，我一起。",
-          "一高，一低，一落，一起，",
-          "大家玩得笑嘻嘻。"
-        ]
-      },
-      {
-        "id": "deng-guan-que-lou",
-        "name": "登鹳雀楼",
-        "lines": [
-          "唐，王之涣",
-          "白日依山尽，",
-          "黄河入海流。",
-          "欲穷千里目，",
-          "更上一层楼。"
-        ]
-      },
-      {
-        "id": "lao-su-xiu-zhe-you-dou-xiang",
-        "name": "老鼠嗅着油豆香",
-        "lines": [
-          "油一缸，豆一筐，",
-          "老鼠嗅着油豆香。",
-          "爬上缸，跳进筐，",
-          "偷油偷豆两头忙。",
-          "又豪兴，又慌张，",
-          "脚一滑，身一晃，",
-          "“扑通”一声跌进缸。"
-        ]
-      },
-      {
-        "id": "huan-huan-xi-xi-guo-nian-le",
-        "name": "欢欢喜喜过年了",
-        "lines": [
-          "备桌子，剁馅子，",
-          "蒸包子，捏饺子，",
-          "捏好了，煮完了，",
-          "欢欢喜喜过年了。",
-          "东来一只狗，西来一只狗，",
-          "咱们对头拍拍手。"
         ]
       }
     ]

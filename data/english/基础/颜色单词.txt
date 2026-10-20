@@ -1,0 +1,9 @@
+# id: english-colors
+red
+green
+black
+white
+blue
+purple
+pink
+yellow

@@ -62,6 +62,8 @@ data/
 - **目录名 = 类型**：`hanzi` / `english` / `recital`。其它目录名 → 构建报错（不静默忽略）。
 - **文件 = 分组**，文件名可中文。**子目录 = 学期/单元**，任意深度都支持（建议 ≤ 2 层）。
 - **每行 = 一个内容项**：汉字/词组一行一个，英文单词一行一个，朗诵一行一句。
+- **可选数字前缀决定同目录内的顺序**：`01-颜色.txt` 显示为「颜色」，排在 `02-水果.txt` 之前；
+  排序键是「目录 → 数字前缀 → 文件名」。前缀**不计入分组 id**，所以调整顺序（改前缀）不会改变 id。
 - **重复行**：`english` / `hanzi` 是**集合**语义 → 重复行保留首次出现，其余丢弃并记 warning；
   `recital` 是**有序句子列表** → **不去重**，重复句是刻意的复现
   （《三只小猫》里「你看看我，我看看你，」出现两次：白猫段与黑猫段，去掉一次会改变朗诵内容）。
@@ -92,7 +94,7 @@ App 端在展示英文单词词义时：`WORD_TRANSLATIONS[word] || group.notes[
 ### ③ 分组 id 规则
 
 - 有 `# id:` → 用它。
-- 否则 → **相对路径去扩展名**，如 `hanzi/主题/水果`、`recital/古诗/春晓`。
+- 否则 → **相对路径去扩展名**（去掉数字前缀），如 `hanzi/主题/水果`、`recital/古诗/春晓`。
   保证跨目录唯一，且目录/文件改名时 id 随之变化（因此迁移组必须写 `# id:`）。
 - 现有 21 个分组迁移时写入原 id（如 `# id: middle-forth-1h`），老用户本机的
   `activeGroupId` / `deletedGroupIds` 继续对得上。
@@ -115,9 +117,9 @@ App 端在展示英文单词词义时：`WORD_TRANSLATIONS[word] || group.notes[
 {
   resourceVersion: 4,                       // 来自 data/version.txt
   kinds: {
-    english: { groups: [ { id, name, file, directory, image: false, notes: {}, words: [...] } ] },
-    hanzi:   { groups: [ { id, name, file, directory, image: true,  notes: {}, words: [...] } ] },
-    recital: { groups: [ { id, name, file, directory, image: false, notes: {}, lines: [...] } ] }
+    english: { groups: [ { id, name, file, directory, order, image: false, notes: {}, words: [...] } ] },
+    hanzi:   { groups: [ { id, name, file, directory, order, image: true,  notes: {}, words: [...] } ] },
+    recital: { groups: [ { id, name, file, directory, order, image: false, notes: {}, lines: [...] } ] }
   },
   errors: [],      // { path, line, message } —— 构建失败
   warnings: []     // { path, line, message } —— 例如重复行
@@ -128,6 +130,7 @@ App 端在展示英文单词词义时：`WORD_TRANSLATIONS[word] || group.notes[
   增量同步的"按文件替换/删除"靠它。构建脚本与 App 端都从这里取。
 - `directory` = 该分组所在**目录**（相对 `data/`，根目录为 `''`），用于工作台按目录折叠展示；
   与"源文件路径"是两个不同概念，命名上以 `directory` / `file` 区分。
+- `order` = 数字前缀（无前缀时为最大值），用于同目录内排序。
 - 三个 kind 形状一致；目录树由 `directory` 在展示时还原（解析结果不嵌套 `terms`）。
 - 构建脚本（Node ESM，直接 import 该模块）与 App 端使用**同一份解析代码**，避免规则漂移。
 
@@ -294,6 +297,8 @@ normaliseGroupRecord(kind, raw) → {
   **统一改为 24**（读路径、写路径、输入框 `maxlength` 一起改）：
   否则官方里长度超过 16 的显示名（名称来自文件名，可能是很长的课文标题）会被截成 16 存进 L2，
   之后每次同步都 `U != O` → 该分组被永久判为"用户改过"，官方更新再也传不下去。
+- **老用户本机已存的 16 字截断名称**：比较时按"被截断"处理（本地名是官方名的前缀即视为一致），
+  显示时补回官方完整名称（`repairTruncatedName()`，放在 `features/content-files.js` 里共用）。
 - `safeHanzi` / `safeEnglishWords` 有 **24 条上限**：归一化会截断到 24。
   这带来一个必须说清的口径差异：**存储**保留文件里的全部词（迁移后 `xiao-si-ban-xia-xue-qi`
   仍是 33 个词，与今天的 JSON 一致），**比较**使用截断后的形式（两侧同为 24，

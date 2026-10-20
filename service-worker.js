@@ -1,4 +1,4 @@
-const CACHE_NAME = 'magic-castle-v1.0.18';
+const CACHE_NAME = 'magic-castle-v1.0.19';
 const APP_SHELL = [
   './',
   './index.html',
@@ -10,6 +10,9 @@ const APP_SHELL = [
   './features/achievements.js',
   './features/theme-catalog.js',
   './features/content-catalog.js',
+  './features/content-files.js',
+  './features/content-sync.js',
+  './features/content-channel.js',
   './features/default-content.js',
   './features/build-info.js',
   './features/arcade-games.js',
@@ -141,6 +144,12 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // 学习内容清单与文本文件走仅网络，避免 PWA 模式下拿到旧内容（同步按钮要能拉到最新版本）。
+  if (url.pathname.includes('/content/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // CSS, JS, and vendor use network-first so visual and script fixes are never held behind an old offline cache.
   if (url.pathname.endsWith('/style.css') || url.pathname.endsWith('/styles/screens/adventure-map.css') || url.pathname.endsWith('/app.js') || url.pathname.includes('/features/') || url.pathname.includes('/vendor/')) {
