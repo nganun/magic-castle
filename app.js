@@ -2456,9 +2456,10 @@ function recitalBrowserMarkup() {
   ].join('');
   const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
   const expanded = recitalBrowserExpanded;
-  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.2V4.8"/><path d="M5.8 11 12 4.8l6.2 6.2"/></svg>';
-  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6 12 12l6-6"/><path d="M6 12 12 18l6-6"/></svg>';
-  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 12 12l6 6"/><path d="M6 12 12 6l6 6"/></svg>';
+  // 实心块面图标（配实心圆按钮），比细描边更像按钮
+  const iconUp = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2 4.6 11.4h4.2v9.4h6.4v-9.4h4.2L12 3.2Z"/></svg>';
+  const iconExpand = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.8 5h16.4L12 11z"/><path d="M3.8 13h16.4L12 19z"/></svg>';
+  const iconCollapse = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.8 19h16.4L12 13z"/><path d="M3.8 11h16.4L12 5z"/></svg>';
   const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
   const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconCollapse : iconExpand}</button>`;
   return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
