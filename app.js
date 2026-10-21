@@ -2456,7 +2456,11 @@ function recitalBrowserMarkup() {
   ].join('');
   const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
   const expanded = recitalBrowserExpanded;
-  return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${path.length ? '<button class="recital-browser-action" type="button" data-recital-up>上一层</button>' : ''}<button class="recital-browser-action" type="button" data-recital-toggle>${expanded ? '收起' : '展开'}</button></span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
+  const iconUp = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const iconDown = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
+  const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconUp : iconDown}</button>`;
+  return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
 function bindRecitalBrowser(root) {
   $$('[data-recital-folder]', root).forEach((button) => button.addEventListener('click', () => {
