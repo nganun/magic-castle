@@ -2037,6 +2037,17 @@ function playRecitalLines(lines, card, startIndex = 0, title = '') {
   if (recitalPlayer.phase === 'title') readRecitalTitle();
   else readRecitalLine(recitalPlayer.lineIndex);
 }
+// 朗诵台：把关卡进度（计数 + 卡片切换 + 进度条）整组搬进卡片，替掉原来"第 N 句"的位置。
+// 元素是移动而不是复制，所以 ID、事件与进度更新逻辑都只有一份。
+function relocateLessonProgress(area) {
+  const side = $('.lesson-side');
+  const label = $('.progress-label');
+  const track = $('.progress-track');
+  if (!side || !label || !track) return;
+  const host = area?.querySelector('#recitalProgressHost');
+  if (host) { host.append(label, track); side.classList.add('progress-moved'); }
+  else { side.prepend(label, track); side.classList.remove('progress-moved'); }
+}
 function renderRound() {
   stopRecitalPlayer();
   window.clearTimeout(recitalAutoReadTimer);
@@ -2044,7 +2055,7 @@ function renderRound() {
   const theme = currentTheme();
   renderLessonGroupSwitcher();
   renderTopbarContext();
-  if (state.completed) return renderCompletion();
+  if (state.completed) { relocateLessonProgress(null); return renderCompletion(); }
   state.roundLocked = false;
   const game = currentRounds()[state.round];
   const area = $('#gameArea');
@@ -2065,15 +2076,14 @@ function renderRound() {
     $('#recordPractice')?.addEventListener('click', recordPractice);
     startLearnCountdown(3);
   } else if (game.type === 'recite') {
-    const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text; const lineLabel = wholePiece ? `整篇朗诵 · 共 ${piece.lines.length} 句` : game.lineLabel || '朗诵文本';
-    const manuscript = wholePiece
+    const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text; const lineLabel = wholePiece ? `整篇朗诵 · 共 ${piece.lines.length} 句` : game.lineLabel || '朗诵文本';    const manuscript = wholePiece
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
       : `<span class="recital-line recital-line-single" data-recital-line="0">“${escapeHtml(recitalText)}”</span>`;
     const gapRow = wholePiece
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p>${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><div class="recital-progress" id="recitalProgressHost"></div>${wholePiece ? `<p class="recital-line-label">${escapeHtml(lineLabel)}</p>` : ''}${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
       playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
@@ -2119,6 +2129,7 @@ function renderRound() {
   bindSentenceButtons(area);
   $('#repeatCurrent')?.addEventListener('click', replayCurrentPrompt);
   addLessonShortcutHints(area);
+  relocateLessonProgress(area);
   updateProgress();
   if (game.type === 'learn') autoReadWordCard(game.word);
 }
@@ -2457,9 +2468,9 @@ function recitalBrowserMarkup() {
   const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
   const expanded = recitalBrowserExpanded;
   // 细线图标：向上箭头（上一层）与双折线（展开/收起），线宽适中、比例克制
-  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>';
-  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>';
-  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>';
+  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>';
+  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>';
+  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>';
   const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
   const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconCollapse : iconExpand}</button>`;
   return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
