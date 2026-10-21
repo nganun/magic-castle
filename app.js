@@ -1286,7 +1286,8 @@ function updateProgress() {
     ? (state.recitalMode === 'whole' ? (recitalPlayerValid() ? recitalPlayer.lineIndex : recitalCurrentLine) : state.round)
     : 0;
   if (recital && lineTotal && !state.completed) {
-    $('#progressLabel').textContent = `第 ${lineIndex + 1}/${lineTotal} 句`;
+    // 句数由右侧「n / m」显示，左边不再重复一遍
+    $('#progressLabel').textContent = '';
     $('#progressStars').textContent = `${lineIndex + 1} / ${lineTotal}`;
     $('#progressFill').style.width = `${((lineIndex + 1) / lineTotal) * 100}%`;
   } else {
@@ -2104,14 +2105,14 @@ function renderRound() {
     $('#recordPractice')?.addEventListener('click', recordPractice);
     startLearnCountdown(3);
   } else if (game.type === 'recite') {
-    const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text; const lineLabel = wholePiece ? `整篇朗诵 · 共 ${piece.lines.length} 句` : game.lineLabel || '朗诵文本';    const manuscript = wholePiece
+    const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text;    const manuscript = wholePiece
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
       : `<span class="recital-line recital-line-single" data-recital-line="0">“${escapeHtml(recitalText)}”</span>`;
     const gapRow = wholePiece
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><div class="recital-progress" id="recitalProgressHost"></div>${wholePiece ? `<p class="recital-line-label">${escapeHtml(lineLabel)}</p>` : ''}${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><div class="recital-progress" id="recitalProgressHost"></div>${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
       playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
