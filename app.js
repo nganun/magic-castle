@@ -2039,14 +2039,24 @@ function playRecitalLines(lines, card, startIndex = 0, title = '') {
 }
 // 朗诵台：把关卡进度（计数 + 卡片切换 + 进度条）整组搬进卡片，替掉原来"第 N 句"的位置。
 // 元素是移动而不是复制，所以 ID、事件与进度更新逻辑都只有一份。
-function relocateLessonProgress(area) {
-  const side = $('.lesson-side');
+// 注意：进度元素被移进卡片后，重写卡片（innerHTML 覆盖）会把它一起销毁，
+// 所以重渲染前先暂存到片段里，渲染后再放回该在的位置。
+function stashLessonProgress() {
   const label = $('.progress-label');
   const track = $('.progress-track');
+  if (!label || !track || !label.closest('#gameArea')) return null;
+  const fragment = document.createDocumentFragment();
+  fragment.append(label, track);
+  return fragment;
+}
+function relocateLessonProgress(area, stash) {
+  const side = $('.lesson-side');
+  const label = stash?.querySelector('.progress-label') || $('.progress-label');
+  const track = stash?.querySelector('.progress-track') || $('.progress-track');
   if (!side || !label || !track) return;
   const host = area?.querySelector('#recitalProgressHost');
-  if (host) { host.append(label, track); side.classList.add('progress-moved'); }
-  else { side.prepend(label, track); side.classList.remove('progress-moved'); }
+  if (host) host.append(label, track);
+  else side.prepend(label, track);
 }
 function renderRound() {
   stopRecitalPlayer();
@@ -2059,6 +2069,7 @@ function renderRound() {
   state.roundLocked = false;
   const game = currentRounds()[state.round];
   const area = $('#gameArea');
+  const progressStash = stashLessonProgress();
   if (game.type === 'learn') {
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">跟我说一说</button><div id="practicePlayback"></div>' : '';
     area.innerHTML = currentTheme().id === 'hanzi'
@@ -2129,7 +2140,7 @@ function renderRound() {
   bindSentenceButtons(area);
   $('#repeatCurrent')?.addEventListener('click', replayCurrentPrompt);
   addLessonShortcutHints(area);
-  relocateLessonProgress(area);
+  relocateLessonProgress(area, progressStash);
   updateProgress();
   if (game.type === 'learn') autoReadWordCard(game.word);
 }
