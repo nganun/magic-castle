@@ -2456,10 +2456,10 @@ function recitalBrowserMarkup() {
   ].join('');
   const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
   const expanded = recitalBrowserExpanded;
-  // 实心块面图标（配实心圆按钮），比细描边更像按钮
-  const iconUp = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2 4.6 11.4h4.2v9.4h6.4v-9.4h4.2L12 3.2Z"/></svg>';
-  const iconExpand = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.8 5h16.4L12 11z"/><path d="M3.8 13h16.4L12 19z"/></svg>';
-  const iconCollapse = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.8 19h16.4L12 13z"/><path d="M3.8 11h16.4L12 5z"/></svg>';
+  // 细线图标：向上箭头（上一层）与双折线（展开/收起），线宽适中、比例克制
+  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>';
+  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>';
+  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>';
   const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
   const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconCollapse : iconExpand}</button>`;
   return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
