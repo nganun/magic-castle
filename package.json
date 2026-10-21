@@ -1,6 +1,6 @@
 {
   "name": "magic-castle",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "type": "module",
   "private": true,
   "description": "Magic Castle web app and Android wrapper.",
