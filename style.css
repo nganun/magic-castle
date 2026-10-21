@@ -785,7 +785,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .recital-text small{color:#99765d;font-size:11px;font-weight:900}
 .recital-line-single{display:inline-block;padding:2px 10px;border-radius:12px;transition:background .18s ease,color .18s ease}
 .recital-text .recital-line-single.speaking{background:#f3d77f;color:#592c84}
-.recital-gap-row{display:flex;align-items:center;justify-content:center;gap:7px;margin:2px 0 1px;color:#8a6bb0;font-size:12px;font-weight:900}
+.recital-head-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:4px 0 11px}.recital-head-row .recital-mode-switch{margin:0}.recital-gap-row{display:inline-flex;align-items:center;gap:6px;margin:0;color:#8a6bb0;font-size:12px;font-weight:900}
 .recital-gap-row select{min-height:30px;padding:2px 7px;border:2px solid #e6d7fa;border-radius:9px;background:#fff;color:#593f88;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .recital-gap-row select:focus-visible{outline:3px solid #b894e5;outline-offset:2px}
 .recital-tip{margin:4px 0 2px;color:#846952;font-size:12px;font-weight:800}
