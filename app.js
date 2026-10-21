@@ -2456,10 +2456,11 @@ function recitalBrowserMarkup() {
   ].join('');
   const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
   const expanded = recitalBrowserExpanded;
-  const iconUp = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const iconDown = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.5V5.5"/><path d="M5.8 11.7 12 5.5l6.2 6.2"/></svg>';
+  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.8 12 14.8l6-6"/><path d="M6 14.8 12 20.8l6-6"/></svg>';
+  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.2 12 4.2l6 6"/><path d="M6 15.2 12 9.2l6 6"/></svg>';
   const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
-  const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconUp : iconDown}</button>`;
+  const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconCollapse : iconExpand}</button>`;
   return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
 function bindRecitalBrowser(root) {
