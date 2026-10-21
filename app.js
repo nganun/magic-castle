@@ -1278,8 +1278,21 @@ function updateProgress() {
   $('#parentWords').textContent = masteredWordCount();
   $('#parentStreak').textContent = state.streak.count;
   $('#progressStars').textContent = `${Math.min(state.round + 1, total)} / ${total}`;
-  $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : `第 ${state.round + 1} 关，共 ${total} 关`;
-  $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
+  // 朗诵台用「第 n/m 句」：单句模式按当前关卡，整篇模式按正在读的那一句实时跟随。
+  const recital = theme.id === 'action';
+  const group = recital ? activeRecitalGroup() : null;
+  const lineTotal = group?.lines?.length || 0;
+  const lineIndex = recital
+    ? (state.recitalMode === 'whole' ? (recitalPlayerValid() ? recitalPlayer.lineIndex : recitalCurrentLine) : state.round)
+    : 0;
+  if (recital && lineTotal && !state.completed) {
+    $('#progressLabel').textContent = `第 ${lineIndex + 1}/${lineTotal} 句`;
+    $('#progressStars').textContent = `${lineIndex + 1} / ${lineTotal}`;
+    $('#progressFill').style.width = `${((lineIndex + 1) / lineTotal) * 100}%`;
+  } else {
+    $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : `第 ${state.round + 1} 关，共 ${total} 关`;
+    $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
+  }
   const prevBtn = $('#prevCardBtn');
   const nextBtn = $('#nextCardBtn');
   if (prevBtn) {
@@ -1927,6 +1940,8 @@ let recitalLineGapMs = (() => { const saved = Number(storageGet('luna-recital-li
 let recitalBrowsePath = (() => { const saved = load('luna-recital-path', []); return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : []; })();
 // 篇目浏览器是否铺开显示（默认紧凑两行，点"展开"才铺开）。
 let recitalBrowserExpanded = false;
+// 朗诵台记住读到第几句（整篇模式下播放结束也要保持计数，不回落）。
+let recitalCurrentLine = 0;
 function normaliseDirectory(value) { return String(value ?? '').split('/').map((part) => part.trim()).filter(Boolean).join('/'); }
 function recitalGapLabel(ms) { return `${ms / 1000} 秒`; }
 const recitalPlayer = { active: false, paused: false, playbackId: 0, title: '', lines: [], card: null, phase: 'lines', lineIndex: 0, pendingIndex: null, gapTimer: 0, delayTimer: 0 };
@@ -1981,6 +1996,8 @@ function readRecitalLine(index) {
   p.lineIndex = index;
   p.phase = 'lines';
   p.pendingIndex = null;
+  recitalCurrentLine = index;
+  updateProgress(); // 整篇模式：计数与进度条实时跟随正在读的那一句
   const currentLine = recitalLineNode(index);
   $$('[data-recital-line]', p.card).forEach((line, i) => line.classList.toggle('speaking', i === index));
   const manuscript = currentLine?.closest('.recital-manuscript');
@@ -2119,7 +2136,7 @@ function renderRound() {
       save('luna-recital-line-gap', recitalLineGapMs);
       showToast(`句间停顿已设为 ${recitalGapLabel(recitalLineGapMs)}`);
     });
-    $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { stopRecitalPlayer(); recitalPlaybackId += 1; state.recitalMode = mode; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
+    $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { stopRecitalPlayer(); recitalPlaybackId += 1; state.recitalMode = mode; recitalCurrentLine = 0; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, state.lessonMode === 'review' ? 'review' : 'learn'));
     $('#recordPractice')?.addEventListener('click', recordPractice);
     startLearnCountdown(3);
@@ -2512,6 +2529,7 @@ function selectRecitalArticle(groupId) {
   if (!group) return;
   stopRecitalPlayer();
   setActiveRecitalGroup(groupId);
+  recitalCurrentLine = 0;
   saveContentConfiguration();
   applyAdminContent();
   state.round = 0; state.completed = false; state.roundLocked = false;
