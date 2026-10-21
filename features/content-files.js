@@ -39,7 +39,7 @@ export function normaliseGroupRecord(kind, raw = {}) {
   const name = String(raw.name ?? '').trim().slice(0, 24);
   const record = { id: String(raw.id ?? ''), name, image: Boolean(raw.image) };
   if (kind === 'recital') record.lines = normaliseRecitalLines(raw.lines);
-  else record.words = normaliseContentWords(kind, raw.words);
+  else record.words = [...new Set(normaliseContentWords(kind, raw.words))]; // 词表按集合语义比较
   return record;
 }
 // 旧版本把分组名称截断到 16 字，存在本机的旧名称是官方名称的前缀。

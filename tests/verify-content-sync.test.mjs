@@ -72,6 +72,18 @@ test('activeGroupId 属于用户：同步不会改动', () => {
   assert.equal(content[kind].activeGroupId, 'b');
 });
 
+test('词表按集合语义比较：本机多出的重复词不算「用户改过」', () => {
+  const official = group('a', { words: ['天', '地', '消息'] });
+  const legacy = { id: 'a', name: 'a', image: false, words: ['天', '地', '消息', '消息'] }; // 旧数据里重复了一次
+  const { content, summary } = mergeSyncedContent({
+    previousOfficial: { [kind]: { groups: [official] } },
+    nextOfficial: { [kind]: { groups: [official] } },
+    local: local([legacy]),
+  });
+  assert.equal(summary.keptLocal.length, 0);
+  assert.deepEqual(content[kind].groups[0].words, ['天', '地', '消息']);
+});
+
 test('老格式分组（没有 image 键、名称按旧 16 截断）不会被误判为「用户改过」', () => {
   const official = group('a', { name: '一二三四五六七八九十一二三四五六七八九十', image: false, words: ['天', '地'] });
   const legacy = { id: 'a', name: '一二三四五六七八九十一二三四五六七八九', words: ['天', '地'] }; // 旧版截断到 16
