@@ -1876,25 +1876,12 @@ function renderLessonGroupSwitcher() {
   const container = $('#lessonGroupSwitcher'); const kind = state.activeTheme;
   if (!['english', 'hanzi', 'action'].includes(kind)) { container.hidden = true; container.replaceChildren(); return; }
   if (kind === 'action') {
+    // 朗诵台改用按目录分层的篇目浏览器（旧的平铺篇目条已被它取代）。
     const groups = recitalGroups();
-    const active = activeRecitalGroup();
     if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
     container.hidden = false;
-    container.innerHTML = `<span>朗诵篇目</span><div role="tablist" aria-label="朗诵篇目">${groups.map((group) => `<button type="button" role="tab" data-lesson-group="${escapeHtml(group.id)}" aria-selected="${group.id === active.id}" class="${group.id === active.id ? 'active' : ''}">${escapeHtml(group.name)}</button>`).join('')}</div>`;
-    $$('[data-lesson-group]', container).forEach((button) => button.addEventListener('click', () => {
-      const group = groups.find((item) => item.id === button.dataset.lessonGroup);
-      if (!group || group.id === active.id) return;
-      setActiveRecitalGroup(group.id);
-      saveContentConfiguration();
-      applyAdminContent();
-      state.round = 0;
-      state.completed = false;
-      state.roundLocked = false;
-      persistProgress();
-      renderHome();
-      renderRound();
-      showToast(`已切换到《${group.name}》。`);
-    }));
+    container.innerHTML = recitalBrowserMarkup();
+    bindRecitalBrowser(container);
     return;
   }
   const groups = contentGroups(kind).filter((group) => group.name && group.words.length >= 2); const active = activeContentGroup(kind);
@@ -2084,7 +2071,7 @@ function renderRound() {
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p>${recitalBrowserMarkup()}${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div><h2>${escapeHtml(game.title || game.word)}</h2><p class="recital-line-label">${escapeHtml(lineLabel)}</p>${gapRow}<button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
       playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
@@ -2109,17 +2096,6 @@ function renderRound() {
       save('luna-recital-line-gap', recitalLineGapMs);
       showToast(`句间停顿已设为 ${recitalGapLabel(recitalLineGapMs)}`);
     });
-    $$('[data-recital-folder]', area).forEach((button) => button.addEventListener('click', () => {
-      recitalBrowsePath = [...recitalBrowsePath, button.dataset.recitalFolder];
-      save('luna-recital-path', recitalBrowsePath);
-      renderRound();
-    }));
-    $$('[data-recital-up]', area).forEach((button) => button.addEventListener('click', () => {
-      recitalBrowsePath = recitalBrowsePath.slice(0, -1);
-      save('luna-recital-path', recitalBrowsePath);
-      renderRound();
-    }));
-    $$('[data-recital-article]', area).forEach((button) => button.addEventListener('click', () => selectRecitalArticle(button.dataset.recitalArticle)));
     $$('[data-recital-mode]', area).forEach((button) => button.addEventListener('click', () => { const mode = button.dataset.recitalMode; if (mode !== state.recitalMode) { stopRecitalPlayer(); recitalPlaybackId += 1; state.recitalMode = mode; state.round = 0; state.completed = false; window.speechSynthesis?.cancel(); stopNativeTts(); renderRound(); } }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, state.lessonMode === 'review' ? 'review' : 'learn'));
     $('#recordPractice')?.addEventListener('click', recordPractice);
@@ -2480,6 +2456,19 @@ function recitalBrowserMarkup() {
   const trail = path.length ? ['朗诵篇目', ...path].join(' / ') : '全部篇目';
   return `<nav class="recital-browser" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">朗诵篇目</span><span class="recital-browser-trail">${escapeHtml(trail)}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
+function bindRecitalBrowser(root) {
+  $$('[data-recital-folder]', root).forEach((button) => button.addEventListener('click', () => {
+    recitalBrowsePath = [...recitalBrowsePath, button.dataset.recitalFolder];
+    save('luna-recital-path', recitalBrowsePath);
+    renderRound(); // renderRound 内部会重绘篇目浏览器
+  }));
+  $$('[data-recital-up]', root).forEach((button) => button.addEventListener('click', () => {
+    recitalBrowsePath = recitalBrowsePath.slice(0, -1);
+    save('luna-recital-path', recitalBrowsePath);
+    renderRound();
+  }));
+  $$('[data-recital-article]', root).forEach((button) => button.addEventListener('click', () => selectRecitalArticle(button.dataset.recitalArticle)));
+}
 function selectRecitalArticle(groupId) {
   const group = recitalGroups().find((item) => item.id === groupId);
   if (!group) return;
@@ -2489,6 +2478,7 @@ function selectRecitalArticle(groupId) {
   applyAdminContent();
   state.round = 0; state.completed = false; state.roundLocked = false;
   persistProgress();
+  renderHome();
   renderRound();
   showToast(`已切换到《${group.name}》。`);
 }
