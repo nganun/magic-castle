@@ -1925,6 +1925,8 @@ const RECITAL_GAP_OPTIONS = [500, 1000, 2000, 3000];
 let recitalLineGapMs = (() => { const saved = Number(storageGet('luna-recital-line-gap')); return RECITAL_GAP_OPTIONS.includes(saved) ? saved : 500; })();
 // 朗诵篇目浏览器的当前层级（目录名来自内容，可随时改名/增删，代码不写死）。
 let recitalBrowsePath = (() => { const saved = load('luna-recital-path', []); return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : []; })();
+// 篇目浏览器是否铺开显示（默认紧凑两行，点"展开"才铺开）。
+let recitalBrowserExpanded = false;
 function normaliseDirectory(value) { return String(value ?? '').split('/').map((part) => part.trim()).filter(Boolean).join('/'); }
 function recitalGapLabel(ms) { return `${ms / 1000} 秒`; }
 const recitalPlayer = { active: false, paused: false, playbackId: 0, title: '', lines: [], card: null, phase: 'lines', lineIndex: 0, pendingIndex: null, gapTimer: 0, delayTimer: 0 };
@@ -2449,12 +2451,12 @@ function recitalBrowserMarkup() {
   if (!node) { path = []; recitalBrowsePath = []; save('luna-recital-path', path); node = tree; }
   const activeId = activeRecitalGroup().id;
   const items = [
-    path.length ? '<button class="recital-browser-item is-up" type="button" data-recital-up>.. 上一层</button>' : '',
     ...[...node.dirs.values()].map((folder) => `<button class="recital-browser-item is-folder" type="button" data-recital-folder="${escapeHtml(folder.name)}"><span class="recital-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} 篇</em></button>`),
     ...node.groups.map((group) => `<button class="recital-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-recital-article="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? '<em>正在朗诵</em>' : ''}</button>`),
-  ].filter(Boolean).join('');
-  const trail = path.length ? ['朗诵篇目', ...path].join(' / ') : '全部篇目';
-  return `<nav class="recital-browser" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">朗诵篇目</span><span class="recital-browser-trail">${escapeHtml(trail)}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
+  ].join('');
+  const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
+  const expanded = recitalBrowserExpanded;
+  return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${path.length ? '<button class="recital-browser-action" type="button" data-recital-up>上一层</button>' : ''}<button class="recital-browser-action" type="button" data-recital-toggle>${expanded ? '收起' : '展开'}</button></span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
 function bindRecitalBrowser(root) {
   $$('[data-recital-folder]', root).forEach((button) => button.addEventListener('click', () => {
@@ -2467,7 +2469,15 @@ function bindRecitalBrowser(root) {
     save('luna-recital-path', recitalBrowsePath);
     renderRound();
   }));
+  $$('[data-recital-toggle]', root).forEach((button) => button.addEventListener('click', () => {
+    recitalBrowserExpanded = !recitalBrowserExpanded;
+    renderRound();
+  }));
   $$('[data-recital-article]', root).forEach((button) => button.addEventListener('click', () => selectRecitalArticle(button.dataset.recitalArticle)));
+  // 紧凑模式是单行滑动，把正在朗诵的那篇挪到可见处
+  const items = $('.recital-browser-items', root);
+  const active = $('.recital-browser-item.is-article.active', root);
+  if (items && active && !recitalBrowserExpanded) items.scrollLeft = Math.max(0, active.offsetLeft - items.offsetLeft - 8);
 }
 function selectRecitalArticle(groupId) {
   const group = recitalGroups().find((item) => item.id === groupId);
