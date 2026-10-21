@@ -34,6 +34,33 @@ export function normaliseRecitalLines(value) {
   return String(Array.isArray(value) ? value.join('\n') : value).split(/\n+/).map((line) => line.trim()).filter(Boolean).slice(0, CONTENT_RECITAL_LINE_LIMIT);
 }
 
+// 由分组的 directory 字段建目录树：层级与名字全部来自内容，代码不写死任何关键词。
+// 目录名可用 / 分层（古诗/春天），同名目录在不同路径下互不影响。
+export function buildDirectoryTree(groups = []) {
+  const root = { name: '', path: '', dirs: new Map(), groups: [] };
+  groups.forEach((group) => {
+    const segments = String(group.directory || '').split('/').map((part) => part.trim()).filter(Boolean);
+    let node = root;
+    segments.forEach((segment) => {
+      if (!node.dirs.has(segment)) {
+        node.dirs.set(segment, { name: segment, path: node.path ? `${node.path}/${segment}` : segment, dirs: new Map(), groups: [] });
+      }
+      node = node.dirs.get(segment);
+    });
+    node.groups.push(group);
+  });
+  return root;
+}
+// 取路径对应的节点；路径不存在时返回 null（调用方据此回到上一层）。
+export function directoryNode(tree, path = []) {
+  let node = tree;
+  for (const segment of path) {
+    node = node.dirs?.get(segment);
+    if (!node) return null;
+  }
+  return node;
+}
+
 // 解析与比较分组时统一口径：只覆盖用户真正能改的字段。
 export function normaliseGroupRecord(kind, raw = {}) {
   const name = String(raw.name ?? '').trim().slice(0, 24);

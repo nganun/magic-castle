@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { relative, resolve, sep } from 'node:path';
-import { buildDefaultLearningContent, contentFromEntries, parseContentFile, parseContentFiles, repairTruncatedName } from '../features/content-files.js';
+import { buildDefaultLearningContent, buildDirectoryTree, contentFromEntries, directoryNode, parseContentFile, parseContentFiles, repairTruncatedName } from '../features/content-files.js';
 
 const root = process.cwd();
 
@@ -83,6 +83,29 @@ test('被旧版截断的名称会补回完整名称', () => {
   assert.equal(repairTruncatedName('一二三四五六七八九十一二三四五', '一二三四五六七八九十一二三四五六七八九十'), '一二三四五六七八九十一二三四五六七八九十');
   assert.equal(repairTruncatedName('', '官方名称'), '官方名称');
   assert.equal(repairTruncatedName('我自己起的名字', '官方名称'), '我自己起的名字');
+});
+
+test('目录树由 directory 字段现算：层级、名字都不写死', () => {
+  const groups = [
+    { id: 'a', name: '美食播报', directory: '故事' },
+    { id: 'b', name: '三只小猫', directory: '故事' },
+    { id: 'c', name: '春晓', directory: '古诗' },
+    { id: 'd', name: '春', directory: '古诗/春天' },
+    { id: 'e', name: '没分类的', directory: '' },
+    { id: 'f', name: '儿歌里的故事', directory: '儿歌/故事' },
+  ];
+  const tree = buildDirectoryTree(groups);
+  assert.deepEqual([...tree.dirs.keys()], ['故事', '古诗', '儿歌']);
+  assert.equal(tree.groups.length, 1);           // 没目录的放在根层
+  assert.equal(tree.dirs.get('故事').groups.length, 2);
+  assert.equal(tree.dirs.get('古诗').dirs.get('春天').groups[0].id, 'd');
+  // 同名目录在不同路径下互不影响
+  assert.equal(tree.dirs.get('儿歌').dirs.get('故事').groups[0].id, 'f');
+  assert.notEqual(tree.dirs.get('儿歌').dirs.get('故事'), tree.dirs.get('故事'));
+  // 路径查找
+  assert.equal(directoryNode(tree, ['古诗', '春天']).groups[0].id, 'd');
+  assert.equal(directoryNode(tree, ['不存在']), null);
+  assert.equal(directoryNode(tree, []), tree);
 });
 
 test('内置内容结构与旧的 default-learning-content.json 对齐', () => {

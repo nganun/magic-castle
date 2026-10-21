@@ -1,4 +1,4 @@
-const CACHE_NAME = 'magic-castle-v1.0.20';
+const CACHE_NAME = 'magic-castle-v1.0.21';
 const APP_SHELL = [
   './',
   './index.html',
