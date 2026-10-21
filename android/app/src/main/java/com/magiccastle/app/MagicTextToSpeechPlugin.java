@@ -52,7 +52,11 @@ public class MagicTextToSpeechPlugin extends Plugin {
         });
         textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
-            public void onStart(String utteranceId) { }
+            public void onStart(String utteranceId) {
+                JSObject data = new JSObject();
+                data.put("utteranceId", utteranceId);
+                notifyListeners("utteranceStart", data);
+            }
 
             @Override
             public void onDone(String utteranceId) {

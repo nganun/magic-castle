@@ -407,9 +407,26 @@ function promptMissingChineseVoice(plugin, lang, error) {
   requestedTtsLanguageInstall.add(lang);
   plugin?.openLanguageInstall?.().catch(() => {});
 }
-function speakWithNativeTts(text, options, onend, onUnavailable) {
+// 原生 TTS 的"开始发声"事件：插件在引擎真正开口时回调 utteranceStart，
+// 用来把界面高亮对齐到声音；旧版本 APK 没有这个事件，靠超时兜底。
+let pendingNativeTtsStart = null;
+let nativeTtsStartBound = false;
+const NATIVE_TTS_START_FALLBACK_MS = 700;
+function bindNativeTtsStartListener() {
+  if (nativeTtsStartBound) return;
+  const plugin = nativeTextToSpeech();
+  if (!plugin?.addListener) return;
+  nativeTtsStartBound = true;
+  plugin.addListener('utteranceStart', () => {
+    const callback = pendingNativeTtsStart;
+    pendingNativeTtsStart = null;
+    callback?.();
+  });
+}
+function speakWithNativeTts(text, options, onend, onUnavailable, onStart) {
   const plugin = nativeTextToSpeech();
   if (!plugin) return false;
+  bindNativeTtsStartListener();
   const finish = () => onend?.();
   const fallback = () => onUnavailable?.() || finish();
   const languages = options.langCandidates || [options.lang];
@@ -418,6 +435,10 @@ function speakWithNativeTts(text, options, onend, onUnavailable) {
   // never actually voiced it (broken/missing voice data) — treat that as a failure, not success.
   const start = (lang) => {
     const startedAt = Date.now();
+    if (onStart) {
+      pendingNativeTtsStart = () => onStart();
+      window.setTimeout(() => { const callback = pendingNativeTtsStart; pendingNativeTtsStart = null; callback?.(); }, NATIVE_TTS_START_FALLBACK_MS);
+    }
     return nativeTtsCall(
       plugin.speak({ text, volume: 1, category: 'ambient', queueStrategy: 0, ...baseOptions, lang }),
       9000
@@ -439,31 +460,41 @@ function speakWithNativeTts(text, options, onend, onUnavailable) {
   return true;
 }
 function stopNativeTts() { nativeTextToSpeech()?.stop?.().catch(() => {}); }
-function speakWithBrowserTts(text, { lang, voice, rate, pitch }, onend) {
+function speakWithBrowserTts(text, { lang, voice, rate, pitch }, onend, onStart) {
   if (!('speechSynthesis' in window)) { onend?.(); return false; }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang; utterance.voice = voice || null; utterance.rate = rate; utterance.pitch = pitch; utterance.volume = 1;
+  // onstart 才是"真的出声了"，用它来对齐界面高亮；个别环境不触发 onstart，用超时兜底。
+  let started = false;
+  let startFallback = 0;
+  const markStarted = () => { if (started) return; started = true; window.clearTimeout(startFallback); onStart?.(); };
+  if (onStart) startFallback = window.setTimeout(markStarted, 600);
+  utterance.onstart = onStart ? markStarted : null;
   utterance.onend = onend; utterance.onerror = onend;
   window.speechSynthesis.speak(utterance);
   return true;
 }
-function speak(text, onend) {
+function speak(text, onend, onStart) {
   const run = ++speechRun;
   if (!state.soundOn) { onend?.(); return false; }
   const finish = () => { if (run === speechRun) onend?.(); };
+  // 开始回调不做"是不是最新一次朗读"的判断：极短的文本可能在下一次朗读开始后才回调，
+  // 过期与否交给调用方自己的状态判断（如当前是不是在读标题/第几句）。
+  const started = () => { onStart?.(); };
   const rate = clamp(.84 * globalSpeechRate, .1, 10); const voice = preferredEnglishVoice || chooseEnglishVoice();
-  const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'en-US', voice, rate, pitch: 1.05 }, finish);
-  if (speakWithNativeTts(text, { lang: 'en-US', rate, pitch: 1.05 }, finish, browserFallback)) return true;
+  const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'en-US', voice, rate, pitch: 1.05 }, finish, started);
+  if (speakWithNativeTts(text, { lang: 'en-US', rate, pitch: 1.05 }, finish, browserFallback, started)) return true;
   return browserFallback();
 }
-function speakChinese(text, onend) {
+function speakChinese(text, onend, onStart) {
   const run = ++speechRun;
   if (!state.soundOn) { onend?.(); return false; }
   const finish = () => { if (run === speechRun) onend?.(); };
+  const started = () => { onStart?.(); };
   const rate = clamp(CHINESE_TTS_RATE_SCALE * globalSpeechRate, .1, 10); const voice = preferredChineseVoice || chooseChineseVoice();
-  const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'zh-CN', voice, rate, pitch: 1.04 }, finish);
-  if (speakWithNativeTts(text, { lang: 'zh-CN', langCandidates: ['zh-CN', 'cmn-CN', 'zh'], rate, pitch: 1.04 }, finish, browserFallback)) return true;
+  const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'zh-CN', voice, rate, pitch: 1.04 }, finish, started);
+  if (speakWithNativeTts(text, { lang: 'zh-CN', langCandidates: ['zh-CN', 'cmn-CN', 'zh'], rate, pitch: 1.04 }, finish, browserFallback, started)) return true;
   return browserFallback();
 }
 chooseEnglishVoice();
@@ -2000,7 +2031,10 @@ function readRecitalLine(index) {
   recitalCurrentLine = index;
   updateProgress(); // 整篇模式：计数与进度条实时跟随正在读的那一句
   const currentLine = recitalLineNode(index);
-  $$('[data-recital-line]', p.card).forEach((line, i) => line.classList.toggle('speaking', i === index));
+  const nodes = $$('[data-recital-line]', p.card);
+  const highlightLine = state.recitalMode === 'whole'; // 单句朗诵不高亮句子本身
+  nodes.forEach((line) => line.classList.remove('speaking'));
+  const applyHighlight = () => { if (highlightLine && recitalPlayerValid() && !p.paused && p.lineIndex === index) nodes[index]?.classList.add('speaking'); };
   const manuscript = currentLine?.closest('.recital-manuscript');
   if (currentLine && manuscript) manuscript.scrollTo({ top: currentLine.offsetTop - (manuscript.clientHeight - currentLine.offsetHeight) / 2, behavior: 'smooth' });
   const text = p.lines[index] || '';
@@ -2008,19 +2042,18 @@ function readRecitalLine(index) {
   speakChinese(text, () => {
     if (!recitalPlayerValid() || p.paused) return;
     advanceRecitalLine(index);
-  });
+  }, applyHighlight);
 }
 function readRecitalTitle() {
   const p = recitalPlayer;
   if (!recitalPlayerValid() || p.paused) return;
   const titleNode = p.card?.closest('.recital-card')?.querySelector('h2');
-  if (titleNode) titleNode.classList.add('speaking');
   speakChinese(p.title, () => {
     if (!recitalPlayerValid() || p.paused) return;
     if (titleNode) titleNode.classList.remove('speaking');
     p.phase = 'lines';
     p.delayTimer = window.setTimeout(() => { p.delayTimer = 0; readRecitalLine(p.lineIndex); }, 400);
-  });
+  }, () => { if (recitalPlayerValid() && !p.paused && p.phase === 'title') titleNode?.classList.add('speaking'); }); // 标题高亮跟着声音走
 }
 function pauseRecital() {
   const p = recitalPlayer;
@@ -2107,7 +2140,7 @@ function renderRound() {
   } else if (game.type === 'recite') {
     const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text;    const manuscript = wholePiece
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
-      : `<span class="recital-line recital-line-single" data-recital-line="0">“${escapeHtml(recitalText)}”</span>`;
+      : `<span class="recital-line recital-line-single" data-recital-line="0">${escapeHtml(recitalText)}</span>`;
     const gapRow = wholePiece
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
