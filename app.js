@@ -13,7 +13,8 @@ import { mergeSyncedContent, restoreOfficialContent } from './features/content-s
 import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/content-channel.js';
 import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
-import { escapeHtml } from './features/dom.js';
+import { clamp, escapeHtml } from './features/utils.js';
+import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
 import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
@@ -24,7 +25,6 @@ const CHILD_NAME = '荆宝';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const { getText: storageGet, load, save, saveText } = createStorage(() => showToast?.('这台设备暂时无法保存学习记录。'));
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 let globalSpeechRate = clamp(Number(storageGet('luna-global-speech-rate') || 1), .5, 1.5);
 // 中文 TTS 的实际语速系数（speakChinese 使用）。
 const CHINESE_TTS_RATE_SCALE = .82;
@@ -1940,7 +1940,7 @@ function renderLessonGroupSwitcher() {
   const node = directoryNode(tree, path) || directoryNode(tree, defaultPath) || tree;
   container.hidden = false;
   container.innerHTML = browserMarkup(kind, { node, path, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
-  bindContentBrowser(container, kind, path, scope.onSelect);
+  bindContentBrowser(container, { scope: kind, path, onSelect: scope.onSelect, onChange: () => { renderLessonGroupSwitcher(); renderRound(); } });
 }
 function addLessonShortcutHints(area) {
   $$('button.primary-button', area).forEach((button) => {
@@ -2523,9 +2523,6 @@ function groupFolders(groups) {
   });
   return [...folders.entries()];
 }
-function countTreeItems(node) {
-  return node.groups.length + [...node.dirs.values()].reduce((sum, child) => sum + countTreeItems(child), 0);
-}
 // 目录改名：把某个目录（连同它的子目录）整体改名。目录名来自内容，代码不写死。
 function renameContentFolder(kind, from, to) {
   const name = String(to ?? '').split('/').map((part) => part.trim().replace(/[/\\]/g, ' ')).filter(Boolean).join('/').slice(0, 48);
@@ -2544,59 +2541,6 @@ function renameContentFolder(kind, from, to) {
   renderAdminContentSummary();
   if (kind === 'recital') renderRecitalGroupList(); else renderContentGroupDirectory(kind);
   showToast(`目录已改名为「${name}」。`);
-}
-// 通用篇目浏览器（朗诵篇目 / 汉字分组 / 英文分组共用）：
-// 目录树由分组的 directory 现算，任意层级、任意名字，代码不写死任何关键词。
-const BROWSER_PATHS_KEY = 'luna-browser-paths';
-let browserPaths = (() => { const saved = load(BROWSER_PATHS_KEY, {}); return saved && typeof saved === 'object' ? saved : {}; })();
-let browserExpanded = {};
-const BROWSER_ICONS = {
-  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>',
-  expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>',
-  collapse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>',
-};
-function browserScopePath(scope) {
-  const saved = browserPaths[scope];
-  // null = 还没进过（用默认层级：当前分组所在目录）；[] = 用户主动回到根层
-  return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : null;
-}
-function setBrowserScopePath(scope, path) {
-  browserPaths[scope] = path;
-  save(BROWSER_PATHS_KEY, browserPaths);
-}
-function browserMarkup(scope, options) {
-  const { node, path, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇' } = options;
-  const items = [
-    ...[...node.dirs.values()].map((folder) => `<button class="content-browser-item is-folder" type="button" data-browser-folder="${escapeHtml(folder.name)}"><span class="content-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} ${unitLabel}</em></button>`),
-    ...node.groups.map((group) => `<button class="content-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-browser-group="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? `<em>${activeLabel}</em>` : ''}</button>`),
-  ].join('');
-  const header = path.length ? `${pathPrefix}/${path.join('/')}` : rootTitle;
-  const expanded = Boolean(browserExpanded[scope]);
-  const upButton = path.length ? `<button class="content-browser-action" type="button" data-browser-up aria-label="回到上一层" title="上一层">${BROWSER_ICONS.up}</button>` : '';
-  const toggleButton = `<button class="content-browser-action" type="button" data-browser-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? BROWSER_ICONS.collapse : BROWSER_ICONS.expand}</button>`;
-  return `<nav class="content-browser ${expanded ? 'is-expanded' : ''}" aria-label="${escapeHtml(pathPrefix)}"><div class="content-browser-head"><span class="content-browser-title">${escapeHtml(header)}</span><span class="content-browser-actions">${upButton}${toggleButton}</span></div><div class="content-browser-items">${items || '<span class="content-browser-empty">这一层还没有内容</span>'}</div></nav>`;
-}
-function bindContentBrowser(root, scope, path, onSelect) {
-  $$('[data-browser-folder]', root).forEach((button) => button.addEventListener('click', () => {
-    setBrowserScopePath(scope, [...path, button.dataset.browserFolder]);
-    renderLessonGroupSwitcher();
-    renderRound();
-  }));
-  $$('[data-browser-up]', root).forEach((button) => button.addEventListener('click', () => {
-    setBrowserScopePath(scope, path.slice(0, -1));
-    renderLessonGroupSwitcher();
-    renderRound();
-  }));
-  $$('[data-browser-toggle]', root).forEach((button) => button.addEventListener('click', () => {
-    browserExpanded[scope] = !browserExpanded[scope];
-    renderLessonGroupSwitcher();
-    renderRound();
-  }));
-  $$('[data-browser-group]', root).forEach((button) => button.addEventListener('click', () => onSelect(button.dataset.browserGroup)));
-  // 紧凑模式是单行滑动，把当前选中的那一项挪到可见处
-  const items = $('.content-browser-items', root);
-  const active = $('.content-browser-item.is-article.active', root);
-  if (items && active && !browserExpanded[scope]) items.scrollLeft = Math.max(0, active.offsetLeft - items.offsetLeft - 8);
 }
 const BROWSER_SCOPES = {
   action: { pathPrefix: '朗诵篇目', rootTitle: '全部篇目', activeLabel: '正在朗诵', unitLabel: '篇', groups: () => recitalGroups(), activeId: () => activeRecitalGroup().id, onSelect: (id) => selectRecitalArticle(id) },
