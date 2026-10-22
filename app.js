@@ -194,9 +194,9 @@ function buildCustomTheme(id, title, subtitle, words, isHanzi = false, hasImage 
   const list = words.length >= 2 ? words : fallback;
   const imageFor = (word) => {
     if (isHanzi) return hasImage ? (hanziWordImageUrl(word) || textCard(word, '#fff0dc')) : textCard(word, '#fff0dc');
-    // 英文分组与汉字一致：开了 image 才可能有插图，再由"看图识字"开关决定显示插图还是文字卡片
-    if (!hasImage) return textCard(word);
-    return englishImageHintVisible ? (englishWordImageUrl(word) || textCard(word)) : textCard(word);
+    // 英文分组开了 image 就有插图（与汉字一致），是否显示由"看图识字"开关决定
+    if (hasImage) return englishWordImageUrl(word) || textCard(word);
+    return textCard(word);
   };
   const rounds = list.map((word) => ({ type: 'learn', chip: isHanzi ? (word.length > 1 ? '认识词组' : '认识汉字') : '认识单词', word, image: imageFor(word), zh: isHanzi ? `看一看，读一读“${word}”。` : `看一看，这是 ${word}。` }));
   const reviewRounds = list.map((word, index) => { const other = list[(index + 1) % list.length]; return { type: index % 2 ? 'listen' : 'match', chip: index % 2 ? '听音找一找' : '魔法复习', prompt: isHanzi ? `Find ${word}` : 'Which word matches?', word, image: imageFor(word), zh: isHanzi ? '听一听，找到对应的汉字或词组。' : '看图片，选出对应的英文单词。', choices: [word, other], correct: word }; });
@@ -2178,9 +2178,15 @@ function renderRound() {
       </button>
     ` : '';
     const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><span class="learn-word-card-actions">${imageToggleMarkup}<button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></span></div>`;
+    // 关掉"看图识字"时整个图片区域隐藏（与汉字卡片一致）
+    const imageArea = learnGroup?.image ? `
+      <div class="learn-word-image-holder ${englishImageHintVisible ? '' : 'is-hidden'}" id="englishCardImageHolder">
+        <img src="${game.image}" alt="${escapeHtml(game.word)} 的配图" />
+      </div>
+    ` : '';
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><div class="learn-word-copy"><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div><img src="${game.image}" data-fallback-image="${textCard(game.word)}" alt="${game.word} 的图片" />${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><div class="learn-word-copy"><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${imageArea}${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
     // 插图缺失时退回文字卡片，避免出现破图
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
