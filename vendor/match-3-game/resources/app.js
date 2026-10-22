@@ -1930,7 +1930,9 @@ window.onload = function () {
     });
 
     // Snackbar (pop up notification)
+    // 提示条已从页面里移除，元素不存在时直接跳过，避免报错
     function showSnackbar(text) {
+        if (!snackbar) return;
         if (!snackbar.classList.contains("snackbar-show")) {
             snackbar.innerHTML = text;
             snackbar.classList.add("snackbar-show");
