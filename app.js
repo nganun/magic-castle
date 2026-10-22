@@ -1431,9 +1431,12 @@ function autoReadWordCard(word) {
   speak(word, () => {
     card?.classList.remove('speaking-english');
     card?.classList.add('speaking-chinese');
-    window.setTimeout(() => speakChinese(translation, () => {
-      card?.classList.remove('is-speaking', 'speaking-chinese');
-    }), 120);
+    window.setTimeout(() => {
+      if (!translation) { card?.classList.remove('is-speaking', 'speaking-chinese'); return; }
+      speakChinese(translation, () => {
+        card?.classList.remove('is-speaking', 'speaking-chinese');
+      });
+    }, 120);
   });
 }
 
@@ -2142,7 +2145,7 @@ function renderRound() {
         groupPath: learnGroup ? lessonGroupPathLabel(learnGroup) : currentTheme().title,
         groupCount: learnGroup ? learnGroup.words.length : currentTheme().words.length,
         hasImage: Boolean(learnGroup?.image),
-        showImage: englishImageHintVisible,
+        showImage: learnGroup ? englishImageHintVisible : true,
         sentence: sentenceMarkup(game.word),
         actions: lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`),
         recording: recordingAction,
@@ -2213,15 +2216,15 @@ function renderRound() {
     startLearnCountdown(3);
     recitalAutoReadTimer = window.setTimeout(() => readText(0, state.round === 0), 180);
   } else if (game.type === 'action') {
-    area.innerHTML = `<div class="number-action-card"><img src="${game.image}" alt="拍手动作" /><div><p>数字动作</p><h2>${game.prompt}</h2><strong>${game.zh}</strong></div><button class="primary-button" id="actionDone" type="button">${game.actionLabel || '我做完啦'}</button></div>`;
+area.innerHTML = `${lessonCardProgress()}<div class="number-action-card"><img src="${game.image}" alt="拍手动作" /><div><p>数字动作</p><h2>${game.prompt}</h2><strong>${game.zh}</strong></div><button class="primary-button" id="actionDone" type="button">${game.actionLabel || '我做完啦'}</button></div>`;
     $('#actionDone').addEventListener('click', () => handleCorrect(game.word, 'action'));
     speak(game.prompt);
   } else if (game.type === 'listen') {
-    area.innerHTML = `<div class="match-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div class="game-copy"><h2>听一听<br /><em>找一找</em></h2><strong class="match-translation">中文：${game.zh}</strong><p>先听一遍，再点图片。</p></div></div><button class="review-listen-action" id="reviewListenAction" type="button">听一听 <svg viewBox="0 0 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a2.5 2.5 0 0 1 0 4v2a4.5 4.5 0 0 0 2.5-4Z"/></svg></button><div class="picture-choice-row">${game.choices.map((choice) => `<button class="picture-choice" type="button" data-choice="${choice}"><img src="${wordImage(choice)}" alt="${escapeHtml(wordMeaning(choice))}" /><b>${escapeHtml(wordMeaning(choice))}</b></button>`).join('')}</div>`;
+area.innerHTML = `${lessonCardProgress()}<div class="match-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div class="game-copy"><h2>听一听<br /><em>找一找</em></h2><strong class="match-translation">中文：${game.zh}</strong><p>先听一遍，再点图片。</p></div></div><button class="review-listen-action" id="reviewListenAction" type="button">听一听 <svg viewBox="0 0 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a2.5 2.5 0 0 1 0 4v2a4.5 4.5 0 0 0 2.5-4Z"/></svg></button><div class="picture-choice-row">${game.choices.map((choice) => `<button class="picture-choice" type="button" data-choice="${choice}"><img src="${wordImage(choice)}" alt="${escapeHtml(wordMeaning(choice))}" /><b>${escapeHtml(wordMeaning(choice))}</b></button>`).join('')}</div>`;
     $('#reviewListenAction').addEventListener('click', () => { speakForCurrentTheme(game.word); $$('.picture-choice', area).forEach((button) => button.classList.add('attention')); setTimeout(() => $$('.picture-choice', area).forEach((button) => button.classList.remove('attention')), 900); });
     $$('[data-choice]', area).forEach((button) => button.addEventListener('click', () => handleChoice(button, game)));
   } else {
-    area.innerHTML = `<div class="match-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div class="game-copy"><h2>找一找<br /><em>对应单词</em></h2><strong class="match-translation">中文：${escapeHtml(wordMeaning(game.word))}</strong><p>${game.zh}</p></div></div><button class="review-listen-action" id="reviewListenAction" type="button">先听一遍，再选单词 <svg viewBox="0 0 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a4.5 4.5 0 0 1 0 4v2a4.5 2.5 0 0 0 2.5-4Z"/></svg></button><div class="word-choice-row">${game.choices.map((choice) => `<button class="word-choice ${theme.id}" type="button" data-choice="${choice}"><b>${choice}</b><span>点一个单词</span></button>`).join('')}</div>`;
+area.innerHTML = `${lessonCardProgress()}<div class="match-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div class="game-copy"><h2>${escapeHtml((game.heading || ['找一找', '对应单词'])[0])}<br /><em>${escapeHtml((game.heading || ['找一找', '对应单词'])[1])}</em></h2>${game.hideTranslation ? '' : `<strong class="match-translation">中文：${escapeHtml(wordMeaning(game.word))}</strong>`}<p>${game.zh}</p></div></div><button class="review-listen-action" id="reviewListenAction" type="button">${escapeHtml(game.action || '先听一遍，再选单词')} <svg viewBox="0 0 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a4.5 4.5 0 0 1 0 4v2a4.5 2.5 0 0 0 2.5-4Z"/></svg></button><div class="word-choice-row">${game.choices.map((choice) => `<button class="word-choice ${theme.id}" type="button" data-choice="${choice}"><b>${choice}</b><span>点一个单词</span></button>`).join('')}</div>`;
     $('#reviewListenAction').addEventListener('click', () => { speakForCurrentTheme(game.word); $$('.word-choice', area).forEach((button) => button.classList.add('attention')); setTimeout(() => $$('.word-choice', area).forEach((button) => button.classList.remove('attention')), 900); });
     $$('[data-choice]', area).forEach((button) => button.addEventListener('click', () => handleChoice(button, game)));
   }

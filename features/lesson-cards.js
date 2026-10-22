@@ -57,7 +57,8 @@ export function hanziSceneMarkup(word) {
 export function englishLearnCardMarkup({ word, note, image, groupPath, groupCount, hasImage, showImage, sentence, actions, recording = '' }) {
   const toggle = hasImage ? lessonImageToggleMarkup({ id: 'englishImageToggleBtn', active: showImage }) : '';
   const topline = lessonCardTopline(escapeHtml(groupPath), `${toggle}${lessonGroupChipMarkup({ id: 'openEnglishGroupBtn', count: groupCount, unit: '单词' })}`);
-  const imageArea = hasImage ? lessonCardImage(image, `${word} 的配图`, showImage, 'learn-word-image-holder', 'englishCardImageHolder') : '';
+  // 插图只要这一回合有就渲染（内置的色彩/数字主题始终显示）；英文分组由"看图识字"开关控制显隐
+  const imageArea = image ? lessonCardImage(image, `${word} 的配图`, showImage, 'learn-word-image-holder', 'learnCardImageHolder') : '';
   return `<div class="learn-word-card">${lessonCardCurtainMarkup()}${topline}${lessonCardProgress()}<div class="learn-word-copy"><p>看一看，听一听</p><h2>${escapeHtml(word)}</h2><span>${escapeHtml(note)}</span></div>${imageArea}${sentence}${actions}${recording}</div>`;
 }
 

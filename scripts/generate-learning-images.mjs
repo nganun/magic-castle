@@ -4,6 +4,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { NUMBER_CURRICULUM, numberWord } from '../features/theme-catalog.js';
 
 const root = process.cwd();
 const force = process.argv.includes('--force');
@@ -62,8 +63,56 @@ function numberSvg(word, count) {
     const y = centerY + (row - (rows - 1) / 2) * spacing;
     stars.push(`<path d="${STAR}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${radius.toFixed(2)})" fill="${color}" stroke="${dark}" stroke-width="${stroke.toFixed(3)}" stroke-linejoin="round"/>`);
   }
-  const fontSize = count > 9 ? 54 : 74;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="${NUMBER_CN[count]}个彩色魔法星星和数字${NUMBER_CN[count]}"><rect width="240" height="180" rx="28" fill="${bg}"/><rect x="20" y="24" width="54" height="132" rx="20" fill="#f1e8ff"/><text x="47" y="118" text-anchor="middle" font-family="Nunito, sans-serif" font-size="${fontSize}" font-weight="900" fill="#7652d2">${count}</text>${stars.join('')}</svg>`;
+  const twoDigit = count > 9;
+  const fontSize = twoDigit ? 50 : 74;
+  const panelWidth = twoDigit ? 76 : 54;
+  const panelX = 20;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="${NUMBER_CN[count]}个彩色魔法星星和数字${NUMBER_CN[count]}"><rect width="240" height="180" rx="28" fill="${bg}"/><rect x="${panelX}" y="24" width="${panelWidth}" height="132" rx="20" fill="#f1e8ff"/><text x="${panelX + panelWidth / 2}" y="118" text-anchor="middle" font-family="Nunito, sans-serif" font-size="${fontSize}" font-weight="900" fill="#7652d2">${count}</text>${stars.join('')}</svg>`;
+}
+
+// 算式卡：左边一组星星 + 号 + 右边一组星星，下面是 = ?
+function mathCardSvg({ a, op, b }) {
+  const star = (x, y, radius) => `<path d="${STAR}" transform="translate(${x} ${y}) scale(${radius.toFixed(2)})" fill="#ffd447" stroke="#e2a900" stroke-width="${(2.4 / radius).toFixed(3)}" stroke-linejoin="round"/>`;
+  const group = (count, centerX) => {
+    const columns = Math.min(count, 3);
+    const rows = Math.ceil(count / columns);
+    const spacing = 30;
+    const radius = spacing / 2.7;
+    const out = [];
+    for (let index = 0; index < count; index += 1) {
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      const rowCount = Math.min(columns, count - row * columns);
+      const x = centerX + (column - (rowCount - 1) / 2) * spacing;
+      const y = 60 + (row - (rows - 1) / 2) * spacing;
+      out.push(star(x.toFixed(1), y.toFixed(1), radius));
+    }
+    return out.join('');
+  };
+  const symbol = op === '+' ? '+' : '−';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="${a} ${symbol} ${b} 等于几"><rect width="240" height="180" rx="28" fill="#eaf7ff"/><rect x="18" y="16" width="204" height="148" rx="20" fill="#fff" stroke="#cfe6f7" stroke-width="3"/>${group(a, 70)}${group(b, 170)}<text x="120" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="34" font-weight="900" fill="#6b4a9c">${symbol}</text><text x="120" y="150" text-anchor="middle" font-family="Nunito, sans-serif" font-size="30" font-weight="900" fill="#e0609c">= ?</text></svg>`;
+}
+
+// 对比卡：左边一组、右边一组，中间一个「比」
+function compareCardSvg({ a, b }) {
+  const star = (x, y, radius) => `<path d="${STAR}" transform="translate(${x} ${y}) scale(${radius.toFixed(2)})" fill="#ffd447" stroke="#e2a900" stroke-width="${(2.4 / radius).toFixed(3)}" stroke-linejoin="round"/>`;
+  const group = (count, centerX) => {
+    const columns = Math.min(count, 3);
+    const rows = Math.ceil(count / columns);
+    const spacing = 30;
+    const radius = spacing / 2.7;
+    const out = [];
+    for (let index = 0; index < count; index += 1) {
+      const row = Math.floor(index / columns);
+      const column = index % columns;
+      const rowCount = Math.min(columns, count - row * columns);
+      const x = centerX + (column - (rowCount - 1) / 2) * spacing;
+      const y = 62 + (row - (rows - 1) / 2) * spacing;
+      out.push(star(x.toFixed(1), y.toFixed(1), radius));
+    }
+    return out.join('');
+  };
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="左边 ${a} 个，右边 ${b} 个，哪边更多"><rect width="240" height="180" rx="28" fill="#f3f0ff"/><rect x="18" y="16" width="204" height="148" rx="20" fill="#fff" stroke="#ded2f7" stroke-width="3"/>${group(a, 70)}${group(b, 170)}<text x="120" y="64" text-anchor="middle" font-family="KaiTi, STKaiti, serif" font-size="30" font-weight="700" fill="#6b4a9c">比</text><text x="120" y="150" text-anchor="middle" font-family="Nunito, sans-serif" font-size="22" font-weight="900" fill="#8a6bb0">哪一个多？</text></svg>`;
 }
 
 function wordCardSvg(word) {
@@ -99,23 +148,42 @@ async function collectGroups() {
 
 const created = [];
 const skipped = [];
+async function writeImage(target, svg, label) {
+  // 已存在时：默认跳过；--force 也只覆盖"本脚本生成的占位图"，手工画的插图永远不动。
+  if (existsSync(target)) {
+    const existing = readFileSync(target, 'utf8');
+    if (!force || !existing.includes(GENERATED_MARK)) { skipped.push(label); return; }
+  }
+  await writeFile(target, `<!-- ${GENERATED_MARK} -->\n${svg}\n`, 'utf8');
+  created.push(label);
+}
+
 for (const group of await collectGroups()) {
   const targetDir = group.kind === 'hanzi' ? hanziDir : vocabularyDir;
   await mkdir(targetDir, { recursive: true });
   for (const item of group.items) {
-    const target = resolve(targetDir, `${item}.svg`);
-    // 已存在时：默认跳过；--force 也只覆盖"本脚本生成的占位图"，手工画的插图永远不动。
-    if (existsSync(target)) {
-      const existing = readFileSync(target, 'utf8');
-      if (!force || !existing.includes(GENERATED_MARK)) { skipped.push(item); continue; }
-    }
     let svg = null;
     if (group.kind === 'english') svg = colorSvg(item) || (NUMBER_WORDS[item] ? numberSvg(item, NUMBER_WORDS[item]) : wordCardSvg(item));
     else svg = hanziCardSvg(item);
     if (!svg) continue;
-    await writeFile(target, `<!-- ${GENERATED_MARK} -->\n${svg}\n`, 'utf8');
-    created.push(`${group.kind}/${item}`);
+    await writeImage(resolve(targetDir, `${item}.svg`), svg, `${group.kind}/${item}`);
   }
 }
+
+// 数字高塔：数字牌 1~20、算式卡、对比卡（课程数据与 theme-catalog.js 共用，保证题图和题目一致）
+const mathDir = resolve(root, 'assets/learning/math');
+await mkdir(mathDir, { recursive: true });
+for (const count of NUMBER_CURRICULUM.numbers) {
+  await writeImage(resolve(vocabularyDir, `${numberWord(count)}.svg`), numberSvg(numberWord(count), count), `number/${numberWord(count)}`);
+}
+for (const equation of NUMBER_CURRICULUM.equations) {
+  const name = `${equation.op === '+' ? 'add' : 'sub'}-${equation.a}-${equation.b}.svg`;
+  await writeImage(resolve(mathDir, name), mathCardSvg(equation), `math/${name}`);
+}
+for (const comparison of NUMBER_CURRICULUM.comparisons) {
+  const name = `cmp-${comparison.a}-${comparison.b}.svg`;
+  await writeImage(resolve(mathDir, name), compareCardSvg(comparison), `math/${name}`);
+}
+
 console.log(`生成插图 ${created.length} 个：${created.join('、') || '（无）'}`);
 console.log(`已存在跳过 ${skipped.length} 个。`);
