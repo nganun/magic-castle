@@ -2128,9 +2128,14 @@ function renderRound() {
   const progressStash = stashLessonProgress();
   if (game.type === 'learn') {
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">跟我说一说</button><div id="practicePlayback"></div>' : '';
+    // 英文等学习卡片顶部标出「所在目录 / 分组」，和汉字卡片一致
+    const learnGroup = currentTheme().id === 'english' ? activeContentGroup('english') : null;
+    const groupPath = learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title;
+    const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
+    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><span class="learn-word-card-count">本组(${groupCount})</span></div>`;
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card"><div class="card-progress" id="cardProgressHost"></div><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : `<div class="learn-word-card"><div class="card-progress" id="cardProgressHost"></div>${topline}<img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
     $('#hanziSpeak')?.addEventListener('click', (event) => {
       const glyph = event.currentTarget;

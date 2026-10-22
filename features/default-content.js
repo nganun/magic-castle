@@ -44,6 +44,23 @@ export const DEFAULT_LEARNING_CONTENT = {
           "pink",
           "yellow"
         ]
+      },
+      {
+        "id": "family",
+        "name": "family",
+        "file": "english/扩展/family.txt",
+        "directory": "扩展",
+        "order": 9007199254740991,
+        "image": true,
+        "notes": {},
+        "words": [
+          "mother",
+          "father",
+          "grandmother",
+          "grandfather",
+          "sister",
+          "brother"
+        ]
       }
     ]
   },
