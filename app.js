@@ -29,7 +29,18 @@ let globalSpeechRate = clamp(Number(storageGet('luna-global-speech-rate') || 1),
 // 中文 TTS 的实际语速系数（speakChinese 使用）。
 const CHINESE_TTS_RATE_SCALE = .82;
 
+const MAP_META = {
+  color: { name: '彩虹花园', hint: '找一找会发光的颜色', icon: 'flower' },
+  animal: { name: '小小游戏机', hint: '翻翻卡片，听音找图', icon: 'paw' },
+  action: { name: '朗诵小舞台', hint: '听一听，把文本读出来', icon: 'spark' },
+  number: { name: '数字高塔', hint: '数一数城堡星星', icon: 'tower' },
+  hanzi: { name: '汉字图书塔', hint: '打开会说话的文字', icon: 'book' },
+  english: { name: '单词森林', hint: '收集新的英文叶片', icon: 'leaf' },
+};
+
 let THEMES = createBuiltInThemes();
+// 主题名统一以 MAP_META 为准（地图、顶栏、完成页用同一个名字）
+Object.entries(MAP_META).forEach(([id, meta]) => { if (THEMES[id]) THEMES[id].title = meta.name; });
 
 const ADMIN_DEFAULT = DEFAULT_LEARNING_CONTENT;
 const ADMIN_CONTENT_STORAGE_KEY = 'luna-admin-content-v4';
@@ -205,8 +216,8 @@ function buildCustomTheme(id, title, subtitle, words, isHanzi = false, hasImage 
 }
 function applyAdminContent() {
   const english = activeContentGroup('english'); const hanzi = activeContentGroup('hanzi');
-  THEMES.english = buildCustomTheme('english', '英文单词', english.name, english.words, false, Boolean(english.image));
-  THEMES.hanzi = buildCustomTheme('hanzi', '汉字魔法', hanzi.name, hanzi.words, true, Boolean(hanzi.image));
+  THEMES.english = buildCustomTheme('english', MAP_META.english.name, english.name, english.words, false, Boolean(english.image));
+  THEMES.hanzi = buildCustomTheme('hanzi', MAP_META.hanzi.name, hanzi.name, hanzi.words, true, Boolean(hanzi.image));
   THEMES.action = buildRecitalTheme();
 }
 
@@ -226,14 +237,6 @@ function wordMeaning(word) {
   }
   return word;
 }
-const MAP_META = {
-  color: { name: '彩虹花园', hint: '找一找会发光的颜色', icon: 'flower' },
-  animal: { name: '小小游戏机', hint: '翻翻卡片，听音找图', icon: 'paw' },
-  action: { name: '朗诵小舞台', hint: '听一听，把文本读出来', icon: 'spark' },
-  number: { name: '数字高塔', hint: '数一数城堡星星', icon: 'tower' },
-  hanzi: { name: '汉字图书塔', hint: '打开会说话的文字', icon: 'book' },
-  english: { name: '单词森林', hint: '收集新的英文叶片', icon: 'leaf' },
-};
 function mapIcon(type) {
   const paths = {
     flower: '<path d="M12 8.2C9 3.4 3.7 5.1 5.3 9.7c-4.7.4-4.7 6.1 0 6.5C3.7 20.9 9 22.6 12 17.8c3 4.8 8.3 3.1 6.7-1.6 4.7-.4 4.7-6.1 0-6.5C20.3 5.1 15 3.4 12 8.2Z"/><circle cx="12" cy="13" r="2.3"/>',
@@ -2514,7 +2517,7 @@ function restoreOfficialLearningContent() {
   applySyncedContent(restored);
   showToast('已恢复为官方内容。');
 }
-function groupTitle(kind) { return kind === 'hanzi' ? '汉字与词组' : '英文单词'; }
+function groupTitle(kind) { return kind === 'hanzi' ? MAP_META.hanzi.name : MAP_META.english.name; }
 function groupWordLabel(kind) { return kind === 'hanzi' ? '汉字、词组或成语' : '英文单词'; }
 function groupItemsPreview(group) { return group.words.length ? group.words.slice(0, 4).map((word) => `<span>${escapeHtml(word)}</span>`).join('') + (group.words.length > 4 ? `<i>+${group.words.length - 4}</i>` : '') : '<i>待写入内容</i>'; }
 // 分组按目录（学期/单元）折叠展示；没有目录的归到「未分类」。
