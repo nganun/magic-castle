@@ -4,24 +4,25 @@
 // Copyright (c) 2025 Alexander Bazhanov https://github.com/bazhanius
 // ------------------------------------------------------------------------
 
-let userLang = navigator.language.indexOf('ru') !== -1 ? 'ru' : 'en';
+// 魔法城堡里固定用中文文案（"en" 这一组已经换成中文了）
+let userLang = 'en';
 
 const l10n = {
     "match3Game": {
         "ru": "ТРИ В РЯД!",
-        "en": "Match 3 Game"
+        "en": "三消魔法"
     },
     "newGame": {
         "ru": "Новая игра",
-        "en": "New game"
+        "en": "重新开始"
     },
     "aiBot": {
         "ru": "ИИ-бот",
-        "en": "AI-bot"
+        "en": "AI 助手"
     },
     "showMoves": {
         "ru": "Ходы",
-        "en": "Moves"
+        "en": "提示步数"
     },
     "lang": {
         "ru": "English 🇬🇧",
@@ -29,23 +30,23 @@ const l10n = {
     },
     "gameOverNoMovesLeft": {
         "ru": "Конец игры. Ходы закончились.",
-        "en": "Game over. No more moves left"
+        "en": "游戏结束，没有可走的棋啦"
     },
     "gameOverTimeOut": {
         "ru": "Конец игры. Время истекло.",
-        "en": "Game over. Time's up."
+        "en": "游戏结束，时间到啦"
     },
     "boosters": {
         "ru": "Усилители",
-        "en": "Boosters"
+        "en": "魔法道具"
     },
     "chooseTileFirst": {
         "ru": "Сначала выберите плитку",
-        "en": "First select the tile"
+        "en": "先选一个方块吧"
     },
     "gamePaused": {
         "ru": "Игра приостановлена",
-        "en": "Game paused"
+        "en": "游戏已暂停"
     }
 }
 
