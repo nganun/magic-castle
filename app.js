@@ -764,7 +764,8 @@ function arcadeLevelProgress(level, maxLevels) {
   return `<div class="arcade-level-bar"><span class="arcade-level-badge">第 ${level} / ${maxLevels} 关</span><span class="arcade-level-dots" aria-hidden="true">${dots}</span></div>`;
 }
 function arcadeFrame(title, description, body, levelMeta = '') {
-  return `<section class="arcade-play"><div class="arcade-play-header"><div class="arcade-title-group"><p class="section-kicker">${title}</p><h1>${description}</h1></div>${levelMeta || ''}</div>${body}</section>`;
+  // 头部：上面一行是「游戏名 + 关卡进度」的信息条，下面一行是这个关要做什么
+  return `<section class="arcade-play"><div class="arcade-play-header"><div class="arcade-meta-row"><p class="section-kicker">${title}</p>${levelMeta || ''}</div><h1>${description}</h1></div>${body}</section>`;
 }
 function bindArcadeBack() { /* Return to the arcade uses the global Magic Castle breadcrumb. */ }
 function finishArcadeRound(name, options) {
