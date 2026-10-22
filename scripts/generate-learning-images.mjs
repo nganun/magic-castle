@@ -2,11 +2,12 @@
 // 缺的就生成一份。已有的人工插图不会被覆盖（除非 --force）。
 // 用法：node scripts/generate-learning-images.mjs [--force]
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = process.cwd();
 const force = process.argv.includes('--force');
+const GENERATED_MARK = 'generated-by:scripts/generate-learning-images.mjs'; // 只有带这个标记的文件才允许被 --force 覆盖
 const hanziDir = resolve(root, 'assets/learning/hanzi');
 const vocabularyDir = resolve(root, 'assets/learning/vocabulary');
 const dataDir = resolve(root, 'data');
@@ -103,12 +104,16 @@ for (const group of await collectGroups()) {
   await mkdir(targetDir, { recursive: true });
   for (const item of group.items) {
     const target = resolve(targetDir, `${item}.svg`);
-    if (existsSync(target) && !force) { skipped.push(item); continue; }
+    // 已存在时：默认跳过；--force 也只覆盖"本脚本生成的占位图"，手工画的插图永远不动。
+    if (existsSync(target)) {
+      const existing = readFileSync(target, 'utf8');
+      if (!force || !existing.includes(GENERATED_MARK)) { skipped.push(item); continue; }
+    }
     let svg = null;
     if (group.kind === 'english') svg = colorSvg(item) || (NUMBER_WORDS[item] ? numberSvg(item, NUMBER_WORDS[item]) : wordCardSvg(item));
     else svg = hanziCardSvg(item);
     if (!svg) continue;
-    await writeFile(target, `${svg}\n`, 'utf8');
+    await writeFile(target, `<!-- ${GENERATED_MARK} -->\n${svg}\n`, 'utf8');
     created.push(`${group.kind}/${item}`);
   }
 }
