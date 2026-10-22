@@ -2159,7 +2159,7 @@ function renderRound() {
     const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></div>`;
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><img src="${game.image}" data-fallback-image="${textCard(game.word)}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><div class="learn-word-copy"><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div><img src="${game.image}" data-fallback-image="${textCard(game.word)}" alt="${game.word} 的图片" />${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
     // 插图缺失时退回文字卡片，避免出现破图
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
