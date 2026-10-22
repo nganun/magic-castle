@@ -781,7 +781,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .lesson-card-curtain i:first-child{border-radius:0 0 70% 8%}
 .lesson-card-curtain i:last-child{border-radius:0 0 8% 70%}
 .recital-card>*:not(.lesson-card-curtain),.learn-word-card>*:not(.lesson-card-curtain){position:relative;z-index:1}
-.recital-kicker{margin:0;color:#9a623d;font-size:12px;font-weight:900;letter-spacing:.06em}
 .recital-card h2{margin:2px 0 4px;color:#68418d;font-family:CastleKai,STKaiti,"KaiTi",serif;font-size:26px;transition:color .18s ease}
 .recital-card h2.speaking{color:#e68222}
 .recital-text{display:grid;gap:10px;width:100%;min-height:100px;padding:16px 14px;border:2px dashed #d5b174;border-radius:19px;background:rgba(255,255,255,.72);color:#5c398e;box-sizing:border-box}

@@ -23,6 +23,12 @@ export function lessonCardTopline(kicker, actions, extraClass = '') {
   return `<div class="lesson-card-topline ${extraClass}"><p class="lesson-card-kicker">${kicker}</p><span class="lesson-card-actions">${actions}</span></div>`;
 }
 
+// 分组所在位置（目录 / 分组名），三张卡片统一用它做顶行标题
+export function lessonGroupPathLabel(group) {
+  if (!group) return '';
+  return [group.directory, group.name].filter(Boolean).join(' / ');
+}
+
 export function lessonCardProgress() {
   return '<div class="card-progress" id="cardProgressHost"></div>';
 }
@@ -56,11 +62,12 @@ export function englishLearnCardMarkup({ word, note, image, groupPath, groupCoun
 }
 
 /** 汉字图书塔：大字 + 可收起的插图 + 笔顺练习入口。 */
-export function hanziLearnCardMarkup({ word, totalWords, isImageGroup, showImage, imageUrl, actions, recording = '' }) {
+export function hanziLearnCardMarkup({ word, totalWords, isImageGroup, showImage, imageUrl, groupPath, actions, recording = '' }) {
   const toggle = isImageGroup ? lessonImageToggleMarkup({ id: 'hanziImageToggleBtn', active: showImage }) : '';
   const illustration = isImageGroup ? lessonCardImage(imageUrl, `${word} 的配图`, showImage, 'hanzi-illustration-holder', 'hanziCardIllustrationHolder', 'hanzi-illustration-img') : '';
   return `<article class="hanzi-spellbook ${isImageGroup ? 'has-illustration-mode' : ''} ${showImage ? 'image-visible' : 'image-hidden'}">
-      ${lessonCardTopline('汉字图书塔 · 会说话的书页', `${toggle}${lessonGroupChipMarkup({ id: 'hanziSpellbookGroupBtn', count: totalWords, unit: '汉字' })}`, 'hanzi-book-topline')}
+      ${lessonCardCurtainMarkup()}
+      ${lessonCardTopline(escapeHtml(groupPath), `${toggle}${lessonGroupChipMarkup({ id: 'hanziSpellbookGroupBtn', count: totalWords, unit: '汉字' })}`, 'hanzi-book-topline')}
       ${lessonCardProgress()}
       <button class="hanzi-glyph" data-hanzi-length="${[...word].length}" id="hanziSpeak" type="button" aria-label="朗读 ${escapeHtml(word)}">
         <b>${escapeHtml(word)}</b>
@@ -80,10 +87,10 @@ export function hanziLearnCardMarkup({ word, totalWords, isImageGroup, showImage
 }
 
 /** 朗诵小舞台：模式切换 + 稿件 + 朗读提示。 */
-export function recitalLearnCardMarkup({ title, wholePiece, modeSwitch, gapRow, manuscript, hint, tip, actions, recording = '' }) {
+export function recitalLearnCardMarkup({ title, directory, wholePiece, modeSwitch, gapRow, manuscript, hint, tip, actions, recording = '' }) {
   return `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}">
       ${lessonCardCurtainMarkup()}
-      <p class="recital-kicker">朗诵小舞台</p>
+      ${lessonCardTopline(escapeHtml(directory), '', 'recital-card-topline')}
       <div class="recital-head-row">${modeSwitch}${gapRow}</div>
       <h2>${escapeHtml(title)}</h2>
       ${lessonCardProgress()}

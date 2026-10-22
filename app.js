@@ -15,7 +15,7 @@ import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColor
 import { BUILD_INFO } from './features/build-info.js';
 import { clamp, escapeHtml } from './features/utils.js';
 import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
-import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
+import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
 import { DEFAULT_HANZI_CHARS } from './vendor/hanzi-writer/default-chars.js';
@@ -1347,15 +1347,17 @@ function updateProgress() {
     ? (state.recitalMode === 'whole' ? (recitalPlayerValid() ? recitalPlayer.lineIndex : recitalCurrentLine) : state.round)
     : 0;
   if (recital && lineTotal && !state.completed) {
-    // 句数由右侧「n / m」显示，左边不再重复一遍
+    // 句数由右侧「第 n/m 句」显示，左边不再重复一遍
     $('#progressLabel').textContent = '';
-    $('#progressStars').textContent = `${lineIndex + 1} / ${lineTotal}`;
+    $('#progressStars').textContent = `第 ${lineIndex + 1}/${lineTotal} 句`;
     $('#progressFill').style.width = `${((lineIndex + 1) / lineTotal) * 100}%`;
   } else if ($('#cardProgressHost')) {
-    // 进度搬进卡片后（汉字/朗诵），左边同样不重复计数，交给右侧「n / m」
+    // 进度搬进卡片后（汉字/英文/朗诵），左边不重复计数，交给右侧「第 n/m 量词」
+    const unit = theme.id === 'hanzi' ? '字' : theme.id === 'english' ? '个' : '关';
+    const count = Math.min(state.round + 1, total);
     $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : '';
-    $('#progressStars').textContent = `${Math.min(state.round + 1, total)} / ${total}`;
-    $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
+    $('#progressStars').textContent = theme.id === 'hanzi' || theme.id === 'english' ? `第 ${count}/${total} ${unit}` : `${count} / ${total}`;
+    $('#progressFill').style.width = `${(count / total) * 100}%`;
   } else {
     $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : `第 ${state.round + 1} 关，共 ${total} 关`;
     $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
@@ -1442,6 +1444,7 @@ function hanziLearnMarkup(game, recordingAction) {
     isImageGroup,
     showImage,
     imageUrl: hanziWordImageUrl(game.word),
+    groupPath: lessonGroupPathLabel(group),
     actions: lessonPrimaryActionsMarkup(),
     recording: recordingAction,
   });
@@ -2125,7 +2128,7 @@ function renderRound() {
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">跟我说一说</button><div id="practicePlayback"></div>' : '';
     // 英文等学习卡片顶部标出「所在目录 / 分组」，排版与汉字卡片一致
     const learnGroup = currentTheme().id === 'english' ? activeContentGroup('english') : null;
-    const groupPath = learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title;
+    const groupPath = learnGroup ? lessonGroupPathLabel(learnGroup) : currentTheme().title;
     const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
@@ -2133,7 +2136,7 @@ function renderRound() {
         word: game.word,
         note: game.zh,
         image: game.image,
-        groupPath: learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title,
+        groupPath: learnGroup ? lessonGroupPathLabel(learnGroup) : currentTheme().title,
         groupCount: learnGroup ? learnGroup.words.length : currentTheme().words.length,
         hasImage: Boolean(learnGroup?.image),
         showImage: englishImageHintVisible,
@@ -2167,6 +2170,7 @@ function renderRound() {
     const modeSwitch = `<div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div>`;
     area.innerHTML = recitalLearnCardMarkup({
       title: game.title || game.word,
+      directory: piece.directory || '',
       wholePiece,
       modeSwitch,
       gapRow,
