@@ -46,6 +46,7 @@ node --check app.js   # 语法自检
 | `features/content-files.js` | 内容文本源解析器 + 归一化 + 目录树（纯函数） |
 | `features/content-sync.js` | 官方内容与本机编辑的三方合并（纯函数） |
 | `features/content-channel.js` | 内容清单/文本文件下载、校验、本机快照 |
+| `features/number-tower.js` | 数字高塔：7 关课程数据 + 卡片标记 + 数字板交互（插图生成器也读它） |
 | `features/default-content.js` | **生成物**，勿手改 |
 | `data/**` | 学习内容文本源 |
 | `docs/如何添加学习内容.md` | 写内容的使用说明 |
@@ -58,3 +59,4 @@ node --check app.js   # 语法自检
 - `activeGroupId` / `deletedGroupIds` 归用户所有，官方同步永不覆盖、永不复活
 - `build-web.mjs` 里内容构建必须排在拷贝 `features/` **之前**，否则 `dist/` 里是旧内容
 - Service Worker 的 `APP_SHELL` 必须包含 `app.js` import 的每个 `features/*.js`，否则离线启动会挂
+- 数字高塔的关卡/算式只在 `features/number-tower.js` 定义；题图由 `scripts/generate-learning-images.mjs` 按同一份数据生成

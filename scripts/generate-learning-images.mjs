@@ -4,7 +4,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { NUMBER_CURRICULUM, numberWord } from '../features/theme-catalog.js';
+import { NUMBER_CURRICULUM, numberWord } from '../features/number-tower.js';
 
 const root = process.cwd();
 const force = process.argv.includes('--force');
@@ -28,9 +28,12 @@ const COLOR_PALETTE = {
 };
 
 const NUMBER_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
-const NUMBER_BG = { 4: '#fff1f4', 5: '#eefbf2', 6: '#f2f0ff', 7: '#fff8e6', 8: '#eaf7ff', 9: '#fdf0ff', 10: '#eefaf7' };
-const NUMBER_CN = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 8: '八', 9: '九', 10: '十' };
-const NUMBER_COLOR = { 1: '#ffcc4a', 2: '#ff9d6e', 3: '#68c8f4', 4: '#f472b6', 5: '#3fb56b', 6: '#8b5cf6', 7: '#f2c53d', 8: '#4aa8e0', 9: '#e86a92', 10: '#5aa469' };
+const NUMBER_BG = { 4: '#fff1f4', 5: '#eefbf2', 6: '#f2f0ff', 7: '#fff8e6', 8: '#eaf7ff', 9: '#fdf0ff', 10: '#eefaf7',
+  11: '#eef4ff', 12: '#fff2f6', 13: '#f2fbf3', 14: '#fdf4ff', 15: '#fff8e6', 16: '#eaf7ff', 17: '#f4f0ff', 18: '#eefaf7', 19: '#fff1f4', 20: '#f2f9ec' };
+const NUMBER_CN = { 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 8: '八', 9: '九', 10: '十',
+  11: '十一', 12: '十二', 13: '十三', 14: '十四', 15: '十五', 16: '十六', 17: '十七', 18: '十八', 19: '十九', 20: '二十' };
+const NUMBER_COLOR = { 1: '#ffcc4a', 2: '#ff9d6e', 3: '#68c8f4', 4: '#f472b6', 5: '#3fb56b', 6: '#8b5cf6', 7: '#f2c53d', 8: '#4aa8e0', 9: '#e86a92', 10: '#5aa469',
+  11: '#7b8ef0', 12: '#f28fb5', 13: '#4cc79a', 14: '#b07ce8', 15: '#f2a93d', 16: '#48b6d8', 17: '#ef6f8b', 18: '#6fb96b', 19: '#d98b52', 20: '#5aa8a0' };
 
 const STAR = 'M0 -1 L0.24 -0.32 L0.95 -0.24 L0.38 0.18 L0.59 0.9 L0 0.47 L-0.59 0.9 L-0.38 0.18 L-0.95 -0.24 L-0.22 -0.32 Z';
 
@@ -74,9 +77,10 @@ function numberSvg(word, count) {
 function mathCardSvg({ a, op, b }) {
   const star = (x, y, radius) => `<path d="${STAR}" transform="translate(${x} ${y}) scale(${radius.toFixed(2)})" fill="#ffd447" stroke="#e2a900" stroke-width="${(2.4 / radius).toFixed(3)}" stroke-linejoin="round"/>`;
   const group = (count, centerX) => {
-    const columns = Math.min(count, 3);
+    // 最多 4 列：星星多的时候摊成几行，别挤成一坨压住中间的符号
+    const columns = Math.min(count, 4);
     const rows = Math.ceil(count / columns);
-    const spacing = 30;
+    const spacing = 24;
     const radius = spacing / 2.7;
     const out = [];
     for (let index = 0; index < count; index += 1) {
@@ -84,22 +88,22 @@ function mathCardSvg({ a, op, b }) {
       const column = index % columns;
       const rowCount = Math.min(columns, count - row * columns);
       const x = centerX + (column - (rowCount - 1) / 2) * spacing;
-      const y = 60 + (row - (rows - 1) / 2) * spacing;
+      const y = 76 + (row - (rows - 1) / 2) * spacing;
       out.push(star(x.toFixed(1), y.toFixed(1), radius));
     }
     return out.join('');
   };
   const symbol = op === '+' ? '+' : '−';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="${a} ${symbol} ${b} 等于几"><rect width="240" height="180" rx="28" fill="#eaf7ff"/><rect x="18" y="16" width="204" height="148" rx="20" fill="#fff" stroke="#cfe6f7" stroke-width="3"/>${group(a, 70)}${group(b, 170)}<text x="120" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="34" font-weight="900" fill="#6b4a9c">${symbol}</text><text x="120" y="150" text-anchor="middle" font-family="Nunito, sans-serif" font-size="30" font-weight="900" fill="#e0609c">= ?</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="${a} ${symbol} ${b} 等于几"><rect width="240" height="180" rx="28" fill="#eaf7ff"/><rect x="10" y="16" width="220" height="148" rx="20" fill="#fff" stroke="#cfe6f7" stroke-width="3"/>${group(a, 56)}${group(b, 184)}<text x="120" y="90" text-anchor="middle" font-family="Nunito, sans-serif" font-size="38" font-weight="900" fill="#6b4a9c">${symbol}</text><text x="120" y="148" text-anchor="middle" font-family="Nunito, sans-serif" font-size="28" font-weight="900" fill="#e0609c">= ?</text></svg>`;
 }
 
 // 对比卡：左边一组、右边一组，中间一个「比」
 function compareCardSvg({ a, b }) {
   const star = (x, y, radius) => `<path d="${STAR}" transform="translate(${x} ${y}) scale(${radius.toFixed(2)})" fill="#ffd447" stroke="#e2a900" stroke-width="${(2.4 / radius).toFixed(3)}" stroke-linejoin="round"/>`;
   const group = (count, centerX) => {
-    const columns = Math.min(count, 3);
+    const columns = Math.min(count, 4);
     const rows = Math.ceil(count / columns);
-    const spacing = 30;
+    const spacing = 20;
     const radius = spacing / 2.7;
     const out = [];
     for (let index = 0; index < count; index += 1) {
@@ -107,12 +111,12 @@ function compareCardSvg({ a, b }) {
       const column = index % columns;
       const rowCount = Math.min(columns, count - row * columns);
       const x = centerX + (column - (rowCount - 1) / 2) * spacing;
-      const y = 62 + (row - (rows - 1) / 2) * spacing;
+      const y = 70 + (row - (rows - 1) / 2) * spacing;
       out.push(star(x.toFixed(1), y.toFixed(1), radius));
     }
     return out.join('');
   };
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="左边 ${a} 个，右边 ${b} 个，哪边更多"><rect width="240" height="180" rx="28" fill="#f3f0ff"/><rect x="18" y="16" width="204" height="148" rx="20" fill="#fff" stroke="#ded2f7" stroke-width="3"/>${group(a, 70)}${group(b, 170)}<text x="120" y="64" text-anchor="middle" font-family="KaiTi, STKaiti, serif" font-size="30" font-weight="700" fill="#6b4a9c">比</text><text x="120" y="150" text-anchor="middle" font-family="Nunito, sans-serif" font-size="22" font-weight="900" fill="#8a6bb0">哪一个多？</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="左边 ${a} 个，右边 ${b} 个，哪边更多"><rect width="240" height="180" rx="28" fill="#f3f0ff"/><rect x="12" y="16" width="216" height="148" rx="20" fill="#fff" stroke="#ded2f7" stroke-width="3"/>${group(a, 58)}${group(b, 182)}<text x="120" y="82" text-anchor="middle" font-family="KaiTi, STKaiti, serif" font-size="28" font-weight="700" fill="#6b4a9c">比</text><text x="120" y="142" text-anchor="middle" font-family="Nunito, sans-serif" font-size="22" font-weight="900" fill="#8a6bb0">哪一个多？</text></svg>`;
 }
 
 function wordCardSvg(word) {
@@ -170,19 +174,21 @@ for (const group of await collectGroups()) {
   }
 }
 
-// 数字高塔：数字牌 1~20、算式卡、对比卡（课程数据与 theme-catalog.js 共用，保证题图和题目一致）
+// 数字高塔：数字牌 1~20、算式卡、对比卡（课程数据与 features/number-tower.js 共用，保证题图和题目一致）
 const mathDir = resolve(root, 'assets/learning/math');
 await mkdir(mathDir, { recursive: true });
-for (const count of NUMBER_CURRICULUM.numbers) {
-  await writeImage(resolve(vocabularyDir, `${numberWord(count)}.svg`), numberSvg(numberWord(count), count), `number/${numberWord(count)}`);
-}
-for (const equation of NUMBER_CURRICULUM.equations) {
-  const name = `${equation.op === '+' ? 'add' : 'sub'}-${equation.a}-${equation.b}.svg`;
-  await writeImage(resolve(mathDir, name), mathCardSvg(equation), `math/${name}`);
-}
-for (const comparison of NUMBER_CURRICULUM.comparisons) {
-  const name = `cmp-${comparison.a}-${comparison.b}.svg`;
-  await writeImage(resolve(mathDir, name), compareCardSvg(comparison), `math/${name}`);
+for (const stage of NUMBER_CURRICULUM.stages) {
+  for (const count of stage.numbers || []) {
+    await writeImage(resolve(vocabularyDir, `${numberWord(count)}.svg`), numberSvg(numberWord(count), count), `number/${numberWord(count)}`);
+  }
+  for (const equation of stage.equations || []) {
+    const name = `${equation.op === '+' ? 'add' : 'sub'}-${equation.a}-${equation.b}.svg`;
+    await writeImage(resolve(mathDir, name), mathCardSvg(equation), `math/${name}`);
+  }
+  for (const comparison of stage.comparisons || []) {
+    const name = `cmp-${comparison.a}-${comparison.b}.svg`;
+    await writeImage(resolve(mathDir, name), compareCardSvg(comparison), `math/${name}`);
+  }
 }
 
 console.log(`生成插图 ${created.length} 个：${created.join('、') || '（无）'}`);

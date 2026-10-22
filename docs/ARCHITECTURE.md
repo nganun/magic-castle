@@ -13,6 +13,10 @@
 `features/` 是业务规则的模块目录。每个模块将规则隐藏在小接口后，避免把规则散落到页面编排中。
 
 - `theme-catalog.js`：内置课程主题和回合数据工厂。
+- `number-tower.js`：数字高塔的课程数据（7 关）、卡片标记与数字板交互；插图生成器也读这里的数据。
+- `lesson-cards.js`：三张学习卡片（单词 / 汉字 / 朗诵）的共享骨架与标记构造。
+- `content-browser.js`：篇目浏览器（按目录分层、展开收起、标记）。
+- `utils.js`：通用小工具（转义、夹取等）。
 - `content-catalog.js`：翻译、例句、汉字场景和地图展示元数据。
 - `default-content.js`：由 `data/**` 文本源生成的默认分组与朗诵内容模块。
 - `content-files.js`：学习内容文本源的共享解析器与归一化函数（构建脚本与 App 共用）。
@@ -56,6 +60,8 @@ assets/
    提交并 push 后，App 内「家长设置 → 学习内容工作台 → 同步最新内容」即可拉到新内容，**不需要发版**。
 2. 新的翻译、示例句、地图名称放入 `features/content-catalog.js`。
 3. 新媒体的静态定义放入 `features/theme-catalog.js`。
+4. 数字高塔的关卡、算式、题图都写在 `features/number-tower.js`，插图由
+   `scripts/generate-learning-images.mjs` 按同一份数据生成，不要另写一份数字或算式。
 4. 新媒体资源按用途放入 `assets/` 的对应子目录，避免直接堆放在根目录。
 5. 新屏幕样式放入 `styles/screens/`；共享视觉规则保留在 `style.css`。
 6. `dist/`、Gradle 构建输出、APK 和本机学习导出数据均是生成或本机数据，不提交到仓库。

@@ -16,6 +16,7 @@ import { BUILD_INFO } from './features/build-info.js';
 import { clamp, escapeHtml } from './features/utils.js';
 import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
 import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
+import { bindNumberBoard, numberBoardCardMarkup, numberQuizCardMarkup, numberStageCardMarkup } from './features/number-tower.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
 import { DEFAULT_HANZI_CHARS } from './vendor/hanzi-writer/default-chars.js';
@@ -1355,12 +1356,21 @@ function updateProgress() {
     $('#progressStars').textContent = `第 ${lineIndex + 1}/${lineTotal} 句`;
     $('#progressFill').style.width = `${((lineIndex + 1) / lineTotal) * 100}%`;
   } else if ($('#cardProgressHost')) {
-    // 进度搬进卡片后（汉字/英文/朗诵），左边不重复计数，交给右侧「第 n/m 量词」
+    // 进度搬进卡片后（汉字/英文/朗诵/数字高塔），左边不重复计数，交给右侧「第 n/m 量词」
     const unit = theme.id === 'hanzi' ? '字' : theme.id === 'english' ? '个' : '关';
     const count = Math.min(state.round + 1, total);
-    $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : '';
-    $('#progressStars').textContent = theme.id === 'hanzi' || theme.id === 'english' ? `第 ${count}/${total} ${unit}` : `${count} / ${total}`;
-    $('#progressFill').style.width = `${(count / total) * 100}%`;
+    const stage = currentRounds()[state.round]?.stage;
+    if (stage) {
+      // 数字高塔按关卡计数：条形图在关内随题号前进
+      $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : '';
+      $('#progressStars').textContent = `第 ${stage.index}/${stage.total} 关`;
+      const inside = (stage.step - 0.5) / stage.size;
+      $('#progressFill').style.width = `${(((stage.index - 1) + inside) / stage.total) * 100}%`;
+    } else {
+      $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : '';
+      $('#progressStars').textContent = theme.id === 'hanzi' || theme.id === 'english' ? `第 ${count}/${total} ${unit}` : `${count} / ${total}`;
+      $('#progressFill').style.width = `${(count / total) * 100}%`;
+    }
   } else {
     $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : `第 ${state.round + 1} 关，共 ${total} 关`;
     $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
@@ -1963,6 +1973,8 @@ function replayCurrentPrompt() {
   const game = currentRounds()[state.round];
   if (!game) return;
   if (game.type === 'recite') { $('#reciteListen')?.click(); return; }
+  // 数字高塔的关卡封面与练习题都是中文，用中文嗓子念
+  if (game.type === 'stage' || game.type === 'quiz' || game.type === 'board') { speakChinese(game.prompt || game.zh || game.goal); return; }
   speakForCurrentTheme(currentTheme().id === 'hanzi' ? game.word : (game.type === 'match' ? game.prompt : game.word));
 }
 function handleLessonShortcuts(event) {
@@ -2215,6 +2227,36 @@ function renderRound() {
     $('#recordPractice')?.addEventListener('click', recordPractice);
     startLearnCountdown(3);
     recitalAutoReadTimer = window.setTimeout(() => readText(0, state.round === 0), 180);
+  } else if (game.type === 'stage') {
+    // 数字高塔的关卡封面：告诉小朋友这是第几关、要做什么
+    area.innerHTML = numberStageCardMarkup({ stage: game.stage, title: game.title, goal: game.goal, preview: game.preview });
+    $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'stage', { record: false, celebration: game.celebration, toast: game.toast }));
+    const stageLabel = $('#learnNextLabel');
+    if (stageLabel) stageLabel.textContent = '开始闯关';
+    // 封面卡没有倒计时，按钮直接可用
+    const stageButton = $('#learnNext');
+    if (stageButton) { stageButton.disabled = false; stageButton.removeAttribute('aria-disabled'); stageButton.classList.add('ready'); }
+    speakChinese(game.goal);
+  } else if (game.type === 'board') {
+    // 数字板：点一个数字念一个，全部点亮才能继续
+    area.innerHTML = numberBoardCardMarkup({ stage: game.stage, title: game.stage.name, goal: game.zh || game.prompt, numbers: game.numbers, hint: '点一点下面的数字，露娜念给你听' });
+    bindNumberBoard(area, {
+      speakWord: (text, done) => speak(text, done),
+      speakChinese: (text, done) => speakChinese(text, done),
+      onLight: (count) => recordWordProgress(String(count), 'learn'),
+      onComplete: () => {
+        const button = $('#learnNext');
+        if (button) { button.disabled = false; button.removeAttribute('aria-disabled'); button.classList.add('ready'); }
+        triggerConfetti();
+        playSuccessChime();
+        showToast('全部点亮啦！点「继续」去下一关');
+      },
+    });
+  } else if (game.type === 'quiz') {
+    // 算式题 / 比多少题
+    area.innerHTML = numberQuizCardMarkup({ stage: game.stage, title: game.stage.name, image: game.image, equation: game.equation, prompt: game.prompt, hint: game.zh, choices: game.choices });
+    $('#reviewListenAction')?.addEventListener('click', () => speakChinese(game.prompt));
+    $$('[data-choice]', area).forEach((button) => button.addEventListener('click', () => handleChoice(button, game)));
   } else if (game.type === 'action') {
 area.innerHTML = `${lessonCardProgress()}<div class="number-action-card"><img src="${game.image}" alt="拍手动作" /><div><p>数字动作</p><h2>${game.prompt}</h2><strong>${game.zh}</strong></div><button class="primary-button" id="actionDone" type="button">${game.actionLabel || '我做完啦'}</button></div>`;
     $('#actionDone').addEventListener('click', () => handleCorrect(game.word, 'action'));
@@ -2258,27 +2300,36 @@ async function recordPractice() {
 
 function handleChoice(button, game) {
   if (state.roundLocked || button.disabled) return;
-  if (button.dataset.choice === game.correct) { button.classList.add('correct'); handleCorrect(game.word); }
-  else { button.classList.add('try-again'); button.disabled = true; speakForCurrentTheme(currentTheme().id === 'hanzi' ? game.word : game.prompt); showToast('再听一次，露娜相信你！'); }
+  if (button.dataset.choice === game.correct) { button.classList.add('correct'); handleCorrect(game.word, 'quiz', { toast: game.toast, celebration: game.celebration }); }
+  else {
+    button.classList.add('try-again'); button.disabled = true;
+    const prompt = game.prompt || game.word;
+    // 数字高塔的题目是中文，用中文嗓子念；汉字卡念汉字，其余念英文
+    if (currentTheme().id === 'hanzi') speakChinese(game.word);
+    else if (game.type === 'quiz') speakChinese(prompt);
+    else speakForCurrentTheme(prompt);
+    showToast('再听一次，露娜相信你！');
+  }
 }
-function showWordCelebration(word) {
+function showWordCelebration(word, title = '我认识了！') {
   const overlay = document.createElement('div');
   overlay.className = 'word-celebration';
   overlay.setAttribute('aria-hidden', 'true');
-  overlay.innerHTML = `<div class="word-burst"></div><div class="celebration-word"><span>我认识了！</span><b>${word}</b><em>✦</em></div><i class="burst-star star-one">✦</i><i class="burst-star star-two">✦</i><i class="burst-star star-three">✦</i><i class="burst-star star-four">✦</i><i class="burst-confetti confetti-one"></i><i class="burst-confetti confetti-two"></i><i class="burst-confetti confetti-three"></i><i class="burst-confetti confetti-four"></i>`;
+  overlay.innerHTML = `<div class="word-burst"></div><div class="celebration-word"><span>${escapeHtml(title)}</span><b>${escapeHtml(word)}</b><em>✦</em></div><i class="burst-star star-one">✦</i><i class="burst-star star-two">✦</i><i class="burst-star star-three">✦</i><i class="burst-star star-four">✦</i><i class="burst-confetti confetti-one"></i><i class="burst-confetti confetti-two"></i><i class="burst-confetti confetti-three"></i><i class="burst-confetti confetti-four"></i>`;
   $('#gameArea').append(overlay);
 }
-function handleCorrect(word, kind = 'match') {
+function handleCorrect(word, kind = 'match', extras = {}) {
   if (state.roundLocked) return;
   state.roundLocked = true; state.round += 1; state.stars += 1;
   if (kind === 'learn') { state.learnedWords = Array.from(new Set([...state.learnedWords, word])); showWordCelebration(word); }
-  recordWordProgress(word, kind);
+  if (extras.record !== false && word) recordWordProgress(word, kind);
+  if (extras.celebration) showWordCelebration(extras.celebration.word, extras.celebration.title);
   refreshAchievements();
-  setDailyTask('round'); playSuccessChime(); showToast(`你认识了 ${word}！`); persistProgress(); updateProgress();
+  setDailyTask('round'); playSuccessChime(); showToast(extras.toast || `你认识了 ${word}！`); persistProgress(); updateProgress();
   setTimeout(() => {
     if (state.round >= currentRounds().length) { if (state.lessonMode === 'review') completeReview(); else completeTheme(); }
     renderRound();
-  }, kind === 'learn' ? 1350 : 850);
+  }, kind === 'learn' || kind === 'board' ? 1350 : 850);
 }
 function completeReview() {
   state.completed = true;
