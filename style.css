@@ -160,9 +160,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .learn-word-card>div{min-width:0}
 .learn-word-card h2{overflow-wrap:anywhere}
 .learn-word-card .learn-word-copy{margin:0}
-.learn-word-card .learn-word-card-topline{justify-self:stretch;text-align:left}.learn-word-card-actions{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto}
-.learn-word-card .learn-word-image-holder{display:flex;justify-content:center;align-items:center;margin:2px auto 0;max-height:210px;overflow:hidden;transition:opacity .2s ease,max-height .2s ease,margin .2s ease}.learn-word-card .learn-word-image-holder.is-hidden{opacity:0;max-height:0;margin:0 auto;pointer-events:none}
-.learn-word-card img{margin:auto}.learn-word-card img{width:155px;height:120px;object-fit:contain;border-radius:20px}.learn-word-card p{margin:0 0 5px;color:#a084b3;font-size:12px;font-weight:900}.learn-word-card h2{margin:0;font-family:"Baloo 2";font-size:47px;line-height:1;color:#5a388b}.learn-word-card span{display:block;margin-top:8px;color:#7e6a91;font-size:14px;font-weight:800}.learn-word-card .primary-button{grid-column:1/-1;justify-self:center;margin-top:2px;min-height:50px;font-size:16px}.learn-word-card .card-progress{grid-column:1/-1;margin:0 0 4px}.learn-word-card-topline{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.learn-word-card-kicker{margin:0;min-width:0;overflow:hidden;color:#7a55c0;font-size:12px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}.learn-word-card-count{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:5px 12px;border:2px solid #e0cef7;border-radius:999px;background:#fff;color:#6b4a9c;font-size:12px;font-weight:900;box-shadow:0 2px 0 rgba(105,70,160,.1);white-space:nowrap;cursor:pointer;transition:transform .15s ease,border-color .15s ease}.learn-word-card-count:hover,.learn-word-card-count:focus-visible{border-color:#c9aef0;transform:translateY(-1px)}.learn-word-card-count svg{width:16px;height:16px}.match-word-card{display:flex;align-items:center;justify-content:center;gap:25px;margin-top:25px}.match-word-card .game-copy{min-width:0}.match-word-card .game-copy h2,.match-word-card .game-copy p{overflow-wrap:anywhere}.match-word-card>img{width:177px;height:137px;object-fit:contain;border:3px solid #eee2ff;border-radius:25px;background:#fff}.match-word-card .game-copy{text-align:left}.match-word-card .game-copy h2{font-size:42px}.match-word-card .game-copy p{margin-left:0;max-width:265px}@media(max-width:720px){.learn-word-card{max-width:330px;margin-top:23px;padding:15px;grid-template-columns:1fr;text-align:center;gap:9px}.learn-word-card img{width:145px;height:107px;margin:auto}.learn-word-card h2{font-size:43px}.learn-word-card .primary-button{margin-top:4px}.match-word-card{flex-direction:column;gap:9px;margin-top:16px}.match-word-card>img{width:152px;height:114px}.match-word-card .game-copy{text-align:center}.match-word-card .game-copy p{margin-left:auto}.match-word-card .game-copy h2{font-size:36px}}
+.learn-word-card-actions{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto}
+
+.learn-word-card img{margin:auto}.learn-word-card img{width:155px;height:120px;object-fit:contain;border-radius:20px}.learn-word-card p{margin:0 0 5px;color:#a084b3;font-size:12px;font-weight:900}.learn-word-card h2{margin:0;font-family:"Baloo 2";font-size:47px;line-height:1;color:#5a388b}.learn-word-card span{display:block;margin-top:8px;color:#7e6a91;font-size:14px;font-weight:800}.learn-word-card .primary-button{grid-column:1/-1;justify-self:center;margin-top:2px;min-height:50px;font-size:16px}.learn-word-card .card-progress{grid-column:1/-1;margin:0 0 4px}.match-word-card{display:flex;align-items:center;justify-content:center;gap:25px;margin-top:25px}.match-word-card .game-copy{min-width:0}.match-word-card .game-copy h2,.match-word-card .game-copy p{overflow-wrap:anywhere}.match-word-card>img{width:177px;height:137px;object-fit:contain;border:3px solid #eee2ff;border-radius:25px;background:#fff}.match-word-card .game-copy{text-align:left}.match-word-card .game-copy h2{font-size:42px}.match-word-card .game-copy p{margin-left:0;max-width:265px}@media(max-width:720px){.learn-word-card{max-width:330px;margin-top:23px;padding:15px;grid-template-columns:1fr;text-align:center;gap:9px}.learn-word-card img{width:145px;height:107px;margin:auto}.learn-word-card h2{font-size:43px}.learn-word-card .primary-button{margin-top:4px}.match-word-card{flex-direction:column;gap:9px;margin-top:16px}.match-word-card>img{width:152px;height:114px}.match-word-card .game-copy{text-align:center}.match-word-card .game-copy p{margin-left:auto}.match-word-card .game-copy h2{font-size:36px}}
 
 /* Larger first-word cards: Chinese meaning stays visible beneath the English word. */
 .learn-word-card{max-width:650px;min-height:330px;margin-top:22px;padding:29px;grid-template-columns:minmax(0,1fr);gap:16px;border-width:4px;border-radius:35px}.learn-word-card img{width:255px;height:200px;border-radius:27px}.learn-word-card h2{font-size:64px;letter-spacing:.01em}.learn-word-card p{font-size:14px}.learn-word-card span{font-size:16px;line-height:1.5}.word-translation{display:block;margin-top:9px;color:#e0609c;font-family:"Baloo 2";font-size:24px;line-height:1.1}.learn-word-card .primary-button{margin-top:12px;min-height:58px;font-size:18px}.match-translation{display:block;margin:3px 0 8px;color:#e0609c;font-family:"Baloo 2";font-size:20px}.match-word-card .game-copy p{margin-top:4px}@media(max-width:720px){.learn-word-card{max-width:355px;min-height:0;margin-top:17px;padding:19px;grid-template-columns:1fr;gap:8px;border-radius:28px}.learn-word-card img{width:220px;height:160px;border-radius:23px}.learn-word-card h2{font-size:56px}.word-translation{font-size:22px}.learn-word-card span{font-size:14px}.learn-word-card .primary-button{min-height:54px;font-size:17px}.match-translation{font-size:18px}}
@@ -238,7 +238,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .admin-field{display:block;margin:12px 0;color:#654d83;font-weight:900}.admin-field textarea,.admin-field input{display:block;width:100%;margin-top:6px;padding:10px 12px;border:2px solid #e6d7fa;border-radius:13px;background:#fff;font:inherit;color:#4f3979}.admin-field textarea{resize:vertical;line-height:1.5}
 
 /* Hanzi has its own magic-book card instead of reusing the English picture-card layout. */
-.hanzi-spellbook{position:relative;max-width:520px;margin:12px auto 0;padding:22px 24px 20px;overflow:hidden;border:4px solid #ead5ad;border-radius:30px;background:linear-gradient(135deg,#fffdf3,#f7ead0);box-shadow:0 9px 0 rgba(141,93,53,.14),inset 0 0 0 7px rgba(255,255,255,.58);text-align:center}.hanzi-spellbook::before,.hanzi-spellbook::after{content:"";position:absolute;width:105px;height:105px;border-radius:50%;background:rgba(174,142,221,.12)}.hanzi-spellbook::before{left:-43px;top:-44px}.hanzi-spellbook::after{right:-49px;bottom:-55px}.hanzi-book-kicker{position:relative;z-index:1;margin:0;color:#91653e;font-size:12px;font-weight:900}.hanzi-glyph{position:relative;z-index:1;display:grid;justify-items:center;gap:3px;margin:8px auto 3px;padding:0;background:transparent;color:#51357b}.hanzi-glyph b{font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;font-size:clamp(76px,10vw,118px);line-height:1;color:#5c398e;text-shadow:0 3px 0 rgba(121,81,174,.16)}.hanzi-glyph small{padding:5px 10px;border-radius:999px;background:#eee1ff;color:#7553a6;font-size:11px;font-weight:900}.hanzi-read-copy{position:relative;z-index:1;margin:8px auto;color:#795f71;font-size:14px;font-weight:800}.hanzi-spellbook .primary-button{min-height:49px;font-size:15px}.hanzi-spellbook .record-practice{position:relative;z-index:1}@media(max-width:600px){.hanzi-spellbook{margin-top:4px;padding:15px 15px 13px;border-radius:23px}.hanzi-glyph b{font-size:76px}.hanzi-read-copy{font-size:12px}.hanzi-spellbook .primary-button{min-height:43px;font-size:13px}}
+.hanzi-spellbook{position:relative;max-width:520px;margin:12px auto 0;padding:22px 24px 20px;overflow:hidden;border:4px solid #ead5ad;border-radius:30px;background:linear-gradient(135deg,#fffdf3,#f7ead0);box-shadow:0 9px 0 rgba(141,93,53,.14),inset 0 0 0 7px rgba(255,255,255,.58);text-align:center}.hanzi-spellbook::before,.hanzi-spellbook::after{content:"";position:absolute;width:105px;height:105px;border-radius:50%;background:rgba(174,142,221,.12)}.hanzi-spellbook::before{left:-43px;top:-44px}.hanzi-spellbook::after{right:-49px;bottom:-55px}.hanzi-book-topline .lesson-card-kicker{position:relative;z-index:1;color:#91653e}.hanzi-glyph{position:relative;z-index:1;display:grid;justify-items:center;gap:3px;margin:8px auto 3px;padding:0;background:transparent;color:#51357b}.hanzi-glyph b{font-family:CastleKai,"Kaiti SC","STKaiti","KaiTi","SimKai","BiauKai","楷体","楷体_GB2312","FZKai-Z03S",serif;font-size:clamp(76px,10vw,118px);line-height:1;color:#5c398e;text-shadow:0 3px 0 rgba(121,81,174,.16)}.hanzi-glyph small{padding:5px 10px;border-radius:999px;background:#eee1ff;color:#7553a6;font-size:11px;font-weight:900}.hanzi-read-copy{position:relative;z-index:1;margin:8px auto;color:#795f71;font-size:14px;font-weight:800}.hanzi-spellbook .primary-button{min-height:49px;font-size:15px}.hanzi-spellbook .record-practice{position:relative;z-index:1}@media(max-width:600px){.hanzi-spellbook{margin-top:4px;padding:15px 15px 13px;border-radius:23px}.hanzi-glyph b{font-size:76px}.hanzi-read-copy{font-size:12px}.hanzi-spellbook .primary-button{min-height:43px;font-size:13px}}
 
 /* Compact icon-led wardrobe categories replace the redundant large helper button. */
 .oc-category-tabs{padding-top:12px}.oc-category-tab{display:inline-flex;align-items:center;justify-content:center;gap:5px}.oc-category-tab svg{width:15px;height:15px;stroke-width:2.1}.oc-category-tab.active svg{filter:drop-shadow(0 1px 0 rgba(77,45,132,.2))}@media(max-width:600px){.oc-category-tabs{padding-top:8px}.oc-category-tab{gap:4px}.oc-category-tab svg{width:13px;height:13px}}
@@ -255,37 +255,37 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .hanzi-spellbook{width:100%;max-width:100%;padding:12px 10px 10px;box-sizing:border-box;overflow:hidden;margin:4px auto 0}
   .hanzi-glyph[data-hanzi-length="4"] b{font-size:clamp(58px,18vw,72px)}
   .hanzi-book-topline{width:100%;gap:6px}
-  .hanzi-topline-actions{gap:4px}
-  .hanzi-image-toggle-btn{padding:2px 7px;font-size:10px}
+  
+  .lesson-image-toggle-btn{padding:2px 7px;font-size:10px}
   .hanzi-illustration-img{max-height:86px;width:min(124px,36vw)}
-  .hanzi-spellbook-group-btn{padding:4px 8px;font-size:11px;gap:4px}
-  .hanzi-spellbook-group-btn svg{width:11px;height:11px}
-  .hanzi-book-kicker{font-size:11px}
+  
+  
+  .hanzi-book-topline .lesson-card-kicker{font-size:11px}
 }
 
 /* Small built-in phrase scenes enrich familiar Hanzi without requiring art for every parent-added word. */
 .hanzi-scene{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:center;gap:8px;height:72px;margin:8px auto;padding:10px;border-radius:16px;background:linear-gradient(#dff3ff 0 54%,#bfe39b 55%);overflow:hidden}.hanzi-scene span{position:absolute;right:8px;bottom:6px;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,.76);color:#69587c;font-size:10px;font-weight:900}.scene-sun i:first-child{width:31px;height:31px;border-radius:50%;background:#ffd55c;align-self:flex-start;margin:2px 12px 0 0;box-shadow:0 0 0 7px rgba(255,220,100,.23)}.scene-sun i:nth-child(2){width:64px;height:23px;border-radius:50% 50% 0 0;background:#8fc66d}.scene-cat i:first-child{width:44px;height:34px;border-radius:45% 45% 40% 40%;background:#f4a75c;box-shadow:inset 12px 0 #f6bf7c}.scene-cat i:nth-child(2){width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:15px solid #f4a75c;align-self:center;margin-left:-43px;margin-top:-26px}.scene-adult i:first-child,.scene-people i:first-child{width:19px;height:42px;border-radius:12px 12px 6px 6px;background:#8368cb}.scene-adult i:nth-child(2){width:14px;height:30px;border-radius:10px 10px 5px 5px;background:#ef8db3}.scene-people i:nth-child(2),.scene-people i:nth-child(3){width:15px;height:33px;border-radius:10px 10px 5px 5px;background:#f2b95d}@media(max-width:600px){.hanzi-scene{height:58px;margin:6px auto}.hanzi-scene span{font-size:8px}}
 
 /* Hanzi group words display in spellbook & lesson header */
-.hanzi-book-topline{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
-.hanzi-book-topline .hanzi-book-kicker{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hanzi-topline-actions{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
-.hanzi-image-toggle-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:2px solid #ecd6b3;background:#fff;color:#85582f;font-size:11px;font-weight:900;box-shadow:0 2px 0 rgba(141,93,53,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s ease}
-.hanzi-image-toggle-btn.is-active{background:#fff8ee;border-color:#f59e0b;color:#b45309;box-shadow:0 2px 0 rgba(245,158,11,.2)}
-.hanzi-image-toggle-btn.is-testing{background:#f1f5f9;border-color:#cbd5e1;color:#475569;box-shadow:0 2px 0 rgba(100,116,139,.1)}
-.hanzi-toggle-switch{position:relative;display:inline-block;width:18px;height:10px;border-radius:999px;background:#cbd5e1;transition:background .2s ease;vertical-align:middle}
-.hanzi-image-toggle-btn.is-active .hanzi-toggle-switch{background:#f59e0b}
-.hanzi-toggle-knob{position:absolute;left:2px;top:1px;width:8px;height:8px;border-radius:50%;background:#fff;transition:transform .2s ease}
-.hanzi-image-toggle-btn.is-active .hanzi-toggle-knob{transform:translateX(6px)}
+.hanzi-book-topline{position:relative;z-index:2}
+.hanzi-book-topline .lesson-card-kicker{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.hanzi-illustration-holder{position:relative;z-index:1;display:flex;justify-content:center;align-items:center;margin:8px auto 4px;max-height:160px;transition:opacity .2s ease,max-height .2s ease,margin .2s ease;overflow:hidden}
-.hanzi-illustration-holder.is-hidden{opacity:0;max-height:0;margin:0 auto;pointer-events:none}
+.lesson-image-toggle-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:2px solid #e0cef7;background:#fff;color:#6b4a9c;font-size:11px;font-weight:900;box-shadow:0 2px 0 rgba(105,70,160,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s ease}
+.lesson-image-toggle-btn.is-active{background:#fff8ee;border-color:#f59e0b;color:#b45309;box-shadow:0 2px 0 rgba(245,158,11,.2)}
+.lesson-image-toggle-btn.is-testing{background:#f1f5f9;border-color:#cbd5e1;color:#475569;box-shadow:0 2px 0 rgba(100,116,139,.1)}
+.lesson-toggle-switch{position:relative;display:inline-block;width:18px;height:10px;border-radius:999px;background:#cbd5e1;transition:background .2s ease;vertical-align:middle}
+.lesson-image-toggle-btn.is-active .lesson-toggle-switch{background:#f59e0b}
+.lesson-toggle-knob{position:absolute;left:2px;top:1px;width:8px;height:8px;border-radius:50%;background:#fff;transition:transform .2s ease}
+.lesson-image-toggle-btn.is-active .lesson-toggle-knob{transform:translateX(6px)}
+
+.hanzi-illustration-holder{position:relative;z-index:1;margin:8px auto 4px;max-height:160px}
+
 .hanzi-illustration-img{width:min(180px,46vw);height:auto;max-height:135px;object-fit:contain;border-radius:20px;background:#fff;border:3px solid #fff;box-shadow:0 8px 18px rgba(141,93,53,.15);transition:transform .2s ease}
 .hanzi-illustration-img:hover{transform:scale(1.03)}
 
-.hanzi-spellbook-group-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;background:#fff;border:2px solid #ecd6b3;color:#85582f;font-size:12px;font-weight:900;box-shadow:0 2px 0 rgba(141,93,53,.1);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:transform .15s ease,border-color .15s ease,background .15s ease}
-.hanzi-spellbook-group-btn svg{width:13px;height:13px;color:#ae7d4c}
-.hanzi-spellbook-group-btn:hover,.hanzi-spellbook-group-btn:focus-visible{border-color:#c89456;background:#fffdf8;transform:translateY(-1px)}
+
+
+
 
 /* Hanzi group words full-screen stage */
 .modal.hanzi-fullscreen-modal{
@@ -417,7 +417,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color:#b45309;
   box-shadow:0 2px 0 rgba(245,158,11,.18)
 }
-.hanzi-fullscreen-toggle-btn .hanzi-toggle-switch{
+.hanzi-fullscreen-toggle-btn .lesson-toggle-switch{
   position:relative;
   display:inline-block;
   width:18px;
@@ -428,10 +428,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   vertical-align:middle;
   margin-left:2px
 }
-.hanzi-fullscreen-toggle-btn.is-active .hanzi-toggle-switch{
+.hanzi-fullscreen-toggle-btn.is-active .lesson-toggle-switch{
   background:#f59e0b
 }
-.hanzi-fullscreen-toggle-btn .hanzi-toggle-knob{
+.hanzi-fullscreen-toggle-btn .lesson-toggle-knob{
   position:absolute;
   left:2px;
   top:1px;
@@ -441,7 +441,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background:#fff;
   transition:transform .2s ease
 }
-.hanzi-fullscreen-toggle-btn.is-active .hanzi-toggle-knob{
+.hanzi-fullscreen-toggle-btn.is-active .lesson-toggle-knob{
   transform:translateX(6px)
 }
 .hanzi-fullscreen-play-btn{
@@ -723,7 +723,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="2"] .hanzi-card-big-text{font-size:clamp(26px,min(8vw,8vh),42px)}
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="3"] .hanzi-card-big-text{font-size:clamp(19px,min(6vw,6vh),30px)}
   .hanzi-fullscreen-grid[data-density="dense"] .hanzi-fullscreen-card[data-hanzi-length="4"] .hanzi-card-big-text{font-size:clamp(19px,min(6vw,6.5vh),32px)}
-  .hanzi-spellbook-group-btn{padding:4px 9px;font-size:11px}
+  
 }
 
 
@@ -1510,3 +1510,15 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .hanzi-glyph.speaking small{background:#ffe6c7;color:#b45f1a;box-shadow:0 2px 0 rgba(180,95,26,.18)}
 @keyframes hanziSpeakPulse{from{transform:scale(1)}to{transform:scale(1.07)}}
 @media(prefers-reduced-motion:reduce){.hanzi-glyph.speaking b{animation:none}}
+
+/* 三张学习卡片（单词森林 / 汉字图书塔 / 朗诵小舞台）共用的骨架零件 */
+.lesson-card-topline{grid-column:1/-1;justify-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;text-align:left}
+.lesson-card-kicker{margin:0;min-width:0;overflow:hidden;color:#7a55c0;font-size:12px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.lesson-card-actions{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto}
+.lesson-card-image{display:flex;justify-content:center;align-items:center;margin:2px auto 0;max-height:210px;overflow:hidden;transition:opacity .2s ease,max-height .2s ease,margin .2s ease}
+.lesson-card-image.is-hidden{opacity:0;max-height:0;margin:0 auto;pointer-events:none}
+
+/* 共享组件：「本组(N)」按钮（单词森林 / 汉字图书塔 共用），配色由卡片主题变量决定 */
+.lesson-group-chip{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:5px 12px;border:2px solid #e0cef7;border-radius:999px;background:#fff;color:#6b4a9c;font-size:12px;font-weight:900;box-shadow:0 2px 0 rgba(105,70,160,.1);white-space:nowrap;cursor:pointer;transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.lesson-group-chip:hover,.lesson-group-chip:focus-visible{border-color:#c9aef0;transform:translateY(-1px)}
+.lesson-group-chip svg{width:15px;height:15px}

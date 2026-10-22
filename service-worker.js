@@ -10,6 +10,8 @@ const APP_SHELL = [
   './features/achievements.js',
   './features/theme-catalog.js',
   './features/content-catalog.js',
+  './features/dom.js',
+  './features/lesson-cards.js',
   './features/content-files.js',
   './features/content-sync.js',
   './features/content-channel.js',

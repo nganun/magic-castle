@@ -13,6 +13,8 @@ import { mergeSyncedContent, restoreOfficialContent } from './features/content-s
 import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/content-channel.js';
 import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
+import { escapeHtml } from './features/dom.js';
+import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
 import { DEFAULT_HANZI_CHARS } from './vendor/hanzi-writer/default-chars.js';
@@ -21,7 +23,6 @@ import { getStrokeName } from './vendor/hanzi-writer/stroke-names.js';
 const CHILD_NAME = '荆宝';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const { getText: storageGet, load, save, saveText } = createStorage(() => showToast?.('这台设备暂时无法保存学习记录。'));
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 let globalSpeechRate = clamp(Number(storageGet('luna-global-speech-rate') || 1), .5, 1.5);
@@ -210,7 +211,6 @@ function applyAdminContent() {
 }
 
 
-function hanziSceneMarkup(word) { const scene = HANZI_SCENES[word]; return scene ? `<div class="hanzi-scene scene-${scene.art}" aria-label="${scene.label}"><i></i><i></i><i></i><span>${scene.label}</span></div>` : ''; }
 function wordImage(word) {
   return Object.values(THEMES).flatMap((theme) => theme.rounds).find((round) => round.word === word)?.image || '';
 }
@@ -1432,60 +1432,19 @@ function autoReadWordCard(word) {
   });
 }
 
-function lessonPrimaryActionsMarkup(name = '') {
-  return `<div class="lesson-action-stack">${name ? `<strong class="word-action-name">${escapeHtml(name)}</strong>` : ''}<div class="lesson-primary-actions"><button class="repeat-current-button" id="repeatCurrent" type="button" aria-label="再读一遍，可按 R 键触发"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4.5l5 4.5V4.5L7.5 9H3z" fill="currentColor"/><path d="M16 8.5c1.2 1 2 2.2 2 3.5s-.8 2.5-2 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 5.5c2.3 1.8 3.5 4.1 3.5 6.5s-1.2 4.7-3.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>再读一遍</span><kbd aria-hidden="true">R</kbd></button><button class="primary-button" id="learnNext" type="button" disabled aria-disabled="true"><span class="learn-next-copy"><span id="learnNextLabel">继续</span></span></button></div></div>`;
-}
 function hanziLearnMarkup(game, recordingAction) {
-  const parts = [...game.word];
   const group = activeContentGroup('hanzi');
-  const totalWords = group.words.length;
   const isImageGroup = Boolean(group.image);
   const showImage = isImageGroup && hanziImageHintVisible;
-  const imgUrl = hanziWordImageUrl(game.word);
-
-  const toggleMarkup = isImageGroup ? `
-    <button class="hanzi-image-toggle-btn ${showImage ? 'is-active' : ''}" id="hanziImageToggleBtn" type="button" aria-pressed="${showImage}" aria-label="切换是否开启看图识字">
-      <span class="hanzi-toggle-icon" aria-hidden="true">🖼️</span>
-      <span class="hanzi-toggle-label">看图识字</span>
-      <span class="hanzi-toggle-switch" aria-hidden="true"><i class="hanzi-toggle-knob"></i></span>
-    </button>
-  ` : '';
-
-  const illustrationMarkup = isImageGroup ? `
-    <div class="hanzi-illustration-holder ${showImage ? '' : 'is-hidden'}" id="hanziCardIllustrationHolder">
-      <img class="hanzi-illustration-img" src="${imgUrl}" alt="${escapeHtml(game.word)} 的配图" />
-    </div>
-  ` : '';
-
-  return `
-    <article class="hanzi-spellbook ${isImageGroup ? 'has-illustration-mode' : ''} ${showImage ? 'image-visible' : 'image-hidden'}">
-      <div class="hanzi-book-topline">
-        <p class="hanzi-book-kicker">汉字图书塔 · 会说话的书页</p>
-        <div class="hanzi-topline-actions">
-          ${toggleMarkup}
-          <button class="hanzi-spellbook-group-btn" id="hanziSpellbookGroupBtn" type="button" aria-label="查看本组汉字，共 ${totalWords} 个">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-            <span>本组(${totalWords})</span>
-          </button>
-        </div>
-      </div>
-      <div class="card-progress" id="cardProgressHost"></div>
-      <button class="hanzi-glyph" data-hanzi-length="${parts.length}" id="hanziSpeak" type="button" aria-label="朗读 ${game.word}">
-        <b>${game.word}</b>
-        <small>点一下，听读音</small>
-      </button>
-      ${illustrationMarkup}
-      <div class="hanzi-writer-entry">
-        <button class="hanzi-writer-entry-btn" id="openHanziWriterBtn" type="button" aria-label="练习写字与笔顺描红">
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/></svg>
-          <span>练习写字 (笔顺描红)</span>
-        </button>
-      </div>
-      ${hanziSceneMarkup(game.word)}
-      ${lessonPrimaryActionsMarkup()}
-      ${recordingAction}
-    </article>
-  `;
+  return hanziLearnCardMarkup({
+    word: game.word,
+    totalWords: group.words.length,
+    isImageGroup,
+    showImage,
+    imageUrl: hanziWordImageUrl(game.word),
+    actions: lessonPrimaryActionsMarkup(),
+    recording: recordingAction,
+  });
 }
 let hanziPlaybackTimer = null;
 let hanziPlaybackRunId = 0;
@@ -2168,25 +2127,20 @@ function renderRound() {
     const learnGroup = currentTheme().id === 'english' ? activeContentGroup('english') : null;
     const groupPath = learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title;
     const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
-    const groupIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
-    // 英文分组开了 image 就给"看图识字"开关，做法与汉字卡片一致
-    const imageToggleMarkup = learnGroup?.image ? `
-      <button class="hanzi-image-toggle-btn ${englishImageHintVisible ? 'is-active' : ''}" id="englishImageToggleBtn" type="button" aria-pressed="${englishImageHintVisible}" aria-label="切换是否开启看图识字">
-        <span class="hanzi-toggle-icon" aria-hidden="true">🖼️</span>
-        <span class="hanzi-toggle-label">看图识字</span>
-        <span class="hanzi-toggle-switch" aria-hidden="true"><i class="hanzi-toggle-knob"></i></span>
-      </button>
-    ` : '';
-    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><span class="learn-word-card-actions">${imageToggleMarkup}<button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></span></div>`;
-    // 关掉"看图识字"时整个图片区域隐藏（与汉字卡片一致）
-    const imageArea = learnGroup?.image ? `
-      <div class="learn-word-image-holder ${englishImageHintVisible ? '' : 'is-hidden'}" id="englishCardImageHolder">
-        <img src="${game.image}" alt="${escapeHtml(game.word)} 的配图" />
-      </div>
-    ` : '';
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><div class="learn-word-copy"><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${imageArea}${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : englishLearnCardMarkup({
+        word: game.word,
+        note: game.zh,
+        image: game.image,
+        groupPath: learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title,
+        groupCount: learnGroup ? learnGroup.words.length : currentTheme().words.length,
+        hasImage: Boolean(learnGroup?.image),
+        showImage: englishImageHintVisible,
+        sentence: sentenceMarkup(game.word),
+        actions: lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`),
+        recording: recordingAction,
+      });
     // 插图缺失时退回文字卡片，避免出现破图
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
@@ -2210,7 +2164,18 @@ function renderRound() {
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-head-row"><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div>${gapRow}</div><h2>${escapeHtml(game.title || game.word)}</h2><div class="card-progress" id="cardProgressHost"></div><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    const modeSwitch = `<div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div>`;
+    area.innerHTML = recitalLearnCardMarkup({
+      title: game.title || game.word,
+      wholePiece,
+      modeSwitch,
+      gapRow,
+      manuscript,
+      hint: wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读',
+      tip: wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh,
+      actions: lessonPrimaryActionsMarkup(),
+      recording: recordingAction,
+    });
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
       playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
