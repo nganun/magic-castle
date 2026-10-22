@@ -112,15 +112,11 @@ export function shuffled(values) {
 
 export function createMemoryDeck(pairCount = 2) {
   const source = ARCADE_HANZI_PICTURE_ITEMS.length ? ARCADE_HANZI_PICTURE_ITEMS : ARCADE_PICTURE_ITEMS;
-  let pool = [];
-  if (pairCount <= source.length) {
-    pool = shuffled(source).slice(0, pairCount);
-  } else {
-    while (pool.length < pairCount) {
-      pool.push(...shuffled(source));
-    }
-    pool = pool.slice(0, pairCount).map((item, i) => ({ ...item, id: `${item.id}_${i}` }));
-  }
+  // 图标不够时不要重复用同一张：同一张图出现在四张牌上，孩子会点出「图案一样却不配对」。
+  // 宁可少发几对，也不要让相同的图案对应不同的 id。
+  const count = Math.min(Math.max(1, pairCount), source.length);
+  const pool = shuffled(source).slice(0, count);
+  // 一对牌共用同一个 id：配对判定和进度都靠它
   return shuffled([...pool, ...pool].map((item, index) => ({ ...item, cardId: `${item.id}-${index}` })));
 }
 

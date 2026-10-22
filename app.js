@@ -792,27 +792,35 @@ const ARCADE_FALLBACK_COLORS = [
   { id: 'orange', label: '橙色', image: 'assets/learning/vocabulary/jump.svg', color: '#ff8c37' },
   { id: 'sky', label: '天蓝', image: 'assets/learning/vocabulary/cat.svg', color: '#3ec9f5' },
 ];
+// 魔法翻翻乐：size 是每排几张卡，pairs 是对数（卡片总数 = pairs × 2）
 const ARCADE_MEMORY_LEVELS = [
-  { level: 1, size: 2, pairs: 2, label: '2×2' },
+  { level: 1, size: 2, pairs: 3, label: '2×3' },
   { level: 2, size: 4, pairs: 8, label: '4×4' },
-  { level: 3, size: 6, pairs: 18, label: '6×6' },
-  { level: 4, size: 8, pairs: 32, label: '8×8' },
-  { level: 5, size: 10, pairs: 50, label: '10×10' }
+  { level: 3, size: 4, pairs: 12, label: '4×6' },
+  { level: 4, size: 6, pairs: 18, label: '6×6' },
+  { level: 5, size: 6, pairs: 24, label: '6×8' }
 ];
 
 function getArcadeMemoryDeck(pairCount = 2) {
   let deck = null;
   try { deck = createMemoryDeck(pairCount); } catch {}
-  if (deck && deck.length === pairCount * 2) return deck;
+  if (deck && deck.length >= 2) return deck;
   const source = ARCADE_HANZI_PICTURE_ITEMS?.length ? ARCADE_HANZI_PICTURE_ITEMS : ARCADE_FALLBACK_PICTURES;
-  let pool = [];
-  if (pairCount <= source.length) {
-    pool = [...source].sort(() => Math.random() - 0.5).slice(0, pairCount);
-  } else {
-    while (pool.length < pairCount) pool.push(...[...source].sort(() => Math.random() - 0.5));
-    pool = pool.slice(0, pairCount).map((item, i) => ({ ...item, id: `${item.id}_${i}` }));
-  }
+  // 图标不够就少发几对，绝不让同一张图配成不同的 id（否则图案一样却永远不成功）
+  const count = Math.min(Math.max(1, pairCount), source.length);
+  const pool = [...source].sort(() => Math.random() - 0.5).slice(0, count);
   return [...pool, ...pool].sort(() => Math.random() - 0.5).map((item, index) => ({ ...item, cardId: `${item.id}-${index}` }));
+}
+// 牌桌尺寸：每排几张 × 几排，按实际牌组算
+function memoryLevelLabel(config, deck) {
+  const columns = config.size;
+  const rows = Math.ceil((deck?.length || 0) / columns);
+  return `${columns}×${rows}`;
+}
+// 通关反馈：胜利音效 + 彩纸
+function celebrateArcadeLevel() {
+  if (state.soundOn) playSfx('fanfare');
+  triggerConfetti();
 }
 function getArcadeListeningRound(choiceCount = 2) {
   let round = null;
@@ -846,21 +854,34 @@ function renderMemoryGame(area) {
   }
   const game = state.arcadeState;
   const currentConfig = ARCADE_MEMORY_LEVELS.find((cfg) => cfg.level === game.level) || ARCADE_MEMORY_LEVELS[0];
-  const pairGoal = currentConfig.pairs;
+  const pairGoal = new Set(game.deck.map((card) => card.id)).size;
+  const levelLabel = memoryLevelLabel(currentConfig, game.deck);
+  const popping = new Set(game.popping || []);
+  const flipping = new Set(game.flipping || []);
   area.innerHTML = arcadeFrame(
     '魔法翻翻乐',
-    `第 ${game.level} 关 · ${currentConfig.label} 卡片 (${game.matched.length} / ${pairGoal} 对)`,
+    `第 ${game.level} 关 · ${levelLabel} 卡片 (${game.matched.length} / ${pairGoal} 对)`,
     `<div class="memory-grid memory-grid-${currentConfig.size} memory-pairs-${pairGoal}" style="--memory-size:${currentConfig.size}">${game.deck.map((card, index) => {
       const visible = game.open.includes(index) || game.matched.includes(card.id);
-      return `<button class="memory-card ${visible ? 'open' : ''} ${game.matched.includes(card.id) ? 'matched' : ''}" type="button" data-memory-index="${index}" ${visible ? 'disabled' : ''}>${visible ? `<img src="${card.image}" alt="${card.label}" /><span>${card.label}</span>` : '<b>✦</b>'}</button>`;
+      const classes = ['memory-card'];
+      if (visible) classes.push('open');
+      if (game.matched.includes(card.id)) classes.push('matched');
+      if (flipping.has(index)) classes.push('card-flip');
+      if (popping.has(index)) classes.push('match-pop');
+      return `<button class="${classes.join(' ')}" type="button" data-memory-index="${index}" ${visible ? 'disabled' : ''}>${visible ? `<img src="${card.image}" alt="${card.label}" /><span>${card.label}</span>` : '<b>✦</b>'}</button>`;
     }).join('')}</div>`,
     arcadeLevelProgress(game.level, game.maxLevels)
   );
+  // 特效只播一次
+  game.popping = [];
+  game.flipping = [];
   bindArcadeBack();
   $$('[data-memory-index]', area).forEach((button) => button.addEventListener('click', () => {
     const index = Number(button.dataset.memoryIndex);
     if (game.open.length >= 2 || game.open.includes(index) || game.matched.includes(game.deck[index].id)) return;
     game.open.push(index);
+    game.flipping = [index]; // 翻牌的小弹跳
+    if (state.soundOn) playSfx('pop'); // 翻牌音效
     renderMemoryGame(area);
     if (game.open.length !== 2) return;
     const [first, second] = game.open;
@@ -869,14 +890,17 @@ function renderMemoryGame(area) {
       if (isMatch) {
         game.matched.push(game.deck[first].id);
         game.open = [];
-        if (game.matched.length >= currentConfig.pairs) {
+        game.popping = [first, second]; // 匹配成功特效
+        if (state.soundOn) playSfx('ding');
+        if (game.matched.length >= pairGoal) {
           if (game.level < game.maxLevels) {
             game.level += 1;
             const nextConfig = ARCADE_MEMORY_LEVELS.find((cfg) => cfg.level === game.level) || ARCADE_MEMORY_LEVELS[game.level - 1];
             game.deck = getArcadeMemoryDeck(nextConfig.pairs);
             game.matched = [];
             game.open = [];
-            showToast(`🎉 第 ${game.level - 1} 关完成！进入第 ${game.level} 关（${nextConfig.label} 翻翻乐）`);
+            celebrateArcadeLevel();
+            showToast(`🎉 第 ${game.level - 1} 关完成！进入第 ${game.level} 关（${memoryLevelLabel(nextConfig, game.deck)} 翻翻乐）`);
             renderMemoryGame(area);
             return;
           }
@@ -916,6 +940,7 @@ function renderListeningGame(area) {
           const nextRound = getArcadeListeningRound(choiceCount);
           game.answer = nextRound.answer;
           game.choices = nextRound.choices;
+          celebrateArcadeLevel();
           showToast(`🌟 第 ${game.level - 1} 关答对！进入第 ${game.level} 关（${choiceCount} 个选项）`);
           renderListeningGame(area);
           return;
@@ -951,6 +976,7 @@ function renderNumberGame(area) {
           const nextRound = createNumberRound(game.level);
           game.answer = nextRound.answer;
           game.choices = nextRound.choices;
+          celebrateArcadeLevel();
           showToast(`🎈 第 ${game.level - 1} 关点破！进入第 ${game.level} 关`);
           renderNumberGame(area);
           return;

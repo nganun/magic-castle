@@ -1592,3 +1592,12 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .number-dots{width:calc(5*6px + 4*2px);gap:2px}
 .number-dots s{width:6px;height:6px}
 @media(prefers-reduced-motion:reduce){.number-pyramid-step.is-speaking,.number-quiz-choice.correct{animation:none}}
+
+/* ===== 魔法翻翻乐：翻牌与匹配成功特效 ===== */
+.memory-card.card-flip{animation:memoryCardFlip .34s ease-out}
+@keyframes memoryCardFlip{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
+.memory-card.match-pop{animation:memoryMatchPop .62s ease-out}
+@keyframes memoryMatchPop{0%{transform:scale(1)}32%{transform:scale(1.16)}62%{transform:scale(.97)}100%{transform:scale(1)}}
+.memory-card.match-pop::after{content:'✦';position:absolute;inset:-8px;display:grid;place-items:center;font-size:22px;color:#ffd447;text-shadow:0 0 14px rgba(255,212,71,.95),0 0 4px rgba(255,255,255,.9);animation:memoryMatchSparkle .72s ease-out both;pointer-events:none}
+@keyframes memoryMatchSparkle{0%{opacity:0;transform:scale(.3) rotate(-20deg)}35%{opacity:1;transform:scale(1.35) rotate(10deg)}100%{opacity:0;transform:scale(2.1) rotate(40deg)}}
+@media(prefers-reduced-motion:reduce){.memory-card.card-flip,.memory-card.match-pop,.memory-card.match-pop::after{animation:none}}
