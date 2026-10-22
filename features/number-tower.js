@@ -106,14 +106,18 @@ function pyramidRows(numbers) {
   return rows;
 }
 
-function numberTile(count) {
-  // 11~20 用「十 + 几个一」表示，1~10 直接数小圆点
+// 数量表示：1~10 数圆点；11~20 用「十 + 几个一」。圆点每行最多 5 个（CSS 控制）。
+function quantityMarkup(count) {
   const tens = count > 10 ? Math.floor(count / 10) : 0;
   const ones = count > 10 ? count % 10 : count;
-  const blocks = tens ? `<i class="number-pyramid-ten">${'十'.repeat(tens)}</i>` : '';
-  const dots = ones ? `<i class="number-pyramid-dots">${'<s></s>'.repeat(ones)}</i>` : '';
+  const ten = tens ? `<i class="number-quantity-ten">${'十'.repeat(tens)}</i>` : '';
+  const dots = ones ? `<i class="number-dots">${'<s></s>'.repeat(ones)}</i>` : '';
+  return `<span class="number-quantity">${ten}${dots}</span>`;
+}
+
+function numberTile(count) {
   return `<button class="number-pyramid-step" type="button" data-number="${count}" aria-label="数字 ${count}，${numberChinese(count)}">
-      <b>${count}</b><span class="number-pyramid-quantity">${blocks}${dots}</span>
+      <b>${count}</b>${quantityMarkup(count)}
     </button>`;
 }
 
@@ -129,7 +133,8 @@ function equationRound({ a, op, b }) {
     prompt: `${a} ${op === '+' ? '加' : '减'} ${b} 等于几？`,
     zh: op === '+' ? `左边 ${a} 颗，右边 ${b} 颗，合起来一共几颗？` : `本来有 ${a} 颗，拿走 ${b} 颗，还剩几颗？`,
     equation: `${a} ${op === '+' ? '+' : '−'} ${b} = ?`,
-    choices: options.map((value) => ({ value: String(value), label: String(value), sub: numberChinese(value) })),
+    // 选项：数字 + 对应数量的星星（不显示汉字）
+    choices: options.map((value) => ({ value: String(value), label: String(value), count: value })),
     correct: String(answer),
     word: String(answer),
     toast: `答对啦！${numberChinese(answer)}`,
@@ -143,10 +148,11 @@ function compareRound({ a, b }) {
     image: compareCardPath({ a, b }),
     prompt: '哪一边的星星更多？',
     zh: '数一数，看哪边的星星更多，再点它。',
-    equation: '哪边多？',
+    equation: `${a} 和 ${b}，哪边多？`,
+    // 选项：哪一边 + 该边的数字与星星数
     choices: [
-      { value: 'left', label: '左边', sub: '←' },
-      { value: 'right', label: '右边', sub: '→' },
+      { value: 'left', label: String(a), side: '左边', count: a },
+      { value: 'right', label: String(b), side: '右边', count: b },
     ],
     correct: answer,
     word: String(Math.max(a, b)),
@@ -234,7 +240,9 @@ export function numberSpotlightMarkup(count) {
 /** 练习卡：算式题或比多少题。 */
 export function numberQuizCardMarkup({ stage, title, image, equation, prompt, hint, choices }) {
   const options = choices.map((choice) => `<button class="number-quiz-choice" type="button" data-choice="${escapeHtml(choice.value)}">
-      <b>${escapeHtml(choice.label)}</b>${choice.sub ? `<span>${escapeHtml(choice.sub)}</span>` : ''}
+      ${choice.side ? `<span class="number-quiz-side">${escapeHtml(choice.side)}</span>` : ''}
+      <b>${escapeHtml(choice.label)}</b>
+      ${typeof choice.count === 'number' ? quantityMarkup(choice.count) : ''}
     </button>`).join('');
   return `<article class="number-quiz-card">
       ${lessonCardCurtainMarkup()}

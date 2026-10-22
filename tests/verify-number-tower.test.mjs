@@ -57,6 +57,18 @@ test('练习卡：正确答案一定在选项里，选项不重复', () => {
     assert.ok(values.includes(quiz.correct), `正确答案 ${quiz.correct} 不在选项里`);
     assert.equal(new Set(values).size, values.length, '选项有重复');
     assert.ok(quiz.image && quiz.equation && quiz.prompt && quiz.zh);
+    // 选项只给数字和对应数量（星星数），不再显示汉字
+    quiz.choices.forEach((choice) => {
+      assert.equal(choice.sub, undefined, '选项里不该再有汉字');
+      assert.equal(typeof choice.count, 'number', '选项要带对应数量');
+    });
+    if (quiz.kind === 'equation') {
+      quiz.choices.forEach((choice) => assert.equal(choice.count, Number(choice.value)));
+    } else {
+      // 比多少：左边右边各自显示自己的数字
+      assert.deepEqual(quiz.choices.map((choice) => choice.count).sort(), [quiz.a, quiz.b].sort());
+      assert.ok(quiz.choices.every((choice) => choice.side));
+    }
   });
 });
 

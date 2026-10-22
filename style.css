@@ -1523,48 +1523,49 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .lesson-group-chip svg{width:15px;height:15px}
 
 /* ===== 数字高塔（number 主题）：关卡封面 / 数字板 / 练习卡 ===== */
-.number-stage-card,.number-tower-card,.number-quiz-card{position:relative;max-width:520px;margin:16px auto 0;padding:20px 22px 24px;display:grid;justify-items:center;text-align:center;gap:12px;border:4px solid #e8ddfb;border-radius:34px;background:#fff;box-shadow:0 10px 0 rgba(116,80,183,.1)}
+.number-stage-card,.number-tower-card,.number-quiz-card{position:relative;max-width:600px;margin:16px auto 0;padding:24px 26px 28px;display:grid;justify-items:center;text-align:center;gap:12px;border:4px solid #e8ddfb;border-radius:34px;background:#fff;box-shadow:0 10px 0 rgba(116,80,183,.1)}
 .number-stage-card>.lesson-card-topline,.number-tower-card>.lesson-card-topline,.number-quiz-card>.lesson-card-topline,.number-stage-card>.card-progress,.number-tower-card>.card-progress,.number-quiz-card>.card-progress{grid-column:1/-1;width:100%}
 .number-stage-card>.lesson-action-stack,.number-tower-card>.lesson-action-stack,.number-quiz-card>.lesson-action-stack{grid-column:1/-1;width:100%}
 .lesson-group-chip.is-static{cursor:default;pointer-events:none}
-.number-stage-badge{display:inline-flex;align-items:center;justify-content:center;min-width:126px;padding:8px 20px;border-radius:999px;background:linear-gradient(145deg,#ffe9a3,#ffd447);color:#7a5200;font-family:"Baloo 2";font-size:20px;font-weight:900;box-shadow:0 4px 0 rgba(200,140,0,.2)}
-.number-stage-card h2{margin:2px 0 0;font-family:"Baloo 2";font-size:42px;line-height:1.05;color:#5a388b}
+.number-stage-badge{display:inline-flex;align-items:center;justify-content:center;min-width:138px;padding:9px 22px;border-radius:999px;background:linear-gradient(145deg,#ffe9a3,#ffd447);color:#7a5200;font-family:"Baloo 2";font-size:22px;font-weight:900;box-shadow:0 4px 0 rgba(200,140,0,.2)}
+.number-stage-card h2{margin:2px 0 0;font-family:"Baloo 2";font-size:48px;line-height:1.05;color:#5a388b}
 .number-stage-goal{margin:0;max-width:340px;color:#7e6a91;font-size:15px;font-weight:800;line-height:1.5}
 .number-stage-preview{display:flex;gap:8px;justify-content:center}
 .number-stage-preview img{width:104px;height:78px;object-fit:contain;border:3px solid #f0e6ff;border-radius:18px;background:#fbf8ff}
 .number-tower-goal{margin:0;color:#7e6a91;font-size:14px;font-weight:800;line-height:1.45}
 .number-pyramid{display:grid;gap:6px;justify-items:center;width:100%;padding:10px 4px;border-radius:24px;background:linear-gradient(180deg,#f8f3ff,#eee5ff)}
 .number-pyramid-row{display:flex;gap:8px;justify-content:center}
-.number-pyramid-step{display:grid;justify-items:center;align-content:center;gap:1px;min-width:54px;min-height:54px;padding:5px 7px;border:3px solid #e2d5fb;border-radius:16px;background:#fff;color:#6b4aa0;box-shadow:0 3px 0 rgba(103,65,164,.12);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
-.number-pyramid-step b{font-family:"Baloo 2";font-size:22px;line-height:1}
-.number-pyramid-quantity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;max-width:56px;font-style:normal}
-.number-pyramid-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:56px;font-style:normal}
-.number-pyramid-dots s{display:block;width:6px;height:6px;border-radius:50%;background:#f2c53d;box-shadow:0 1px 0 rgba(200,140,0,.25)}
-.number-pyramid-ten{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 3px;border-radius:6px;background:#f6e0ff;color:#7b4ab8;font-family:KaiTi,STKaiti,serif;font-size:12px;font-style:normal;font-weight:700;line-height:1}
+.number-quantity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;max-width:70px;font-style:normal}
+.number-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;width:calc(5*7px + 4*3px);max-width:100%;font-style:normal}
+.number-dots s{display:block;width:7px;height:7px;border-radius:50%;background:#f2c53d;box-shadow:0 1px 0 rgba(200,140,0,.25)}
+.number-quantity-ten{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 4px;border-radius:7px;background:#f6e0ff;color:#7b4ab8;font-family:KaiTi,STKaiti,serif;font-size:13px;font-style:normal;font-weight:700;line-height:1}
+.number-pyramid-step{display:grid;justify-items:center;align-content:center;gap:2px;min-width:64px;min-height:70px;padding:7px 8px;border:3px solid #e2d5fb;border-radius:18px;background:#fff;color:#6b4aa0;box-shadow:0 3px 0 rgba(103,65,164,.12);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+.number-pyramid-step b{font-family:"Baloo 2";font-size:27px;line-height:1}
 .number-pyramid-step:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(103,65,164,.12)}
 .number-pyramid-step.is-lit{border-color:#ffd447;background:linear-gradient(145deg,#fff9df,#ffe9a3);color:#7a5200;box-shadow:0 3px 0 rgba(200,140,0,.22)}
 .number-pyramid-step.is-speaking{animation:numberStepPop .6s ease-out}
 @keyframes numberStepPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
 .number-spotlight{display:flex;align-items:center;gap:14px;min-height:96px;width:100%;padding:10px 16px;border-radius:22px;border:3px dashed #f0dca8;background:linear-gradient(145deg,#fffaf0,#fff3d6)}
 .number-spotlight.is-empty{min-height:0;padding:12px 16px;justify-content:center}.number-spotlight-empty{margin:0;color:#a0845f;font-size:14px;font-weight:800;text-align:center}
-.number-spotlight img{width:104px;height:78px;object-fit:contain;flex:0 0 auto}
+.number-spotlight img{width:126px;height:95px;object-fit:contain;flex:0 0 auto}
 .number-spotlight-word{display:grid;justify-items:start;gap:1px;min-width:0}
-.number-spotlight-word b{font-family:"Baloo 2";font-size:30px;line-height:1;color:#6b4a9c}
+.number-spotlight-word b{font-family:"Baloo 2";font-size:34px;line-height:1;color:#6b4a9c}
 .number-spotlight-word em{font-style:normal;color:#e0609c;font-size:16px;font-weight:900}
 .number-tower-meter{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:900;color:#91653e}
 .number-tower-meter b{font-family:"Baloo 2";font-size:19px;color:#e0609c}
 .number-tower-meter-stars{color:#f2c53d;letter-spacing:2px;font-size:13px}
 .number-quiz-stage{display:flex;align-items:center;gap:16px;width:100%}
-.number-quiz-figure{width:152px;height:114px;flex:0 0 auto;object-fit:contain;border:3px solid #eee2ff;border-radius:22px;background:#fff}
+.number-quiz-figure{width:196px;height:147px;flex:0 0 auto;object-fit:contain;border:3px solid #eee2ff;border-radius:24px;background:#fff}
 .number-quiz-copy{min-width:0;text-align:left}
-.number-quiz-copy h2{margin:0;font-family:"Baloo 2";font-size:40px;line-height:1.05;color:#5a388b;white-space:nowrap}
-.number-quiz-copy p{margin:6px 0 0;color:#7e6a91;font-size:13.5px;font-weight:800;line-height:1.45}
+.number-quiz-copy h2{margin:0;font-family:"Baloo 2";font-size:46px;line-height:1.05;color:#5a388b;white-space:nowrap}
+.number-quiz-copy p{margin:6px 0 0;color:#7e6a91;font-size:15px;font-weight:800;line-height:1.45}
 .number-quiz-listen{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:999px;border:2px solid #e2d7f0;background:#fff;color:#6b4aa0;font-size:13px;font-weight:900;box-shadow:0 3px 0 rgba(96,61,152,.12);cursor:pointer}
 .number-quiz-listen svg{width:17px;height:17px;fill:currentColor}
 .number-quiz-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,120px));gap:12px;width:100%;justify-content:center}
-.number-quiz-choice{display:grid;justify-items:center;align-content:center;gap:2px;min-height:84px;padding:10px 8px;border:3px solid #e6dcff;border-radius:22px;background:linear-gradient(145deg,#f8f2ff,#e6d8ff);color:#583a86;box-shadow:0 5px 0 rgba(103,65,164,.14);cursor:pointer;transition:transform .16s ease}
-.number-quiz-choice b{font-family:"Baloo 2";font-size:30px;line-height:1}
-.number-quiz-choice span{font-size:12px;font-weight:900;opacity:.75}
+.number-quiz-choice{display:grid;justify-items:center;align-content:center;gap:3px;min-height:104px;padding:12px 10px;border:3px solid #e6dcff;border-radius:24px;background:linear-gradient(145deg,#f8f2ff,#e6d8ff);color:#583a86;box-shadow:0 5px 0 rgba(103,65,164,.14);cursor:pointer;transition:transform .16s ease}
+.number-quiz-choice b{font-family:"Baloo 2";font-size:38px;line-height:1}
+.number-quiz-choice .number-quiz-side{font-size:13px;font-weight:900;opacity:.72}
+.number-quiz-choice .number-quantity{max-width:64px}
 .number-quiz-choice:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(103,65,164,.14)}
 .number-quiz-choice.try-again{opacity:.4;filter:grayscale(.35)}
 .number-quiz-choice.correct{border-color:#b6e08a;background:#e7f9c6;color:#48742f;animation:numberChoicePop .5s ease-out}
@@ -1574,17 +1575,20 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .number-stage-goal{font-size:13px}
 .number-pyramid{padding:8px 2px;gap:5px}
 .number-pyramid-row{gap:6px}
-.number-pyramid-step{min-width:44px;min-height:46px;padding:4px 5px;border-width:2px;border-radius:13px}
-.number-pyramid-step b{font-size:19px}
+.number-pyramid-step{min-width:52px;min-height:60px;padding:5px 6px;border-width:2px;border-radius:14px}
+.number-pyramid-step b{font-size:23px}
 .number-spotlight{min-height:78px;padding:8px 12px;gap:10px}
-.number-spotlight img{width:78px;height:60px}
+.number-spotlight img{width:92px;height:69px}
 .number-spotlight-word b{font-size:24px}
 .number-quiz-stage{flex-direction:column;gap:8px}
-.number-quiz-figure{width:132px;height:99px;margin:0 auto}
+.number-quiz-figure{width:158px;height:119px;margin:0 auto}
 .number-quiz-copy{text-align:center}
-.number-quiz-copy h2{font-size:32px;white-space:normal}
+.number-quiz-copy h2{font-size:36px;white-space:normal}
 .number-quiz-copy p{font-size:12.5px}
 .number-quiz-choices{gap:9px}
-.number-quiz-choice{min-height:72px;border-radius:18px}
-.number-quiz-choice b{font-size:26px}}
+.number-quiz-choice{min-height:92px;border-radius:20px}
+.number-quiz-choice b{font-size:32px}
+.number-quiz-choice .number-quantity{max-width:60px}
+.number-dots{width:calc(5*6px + 4*2px);gap:2px}
+.number-dots s{width:6px;height:6px}
 @media(prefers-reduced-motion:reduce){.number-pyramid-step.is-speaking,.number-quiz-choice.correct{animation:none}}
