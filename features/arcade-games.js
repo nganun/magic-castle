@@ -91,11 +91,11 @@ export const ARCADE_COLOR_ITEMS = [
   { id: 'red', label: '红色', image: 'assets/learning/vocabulary/red.svg', color: '#ef6274' },
   { id: 'yellow', label: '黄色', image: 'assets/learning/vocabulary/yellow.svg', color: '#f4c952' },
   { id: 'blue', label: '蓝色', image: 'assets/learning/vocabulary/blue.svg', color: '#75a8f0' },
-  { id: 'green', label: '绿色', image: 'assets/learning/vocabulary/rabbit.svg', color: '#48c269' },
-  { id: 'pink', label: '粉色', image: 'assets/learning/vocabulary/clap.svg', color: '#f06eb0' },
-  { id: 'purple', label: '紫色', image: 'assets/learning/vocabulary/dance.svg', color: '#8d5cd6' },
-  { id: 'orange', label: '橙色', image: 'assets/learning/vocabulary/jump.svg', color: '#ff8c37' },
-  { id: 'sky', label: '天蓝', image: 'assets/learning/vocabulary/cat.svg', color: '#3ec9f5' },
+  { id: 'green', label: '绿色', image: 'assets/learning/vocabulary/green.svg', color: '#48c269' },
+  { id: 'pink', label: '粉色', image: 'assets/learning/vocabulary/pink.svg', color: '#f06eb0' },
+  { id: 'purple', label: '紫色', image: 'assets/learning/vocabulary/purple.svg', color: '#8d5cd6' },
+  { id: 'orange', label: '橙色', image: 'assets/learning/vocabulary/orange.svg', color: '#ff8c37' },
+  { id: 'sky', label: '天蓝', image: 'assets/learning/vocabulary/sky.svg', color: '#3ec9f5' },
 ];
 
 export const RHYTHM_COLORS = ['violet', 'gold', 'sky', 'pink'];
@@ -120,11 +120,16 @@ export function createMemoryDeck(pairCount = 2) {
   return shuffled([...pool, ...pool].map((item, index) => ({ ...item, cardId: `${item.id}-${index}` })));
 }
 
-export function createListeningRound(choiceCount = 3) {
-  const count = Math.max(2, Math.min(choiceCount, ARCADE_PICTURE_ITEMS.length));
-  const choices = shuffled(ARCADE_PICTURE_ITEMS).slice(0, count);
+// 听音找一找：
+// picture 模式读英文词、找对应图片；hanzi 模式读中文词、找对应汉字。
+export function createListeningRound(choiceCount = 3, mode = 'picture') {
+  const source = mode === 'hanzi'
+    ? (ARCADE_HANZI_PICTURE_ITEMS.length ? ARCADE_HANZI_PICTURE_ITEMS : ARCADE_PICTURE_ITEMS)
+    : ARCADE_PICTURE_ITEMS;
+  const count = Math.max(2, Math.min(choiceCount, source.length));
+  const choices = shuffled(source).slice(0, count);
   const answer = choices[Math.floor(Math.random() * choices.length)];
-  return { answer, choices };
+  return { answer, choices, mode };
 }
 
 export function createColorRound(choiceCount = 3) {
@@ -143,11 +148,11 @@ export function createNumberRound(level = 1) {
     { max: 100, count: 7 },
   ][Math.min(level - 1, 4)] || { max: 10, count: 3 };
 
-  const answer = Math.floor(Math.random() * config.max) + 1;
+  // 数字范围 0 ~ max（含 0）
+  const pick = () => Math.floor(Math.random() * (config.max + 1));
+  const answer = pick();
   const pool = new Set([answer]);
-  while (pool.size < config.count) {
-    pool.add(Math.floor(Math.random() * config.max) + 1);
-  }
+  while (pool.size < config.count) pool.add(pick());
   return { answer, choices: shuffled([...pool]) };
 }
 

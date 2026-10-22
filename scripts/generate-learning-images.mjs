@@ -23,6 +23,7 @@ const COLOR_PALETTE = {
   pink: { bg: '#fff0f7', main: '#f472b6', light: '#ffc3e2' },
   yellow: { bg: '#fff9df', main: '#f2c53d', light: '#ffe9a3' },
   orange: { bg: '#fff2e6', main: '#f3913c', light: '#ffc58c' },
+  sky: { bg: '#eaf7ff', main: '#3ec9f5', light: '#a8dcf5' },
   brown: { bg: '#f6efe8', main: '#8a5a34', light: '#c9a184' },
   gray: { bg: '#f2f4f7', main: '#8b93a1', light: '#cdd3dc' },
 };
@@ -189,6 +190,12 @@ for (const stage of NUMBER_CURRICULUM.stages) {
     const name = `cmp-${comparison.a}-${comparison.b}.svg`;
     await writeImage(resolve(mathDir, name), compareCardSvg(comparison), `math/${name}`);
   }
+}
+
+// 小小游戏机「颜色魔法」用的颜色卡片（内容里没教的颜色也补齐）
+for (const color of ['red', 'yellow', 'blue', 'green', 'black', 'white', 'purple', 'pink', 'orange', 'sky']) {
+  const svg = colorSvg(color);
+  if (svg) await writeImage(resolve(vocabularyDir, `${color}.svg`), svg, `color/${color}`);
 }
 
 console.log(`生成插图 ${created.length} 个：${created.join('、') || '（无）'}`);

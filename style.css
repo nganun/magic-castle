@@ -1163,6 +1163,9 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
   gap:10px;
   margin-bottom:8px;
 }
+/* 游戏页顶部的标题（小一点，别抢画面） */
+.arcade-play-header h1{margin:2px 0 0;font-size:clamp(20px,2.9vw,28px);line-height:1.2;color:#5a388b}
+@media(max-width:600px){.arcade-play-header h1{font-size:20px}}
 .arcade-title-group{
   flex:1 1 auto;
 }
@@ -1590,7 +1593,7 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .number-quiz-choice b{font-size:32px}
 .number-quiz-choice .number-quantity{max-width:60px}
 .number-dots{width:calc(5*6px + 4*2px);gap:2px}
-.number-dots s{width:6px;height:6px}
+.number-dots s{width:6px;height:6px}}
 @media(prefers-reduced-motion:reduce){.number-pyramid-step.is-speaking,.number-quiz-choice.correct{animation:none}}
 
 /* ===== 魔法翻翻乐：翻牌与匹配成功特效 ===== */
@@ -1601,3 +1604,46 @@ body.fruit-landscape-mode .vendor-fruit iframe{width:100vw!important;height:100d
 .memory-card.match-pop::after{content:'✦';position:absolute;inset:-8px;display:grid;place-items:center;font-size:22px;color:#ffd447;text-shadow:0 0 14px rgba(255,212,71,.95),0 0 4px rgba(255,255,255,.9);animation:memoryMatchSparkle .72s ease-out both;pointer-events:none}
 @keyframes memoryMatchSparkle{0%{opacity:0;transform:scale(.3) rotate(-20deg)}35%{opacity:1;transform:scale(1.35) rotate(10deg)}100%{opacity:0;transform:scale(2.1) rotate(40deg)}}
 @media(prefers-reduced-motion:reduce){.memory-card.card-flip,.memory-card.match-pop,.memory-card.match-pop::after{animation:none}}
+
+/* ===== 小小游戏机：星星节奏 / 颜色魔法 / 数字泡泡 / 听音找一找 ===== */
+.arcade-mode-switch{display:flex;justify-content:center;gap:6px;margin:14px auto 2px;padding:5px;border-radius:999px;background:#f2ebfa}
+.arcade-mode-switch button{min-height:34px;padding:0 16px;border:0;border-radius:999px;background:transparent;color:#7d63a8;font-size:13px;font-weight:900;cursor:pointer;transition:background .16s ease,color .16s ease}
+.arcade-mode-switch button.active{background:#8d73ce;color:#fff;box-shadow:0 3px 0 rgba(96,61,152,.2)}
+.arcade-picture-choices button{display:grid;justify-items:center;gap:6px;padding:12px 8px;border:3px solid #eadff7;border-radius:22px;background:#fff;box-shadow:0 5px 0 rgba(104,66,158,.1);cursor:pointer;transition:transform .16s ease}
+.arcade-picture-choices button:hover:not(:disabled){transform:translateY(-2px)}
+.arcade-picture-choices button:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(104,66,158,.1)}
+.arcade-picture-choices button img{width:100%;max-width:120px;height:88px;object-fit:contain}
+.arcade-picture-choices button b{font-size:15px;color:#674595;font-weight:900}
+.arcade-picture-choices button.correct{border-color:#9bd477;background:#f5ffe8}
+.arcade-picture-choices button.wrong{opacity:.45;filter:grayscale(.4)}
+.arcade-picture-choices.is-hanzi{grid-template-columns:repeat(3,minmax(0,1fr));max-width:520px}
+.arcade-hanzi-glyph{font-family:"KaiTi",STKaiti,serif;font-size:44px;line-height:1.15;color:#5a388b;font-weight:700}
+.arcade-color-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;max-width:520px;margin:14px auto}
+.arcade-color-choices button{position:relative;display:grid;place-items:center;aspect-ratio:1;padding:10px;border:4px solid var(--arcade-color,#c9b6ef);border-radius:24px;background:linear-gradient(160deg,#fff,var(--arcade-color,#f0e6ff));box-shadow:0 6px 0 rgba(104,66,158,.14);cursor:pointer;transition:transform .16s ease}
+.arcade-color-choices button:hover:not(:disabled){transform:translateY(-2px)}
+.arcade-color-choices button:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 rgba(104,66,158,.14)}
+.arcade-color-choices button img{width:76%;height:76%;object-fit:contain}
+.arcade-color-choices .arcade-color-name{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.arcade-color-choices button.correct{border-color:#8ecb69;box-shadow:0 6px 0 rgba(110,182,69,.24)}
+.arcade-color-choices button.wrong{opacity:.42;filter:grayscale(.45)}
+.number-bubble{display:grid;place-items:center;width:clamp(74px,20vw,116px);aspect-ratio:1;border:4px solid rgba(255,255,255,.9);border-radius:50%;color:#fff;font-family:"Baloo 2";font-size:clamp(28px,7vw,44px);font-weight:900;text-shadow:0 2px 3px rgba(60,30,110,.3);box-shadow:0 7px 0 rgba(104,66,158,.18);cursor:pointer;transition:transform .14s ease}
+.number-bubble:hover:not(:disabled){transform:translateY(-3px)}
+.number-bubble:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 rgba(104,66,158,.18)}
+.number-bubble.wrong{opacity:.45;filter:grayscale(.4)}
+.rhythm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,4vw,24px);max-width:420px;margin:22px auto}
+.rhythm-pad{aspect-ratio:1;border:5px solid rgba(255,255,255,.92);border-radius:32px;box-shadow:0 8px 0 rgba(104,66,158,.2);cursor:pointer;transition:transform .14s ease,filter .2s ease}
+.rhythm-pad:active:not(:disabled){transform:translateY(4px);box-shadow:0 3px 0 rgba(104,66,158,.2)}
+.rhythm-pad.violet{background:radial-gradient(circle at 32% 28%,#e3d4ff,#8b5cf6 70%)}
+.rhythm-pad.gold{background:radial-gradient(circle at 32% 28%,#fff3bf,#f2c53d 70%)}
+.rhythm-pad.sky{background:radial-gradient(circle at 32% 28%,#d6f2ff,#3ec9f5 70%)}
+.rhythm-pad.pink{background:radial-gradient(circle at 32% 28%,#ffe0ef,#f472b6 70%)}
+.rhythm-pad.flash{animation:rhythmFlash .42s ease-out}
+@keyframes rhythmFlash{0%{transform:scale(1);filter:brightness(1)}35%{transform:scale(1.12);filter:brightness(1.7) drop-shadow(0 0 18px rgba(255,255,255,.9))}100%{transform:scale(1);filter:brightness(1)}}
+.rhythm-copy{margin:14px auto 0;text-align:center;color:#8b7898;font-size:14px;font-weight:900}
+@media(max-width:600px){.arcade-picture-choices,.arcade-color-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.arcade-hanzi-glyph{font-size:36px}
+.rhythm-grid{gap:12px;max-width:300px}
+.rhythm-pad{border-radius:24px}
+.rhythm-copy{font-size:12px}
+.number-bubble{width:clamp(64px,20vw,92px);font-size:clamp(24px,7vw,34px)}}
+@media(prefers-reduced-motion:reduce){.rhythm-pad.flash{animation:none}}

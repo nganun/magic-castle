@@ -1916,10 +1916,13 @@ window.onload = function () {
         updateMoves();
     });
 
-    changeLangButton.addEventListener('click', () => {
-        userLang = userLang === 'ru' ? 'en' : 'ru';
-        updateTranslate();
-    });
+    // 语言按钮已移除，元素不存在时跳过绑定
+    if (changeLangButton) {
+        changeLangButton.addEventListener('click', () => {
+            userLang = userLang === 'ru' ? 'en' : 'ru';
+            updateTranslate();
+        });
+    }
 
     autoPlayButton.addEventListener('click', () => {
         aiBot = !aiBot;

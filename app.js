@@ -13,7 +13,7 @@ import { mergeSyncedContent, restoreOfficialContent } from './features/content-s
 import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/content-channel.js';
 import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
-import { clamp, escapeHtml } from './features/utils.js';
+import { clamp, chineseNumber, escapeHtml } from './features/utils.js';
 import { applyTtsReading } from './features/tts-reading.js';
 import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
 import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
@@ -328,6 +328,7 @@ function dailyFor(profile) { return profile.dailyDate === todayKey ? profile.dai
 const initialProfile = activeProfile();
 const state = {
   screen: 'home', homeContext: 'lesson', magicHouseTab: 'closet', arcadeGameId: '', arcadeState: null, soundOn: true, recitalMode: 'line', round: 0, completed: false, roundLocked: false,
+  arcadeListenMode: initialProfile.arcadeListenMode === 'hanzi' ? 'hanzi' : 'picture',
   activeTheme: initialProfile.activeTheme || 'color', lessonMode: 'learn',
   completedThemes: initialProfile.completedThemes || [], learnedWords: initialProfile.learnedWords || [], wordProgress: initialProfile.wordProgress || {},
   stars: Number(initialProfile.stars || 0), daily: dailyFor(initialProfile),
@@ -341,7 +342,7 @@ function syncActiveProfile() {
   Object.assign(profile, {
     activeTheme: state.activeTheme, completedThemes: state.completedThemes, learnedWords: state.learnedWords, wordProgress: state.wordProgress,
     stars: state.stars, dailyDate: todayKey, daily: state.daily, streak: state.streak,
-    recordingEnabled: state.recordingEnabled, activityDates: state.activityDates, arcadeStats: state.arcadeStats, world: state.world, achievements: state.achievements, study: state.study, ocOwned: state.ocOwned, ocAvatar: state.ocAvatar,
+    recordingEnabled: state.recordingEnabled, activityDates: state.activityDates, arcadeStats: state.arcadeStats, arcadeListenMode: state.arcadeListenMode, world: state.world, achievements: state.achievements, study: state.study, ocOwned: state.ocOwned, ocAvatar: state.ocAvatar,
   });
 }
 function persistProgress() {
@@ -822,14 +823,15 @@ function celebrateArcadeLevel() {
   if (state.soundOn) playSfx('fanfare');
   triggerConfetti();
 }
-function getArcadeListeningRound(choiceCount = 2) {
+function getArcadeListeningRound(choiceCount = 2, mode = 'picture') {
   let round = null;
-  try { round = createListeningRound(choiceCount); } catch {}
+  try { round = createListeningRound(choiceCount, mode); } catch {}
   if (round && round.choices?.length === choiceCount) return round;
-  const count = Math.max(2, Math.min(choiceCount, ARCADE_FALLBACK_PICTURES.length));
-  const choices = [...ARCADE_FALLBACK_PICTURES].sort(() => Math.random() - 0.5).slice(0, count);
+  const source = mode === 'hanzi' ? (ARCADE_HANZI_PICTURE_ITEMS?.length ? ARCADE_HANZI_PICTURE_ITEMS : ARCADE_FALLBACK_PICTURES) : ARCADE_FALLBACK_PICTURES;
+  const count = Math.max(2, Math.min(choiceCount, source.length));
+  const choices = [...source].sort(() => Math.random() - 0.5).slice(0, count);
   const answer = choices[Math.floor(Math.random() * choices.length)];
-  return { answer, choices };
+  return { answer, choices, mode };
 }
 function getArcadeColorRound(choiceCount = 2) {
   let round = null;
@@ -916,20 +918,40 @@ function renderMemoryGame(area) {
 }
 function renderListeningGame(area) {
   const MAX_LEVELS = 5;
+  const preferredMode = state.arcadeListenMode === 'hanzi' ? 'hanzi' : 'picture';
   if (!state.arcadeState) {
-    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...getArcadeListeningRound(2) };
+    state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...getArcadeListeningRound(2, preferredMode) };
   }
   const game = state.arcadeState;
+  const hanziMode = game.mode === 'hanzi';
+  const modeSwitch = `<div class="arcade-mode-switch" role="group" aria-label="选择找图片还是找汉字">
+      <button type="button" class="${hanziMode ? '' : 'active'}" data-listen-mode="picture" aria-pressed="${!hanziMode}">找图片</button>
+      <button type="button" class="${hanziMode ? 'active' : ''}" data-listen-mode="hanzi" aria-pressed="${hanziMode}">找汉字</button>
+    </div>`;
   area.innerHTML = arcadeFrame(
     '听音找一找',
-    '听一听，找到正确图片',
-    `<button class="arcade-listen" id="arcadeListen" type="button">再听一遍 <span>R</span></button><div class="arcade-picture-choices">${game.choices.map((item) => `<button type="button" data-arcade-choice="${item.id}"><img src="${item.image}" alt="${item.label}" /><b>${item.label}</b></button>`).join('')}</div>`,
+    hanziMode ? '听一听，找到正确的汉字' : '听一听，找到正确图片',
+    `${modeSwitch}<button class="arcade-listen" id="arcadeListen" type="button">再听一遍 <span>R</span></button><div class="arcade-picture-choices ${hanziMode ? 'is-hanzi' : ''}">${game.choices.map((item) => (hanziMode
+      ? `<button type="button" data-arcade-choice="${item.id}" aria-label="汉字 ${item.label}"><b class="arcade-hanzi-glyph">${item.label}</b></button>`
+      : `<button type="button" data-arcade-choice="${item.id}"><img src="${item.image}" alt="${item.label}" /><b>${item.label}</b></button>`)).join('')}</div>`,
     arcadeLevelProgress(game.level, game.maxLevels)
   );
-  const replay = () => speak(game.answer.id);
+  const replay = () => (hanziMode ? speakChinese(game.answer.label) : speak(game.answer.id));
   $('#arcadeListen').addEventListener('click', replay);
   window.setTimeout(replay, 120);
   bindArcadeBack();
+  $$('[data-listen-mode]', area).forEach((button) => button.addEventListener('click', () => {
+    const nextMode = button.dataset.listenMode;
+    if (nextMode === game.mode) return;
+    state.arcadeListenMode = nextMode;
+    game.mode = nextMode;
+    const choiceCount = Math.min(2 + (game.level - 1), 6);
+    const nextRound = getArcadeListeningRound(choiceCount, nextMode);
+    game.answer = nextRound.answer;
+    game.choices = nextRound.choices;
+    persistProgress();
+    renderListeningGame(area);
+  }));
   $$('[data-arcade-choice]', area).forEach((button) => button.addEventListener('click', () => {
     if (button.dataset.arcadeChoice === game.answer.id) {
       button.classList.add('correct');
@@ -937,7 +959,7 @@ function renderListeningGame(area) {
         if (game.level < game.maxLevels) {
           game.level += 1;
           const choiceCount = Math.min(2 + (game.level - 1), 6);
-          const nextRound = getArcadeListeningRound(choiceCount);
+          const nextRound = getArcadeListeningRound(choiceCount, game.mode);
           game.answer = nextRound.answer;
           game.choices = nextRound.choices;
           celebrateArcadeLevel();
@@ -966,7 +988,7 @@ function renderNumberGame(area) {
     arcadeLevelProgress(game.level, game.maxLevels)
   );
   bindArcadeBack();
-  window.setTimeout(() => speak(String(game.answer)), 120);
+  window.setTimeout(() => speakChinese(chineseNumber(game.answer)), 120); // 数字泡泡用中文念
   $$('[data-number-choice]', area).forEach((button) => button.addEventListener('click', () => {
     if (Number(button.dataset.numberChoice) === game.answer) {
       button.classList.add('correct');
@@ -998,10 +1020,10 @@ function renderColorGame(area) {
   area.innerHTML = arcadeFrame(
     '颜色魔法',
     '听到颜色后，点中正确魔法色',
-    `<button class="arcade-listen" id="arcadeColorListen" type="button">再听一遍 <span>R</span></button><div class="arcade-color-choices">${game.choices.map((item) => `<button style="--arcade-color:${item.color}" type="button" data-color-choice="${item.id}"><i></i><b>${item.label}</b></button>`).join('')}</div>`,
+    `<button class="arcade-listen" id="arcadeColorListen" type="button">再听一遍 <span>R</span></button><div class="arcade-color-choices">${game.choices.map((item) => `<button style="--arcade-color:${item.color}" type="button" data-color-choice="${item.id}" aria-label="${item.label}"><img src="${item.image}" alt="" /><b class="arcade-color-name">${item.label}</b></button>`).join('')}</div>`,
     arcadeLevelProgress(game.level, game.maxLevels)
   );
-  const replay = () => speak(game.answer.id);
+  const replay = () => speakChinese(game.answer.label); // 用中文念颜色名
   $('#arcadeColorListen').addEventListener('click', replay);
   window.setTimeout(replay, 120);
   bindArcadeBack();

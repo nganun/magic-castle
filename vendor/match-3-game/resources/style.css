@@ -183,6 +183,12 @@ h3 {
     fill: rgb(255, 78, 64);
 }
 
+/* FAQ 按钮：和道具按钮同一排，图标样式 */
+.boosters .faq-button{display:grid;place-items:center;padding:6px 12px}
+.boosters .faq-button > svg{width:24px;height:24px;fill:rgba(66,66,67,.7)}
+.boosters .faq-button:hover > svg{fill:rgb(0,119,237)}
+.boosters .faq-button:active > svg{fill:rgb(255,78,64)}
+
 .button:disabled {
     border: 2px solid rgb(204, 204, 204);
     cursor: default;
