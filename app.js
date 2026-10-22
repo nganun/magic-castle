@@ -1491,13 +1491,23 @@ function stopSequentialHanzi() {
   $$('.hanzi-fullscreen-card.is-speaking').forEach((el) => el.classList.remove('is-speaking'));
 }
 
-function openHanziGroupModal() {
+// 分组弹窗：汉字与英文共用（同一个全屏网格弹窗），kind 决定取哪个分组、怎么读、用什么插图。
+let groupModalKind = 'hanzi';
+function openGroupModal(kind = 'hanzi') {
+  groupModalKind = kind;
   const modal = $('#hanziGroupModal');
   if (!modal) return;
   renderHanziGroupModal();
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   setTimeout(() => $('#closeHanziGroupModal')?.focus(), 80);
+}
+function openHanziGroupModal() { openGroupModal('hanzi'); }
+function speakGroupWord(kind, word, onend) {
+  return kind === 'hanzi' ? speakChinese(word, onend) : speak(word, onend);
+}
+function groupWordImageUrl(kind, word) {
+  return kind === 'hanzi' ? hanziWordImageUrl(word) : englishWordImageUrl(word);
 }
 
 function closeHanziGroupModal() {
@@ -1535,7 +1545,7 @@ function playSequentialHanzi(words) {
     const activeCard = $(`[data-hanzi-word="${word}"]`);
     activeCard?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     index += 1;
-    speakChinese(word, () => {
+    speakGroupWord(groupModalKind, word, () => {
       if (runId !== hanziPlaybackRunId) return;
       hanziPlaybackTimer = window.setTimeout(playNext, 400);
     });
@@ -1597,13 +1607,14 @@ function updateHanziGridGeometry(count) {
 }
 
 function renderHanziGroupModal() {
-  const active = activeContentGroup('hanzi');
+  const kind = groupModalKind;
+  const active = kind === 'hanzi' ? activeContentGroup('hanzi') : activeContentGroup('english');
   const words = active.words;
-  const groups = contentGroups('hanzi').filter((g) => g.name && g.words.length >= 2);
+  const groups = contentGroups(kind).filter((g) => g.name && g.words.length >= 2);
   const currentWord = currentRounds()[state.round]?.word;
 
   $('#hanziGroupModalTitle').textContent = active.name;
-  $('#hanziGroupModalCount').textContent = `共 ${words.length} 字`;
+  $('#hanziGroupModalCount').textContent = `共 ${words.length} ${kind === 'hanzi' ? '字' : '词'}`;
 
   const tabsContainer = $('#hanziModalGroupTabs');
   if (tabsContainer) {
@@ -1619,7 +1630,7 @@ function renderHanziGroupModal() {
           const targetId = btn.dataset.hanziModalGroup;
           if (targetId === active.id) return;
           stopSequentialHanzi();
-          setActiveContentGroup('hanzi', targetId);
+          setActiveContentGroup(kind, targetId);
           saveContentConfiguration();
           applyAdminContent();
           state.round = 0;
@@ -1639,11 +1650,11 @@ function renderHanziGroupModal() {
   }
 
   const isImageGroup = Boolean(active.image);
-  const showImage = isImageGroup && hanziImageHintVisible;
+  const showImage = kind === 'hanzi' ? (isImageGroup && hanziImageHintVisible) : isImageGroup;
 
   const modalToggleBtn = $('#hanziModalImageToggleBtn');
   if (modalToggleBtn) {
-    modalToggleBtn.hidden = !isImageGroup;
+    modalToggleBtn.hidden = kind !== 'hanzi' || !isImageGroup;
     modalToggleBtn.classList.toggle('is-active', showImage);
     modalToggleBtn.setAttribute('aria-pressed', String(showImage));
     const label = $('#hanziModalImageToggleLabel');
@@ -1655,8 +1666,8 @@ function renderHanziGroupModal() {
   const grid = $('#hanziGroupWordsGrid');
   grid.innerHTML = words.map((word, index) => {
     const isCurrent = currentWord === word;
-    const isMastered = Boolean(state.wordProgress[`hanzi:${word}`]?.mastered);
-    const isLearned = state.learnedWords.includes(word) || Boolean(state.wordProgress[`hanzi:${word}`]?.learn);
+    const isMastered = Boolean(state.wordProgress[`${kind}:${word}`]?.mastered);
+    const isLearned = state.learnedWords.includes(word) || Boolean(state.wordProgress[`${kind}:${word}`]?.learn);
     let cornerTag = '';
     if (isCurrent) {
       cornerTag = '<span class="hanzi-card-tag is-current">正在学 ⭐</span>';
@@ -1669,7 +1680,7 @@ function renderHanziGroupModal() {
     }
     const thumbnailHtml = showImage ? `
       <div class="hanzi-card-thumbnail">
-        <img src="${hanziWordImageUrl(word)}" alt="${escapeHtml(word)}" loading="lazy" />
+        <img src="${groupWordImageUrl(kind, word)}" alt="${escapeHtml(word)}" loading="lazy" />
       </div>
     ` : '';
     return `
@@ -1692,7 +1703,7 @@ function renderHanziGroupModal() {
       if (!word) return;
       $$('.hanzi-fullscreen-card.is-speaking').forEach((c) => c.classList.remove('is-speaking'));
       card.classList.add('is-speaking');
-      speakChinese(word, () => card.classList.remove('is-speaking'));
+      speakGroupWord(kind, word, () => card.classList.remove('is-speaking'));
     };
     card.addEventListener('click', (e) => {
       if (e.target.closest('[data-hanzi-jump-index]')) return;
@@ -2140,11 +2151,14 @@ function renderRound() {
     const groupPath = learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title;
     const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
     const groupIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
-    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><span class="learn-word-card-count">${groupIcon}本组(${groupCount})</span></div>`;
+    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></div>`;
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><img src="${game.image}" data-fallback-image="${textCard(game.word)}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+    // 插图缺失时退回文字卡片，避免出现破图
+    $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
+    $('#openEnglishGroupBtn')?.addEventListener('click', () => openGroupModal('english'));
     $('#hanziSpeak')?.addEventListener('click', (event) => {
       const glyph = event.currentTarget;
       glyph.classList.add('speaking');
