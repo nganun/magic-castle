@@ -16,7 +16,7 @@
 .app-shell.home-active .theme-cards { position:relative; width:100%; height:100%; margin:0; overflow:hidden; border:0; border-radius:0; background:#bce6e7 url('../../assets/scenes/adventure-map/magic-castle-adventure-map.jpeg') center/cover no-repeat; box-shadow:none; }
 
 /* Cloud destination buttons */
-.theme-card.map-node { position:absolute; z-index:3; display:flex; align-items:center; justify-content:center; width:142px; min-height:48px; padding:6px 11px; border:0; border-radius:0; background:transparent; box-shadow:none; cursor:pointer; isolation:isolate; transition:transform .18s ease; }
+.theme-card.map-node { position:absolute; z-index:9; display:flex; align-items:center; justify-content:center; width:142px; min-height:48px; padding:6px 11px; border:0; border-radius:0; background:transparent; box-shadow:none; cursor:pointer; isolation:isolate; transition:transform .18s ease; }
 .theme-card.map-node::before { content:""; position:absolute; z-index:-1; inset:-12px -16px; background:url('../../assets/ui/cloud-label.svg') center/100% 100% no-repeat; filter:drop-shadow(0 5px 6px rgba(72,51,123,.18)); }
 .theme-card.map-node:hover, .theme-card.map-node:focus-visible { transform:translateY(-4px); }
 .theme-card.map-node:hover::before, .theme-card.map-node:focus-visible::before { filter:drop-shadow(0 8px 8px rgba(72,51,123,.23)); }
@@ -77,11 +77,11 @@
 @media(min-width:601px){.map-hanzi{left:75%;right:auto;transform:none}.map-hanzi:hover,.map-hanzi:focus-visible{transform:translateY(-4px)}}
 
 /* Live Luna OC guide standing before the central castle with real-time wardrobe */
-.app-shell.home-active .home-oc-guide{position:absolute;z-index:7;left:34%;top:11%;display:flex;flex-direction:column;align-items:center;padding:0;border:0;background:transparent;transform:translateX(-50%);cursor:pointer;outline:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.app-shell.home-active .home-oc-guide{position:absolute;z-index:7;left:34%;top:11%;display:flex;flex-direction:column;align-items:center;padding:0;border:0;background:transparent;pointer-events:none;transform:translateX(-50%);cursor:pointer;outline:none;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .app-shell.home-active .home-oc-guide:hover,.app-shell.home-active .home-oc-guide:focus-visible{transform:translateX(-50%) translateY(-4px) scale(1.03)}
 .app-shell.home-active .home-oc-guide:active{transform:translateX(-50%) scale(.96)}
 .app-shell.home-active .home-oc-halo{position:absolute;z-index:0;left:50%;top:50%;width:380px;height:500px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,255,255,.75) 0%,rgba(255,248,220,.42) 48%,rgba(255,255,255,0) 75%);pointer-events:none}
-.app-shell.home-active .home-oc-guide .home-oc-avatar{position:relative;z-index:1;width:320px;height:480px;display:grid;place-items:center;filter:drop-shadow(0 14px 16px rgba(62,43,108,.32));pointer-events:none}
+.app-shell.home-active .home-oc-guide .home-oc-avatar{position:relative;z-index:1;width:320px;height:480px;display:grid;place-items:center;filter:drop-shadow(0 14px 16px rgba(62,43,108,.32));pointer-events:auto}
 .app-shell.home-active .home-oc-guide .home-oc-avatar svg{width:100%;height:100%;overflow:visible}
 .app-shell.home-active .home-oc-speech{position:absolute;z-index:2;top:-10px;right:-28px;padding:6px 15px;border-radius:999px;background:rgba(255,255,255,.96);border:2px solid #ecd9ff;color:#684196;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 4px 12px rgba(65,45,115,.18);pointer-events:none;animation:homeOcFloat 3s ease-in-out infinite alternate}
 .app-shell.home-active .home-oc-speech::after{content:"";position:absolute;bottom:-6px;left:18px;width:8px;height:8px;background:#fff;border-right:2px solid #ecd9ff;border-bottom:2px solid #ecd9ff;transform:rotate(45deg)}
