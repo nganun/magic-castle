@@ -1959,11 +1959,16 @@ function renderLessonGroupSwitcher() {
   const groups = scope.groups().filter((group) => group.name && (group.lines?.length || group.words?.length));
   if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
   const tree = buildDirectoryTree(groups);
-  const node = directoryNode(tree, browserScopePath(kind)) || tree;
   if (countTreeItems(tree) < 2) { container.hidden = true; container.replaceChildren(); return; }
+  // 默认停在「当前正在学的分组」所在目录，和汉字页面的层级一致；用户主动上下层后以用户选择为准。
+  const activeGroup = groups.find((group) => group.id === scope.activeId());
+  const defaultPath = activeGroup?.directory ? String(activeGroup.directory).split('/').filter(Boolean) : [];
+  const stored = browserScopePath(kind);
+  const path = (stored ?? defaultPath).filter((part) => typeof part === 'string');
+  const node = directoryNode(tree, path) || directoryNode(tree, defaultPath) || tree;
   container.hidden = false;
-  container.innerHTML = browserMarkup(kind, { groups, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
-  bindContentBrowser(container, kind, scope.onSelect);
+  container.innerHTML = browserMarkup(kind, { node, path, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
+  bindContentBrowser(container, kind, path, scope.onSelect);
 }
 function addLessonShortcutHints(area) {
   $$('button.primary-button', area).forEach((button) => {
@@ -2559,17 +2564,15 @@ const BROWSER_ICONS = {
 };
 function browserScopePath(scope) {
   const saved = browserPaths[scope];
-  return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : [];
+  // null = 还没进过（用默认层级：当前分组所在目录）；[] = 用户主动回到根层
+  return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : null;
 }
 function setBrowserScopePath(scope, path) {
   browserPaths[scope] = path;
   save(BROWSER_PATHS_KEY, browserPaths);
 }
 function browserMarkup(scope, options) {
-  const { groups, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇' } = options;
-  const tree = buildDirectoryTree(groups);
-  const path = browserScopePath(scope);
-  const node = directoryNode(tree, path) || tree;
+  const { node, path, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇' } = options;
   const items = [
     ...[...node.dirs.values()].map((folder) => `<button class="content-browser-item is-folder" type="button" data-browser-folder="${escapeHtml(folder.name)}"><span class="content-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} ${unitLabel}</em></button>`),
     ...node.groups.map((group) => `<button class="content-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-browser-group="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? `<em>${activeLabel}</em>` : ''}</button>`),
@@ -2580,14 +2583,14 @@ function browserMarkup(scope, options) {
   const toggleButton = `<button class="content-browser-action" type="button" data-browser-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? BROWSER_ICONS.collapse : BROWSER_ICONS.expand}</button>`;
   return `<nav class="content-browser ${expanded ? 'is-expanded' : ''}" aria-label="${escapeHtml(pathPrefix)}"><div class="content-browser-head"><span class="content-browser-title">${escapeHtml(header)}</span><span class="content-browser-actions">${upButton}${toggleButton}</span></div><div class="content-browser-items">${items || '<span class="content-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
-function bindContentBrowser(root, scope, onSelect) {
+function bindContentBrowser(root, scope, path, onSelect) {
   $$('[data-browser-folder]', root).forEach((button) => button.addEventListener('click', () => {
-    setBrowserScopePath(scope, [...browserScopePath(scope), button.dataset.browserFolder]);
+    setBrowserScopePath(scope, [...path, button.dataset.browserFolder]);
     renderLessonGroupSwitcher();
     renderRound();
   }));
   $$('[data-browser-up]', root).forEach((button) => button.addEventListener('click', () => {
-    setBrowserScopePath(scope, browserScopePath(scope).slice(0, -1));
+    setBrowserScopePath(scope, path.slice(0, -1));
     renderLessonGroupSwitcher();
     renderRound();
   }));
