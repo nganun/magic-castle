@@ -168,6 +168,8 @@ function englishWordImageUrl(word) {
   return `assets/learning/vocabulary/${encodeURIComponent(word)}.svg`;
 }
 let hanziImageHintVisible = storageGet('luna-hanzi-image-hint-visible') === 'true';
+// 英文分组也支持"看图识字"开关，状态与汉字分开存
+let englishImageHintVisible = storageGet('luna-english-image-hint-visible') === 'true';
 function toggleHanziImageHint() {
   hanziImageHintVisible = !hanziImageHintVisible;
   saveText('luna-hanzi-image-hint-visible', String(hanziImageHintVisible));
@@ -177,13 +179,24 @@ function toggleHanziImageHint() {
   }
   showToast(hanziImageHintVisible ? '已开启看图识字 🖼️' : '已关闭看图识字');
 }
+function toggleEnglishImageHint() {
+  englishImageHintVisible = !englishImageHintVisible;
+  saveText('luna-english-image-hint-visible', String(englishImageHintVisible));
+  applyAdminContent();
+  renderRound();
+  if ($('#hanziGroupModal')?.classList.contains('open')) {
+    renderHanziGroupModal();
+  }
+  showToast(englishImageHintVisible ? '已开启看图识字 🖼️' : '已关闭看图识字');
+}
 function buildCustomTheme(id, title, subtitle, words, isHanzi = false, hasImage = false) {
   const fallback = isHanzi ? ['人', '大人', '人口'] : ['red', 'yellow', 'blue'];
   const list = words.length >= 2 ? words : fallback;
   const imageFor = (word) => {
     if (isHanzi) return hasImage ? (hanziWordImageUrl(word) || textCard(word, '#fff0dc')) : textCard(word, '#fff0dc');
-    if (hasImage) return englishWordImageUrl(word) || wordImage(word) || textCard(word);
-    return wordImage(word) || textCard(word);
+    // 英文分组与汉字一致：开了 image 才可能有插图，再由"看图识字"开关决定显示插图还是文字卡片
+    if (!hasImage) return textCard(word);
+    return englishImageHintVisible ? (englishWordImageUrl(word) || textCard(word)) : textCard(word);
   };
   const rounds = list.map((word) => ({ type: 'learn', chip: isHanzi ? (word.length > 1 ? '认识词组' : '认识汉字') : '认识单词', word, image: imageFor(word), zh: isHanzi ? `看一看，读一读“${word}”。` : `看一看，这是 ${word}。` }));
   const reviewRounds = list.map((word, index) => { const other = list[(index + 1) % list.length]; return { type: index % 2 ? 'listen' : 'match', chip: index % 2 ? '听音找一找' : '魔法复习', prompt: isHanzi ? `Find ${word}` : 'Which word matches?', word, image: imageFor(word), zh: isHanzi ? '听一听，找到对应的汉字或词组。' : '看图片，选出对应的英文单词。', choices: [word, other], correct: word }; });
@@ -1650,16 +1663,16 @@ function renderHanziGroupModal() {
   }
 
   const isImageGroup = Boolean(active.image);
-  const showImage = kind === 'hanzi' ? (isImageGroup && hanziImageHintVisible) : isImageGroup;
+  const showImage = kind === 'hanzi' ? (isImageGroup && hanziImageHintVisible) : (isImageGroup && englishImageHintVisible);
 
   const modalToggleBtn = $('#hanziModalImageToggleBtn');
   if (modalToggleBtn) {
-    modalToggleBtn.hidden = kind !== 'hanzi' || !isImageGroup;
+    modalToggleBtn.hidden = !isImageGroup;
     modalToggleBtn.classList.toggle('is-active', showImage);
     modalToggleBtn.setAttribute('aria-pressed', String(showImage));
     const label = $('#hanziModalImageToggleLabel');
     if (label) label.textContent = '看图识字';
-    modalToggleBtn.onclick = () => toggleHanziImageHint();
+    modalToggleBtn.onclick = () => (kind === 'hanzi' ? toggleHanziImageHint() : toggleEnglishImageHint());
   }
 
   updateHanziGridGeometry(words.length);
@@ -2156,7 +2169,15 @@ function renderRound() {
     const groupPath = learnGroup ? [learnGroup.directory, learnGroup.name].filter(Boolean).join(' / ') : currentTheme().title;
     const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
     const groupIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
-    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></div>`;
+    // 英文分组开了 image 就给"看图识字"开关，做法与汉字卡片一致
+    const imageToggleMarkup = learnGroup?.image ? `
+      <button class="hanzi-image-toggle-btn ${englishImageHintVisible ? 'is-active' : ''}" id="englishImageToggleBtn" type="button" aria-pressed="${englishImageHintVisible}" aria-label="切换是否开启看图识字">
+        <span class="hanzi-toggle-icon" aria-hidden="true">🖼️</span>
+        <span class="hanzi-toggle-label">看图识字</span>
+        <span class="hanzi-toggle-switch" aria-hidden="true"><i class="hanzi-toggle-knob"></i></span>
+      </button>
+    ` : '';
+    const topline = `<div class="learn-word-card-topline"><p class="learn-word-card-kicker">${escapeHtml(groupPath)}</p><span class="learn-word-card-actions">${imageToggleMarkup}<button class="learn-word-card-count" type="button" id="openEnglishGroupBtn" aria-label="查看本组单词，共 ${groupCount} 个">${groupIcon}本组(${groupCount})</button></span></div>`;
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
       : `<div class="learn-word-card">${topline}<div class="card-progress" id="cardProgressHost"></div><div class="learn-word-copy"><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div><img src="${game.image}" data-fallback-image="${textCard(game.word)}" alt="${game.word} 的图片" />${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
@@ -2164,6 +2185,7 @@ function renderRound() {
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
     $('#openEnglishGroupBtn')?.addEventListener('click', () => openGroupModal('english'));
+    $('#englishImageToggleBtn')?.addEventListener('click', toggleEnglishImageHint);
     $('#hanziSpeak')?.addEventListener('click', (event) => {
       const glyph = event.currentTarget;
       glyph.classList.add('speaking');
