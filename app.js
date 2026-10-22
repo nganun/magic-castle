@@ -14,6 +14,7 @@ import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/conten
 import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
 import { clamp, escapeHtml } from './features/utils.js';
+import { applyTtsReading } from './features/tts-reading.js';
 import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
 import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
 import { bindNumberBoard, numberBoardCardMarkup, numberQuizCardMarkup, numberStageCardMarkup } from './features/number-tower.js';
@@ -527,8 +528,10 @@ function speakChinese(text, onend, onStart) {
   const finish = () => { if (run === speechRun) onend?.(); };
   const started = () => { onStart?.(); };
   const rate = clamp(CHINESE_TTS_RATE_SCALE * globalSpeechRate, .1, 10); const voice = preferredChineseVoice || chooseChineseVoice();
-  const browserFallback = () => speakWithBrowserTts(text, { lang: voice?.lang || 'zh-CN', voice, rate, pitch: 1.04 }, finish, started);
-  if (speakWithNativeTts(text, { lang: 'zh-CN', langCandidates: ['zh-CN', 'cmn-CN', 'zh'], rate, pitch: 1.04 }, finish, browserFallback, started)) return true;
+  // 多音字：送给引擎的文本按读音表做同音字替换，屏幕上的原文不变
+  const spoken = applyTtsReading(text);
+  const browserFallback = () => speakWithBrowserTts(spoken, { lang: voice?.lang || 'zh-CN', voice, rate, pitch: 1.04 }, finish, started);
+  if (speakWithNativeTts(spoken, { lang: 'zh-CN', langCandidates: ['zh-CN', 'cmn-CN', 'zh'], rate, pitch: 1.04 }, finish, browserFallback, started)) return true;
   return browserFallback();
 }
 chooseEnglishVoice();

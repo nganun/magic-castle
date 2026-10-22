@@ -14,6 +14,7 @@ const APP_SHELL = [
   './features/content-browser.js',
   './features/lesson-cards.js',
   './features/number-tower.js',
+  './features/tts-reading.js',
   './features/content-files.js',
   './features/content-sync.js',
   './features/content-channel.js',
