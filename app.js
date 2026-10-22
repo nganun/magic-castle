@@ -1321,6 +1321,11 @@ function updateProgress() {
     $('#progressLabel').textContent = '';
     $('#progressStars').textContent = `${lineIndex + 1} / ${lineTotal}`;
     $('#progressFill').style.width = `${((lineIndex + 1) / lineTotal) * 100}%`;
+  } else if ($('#cardProgressHost')) {
+    // 进度搬进卡片后（汉字/朗诵），左边同样不重复计数，交给右侧「n / m」
+    $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : '';
+    $('#progressStars').textContent = `${Math.min(state.round + 1, total)} / ${total}`;
+    $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
   } else {
     $('#progressLabel').textContent = state.completed ? (state.lessonMode === 'review' ? '魔法回顾完成啦！' : '魔法完成啦！') : `第 ${state.round + 1} 关，共 ${total} 关`;
     $('#progressFill').style.width = `${(Math.min(state.round + 1, total) / total) * 100}%`;
@@ -1434,6 +1439,7 @@ function hanziLearnMarkup(game, recordingAction) {
           </button>
         </div>
       </div>
+      <div class="card-progress" id="cardProgressHost"></div>
       <button class="hanzi-glyph" data-hanzi-length="${parts.length}" id="hanziSpeak" type="button" aria-label="朗读 ${game.word}">
         <b>${game.word}</b>
         <small>点一下，听读音</small>
@@ -1920,24 +1926,16 @@ function bindSentenceButtons(area) { $$('[data-sentence]', area).forEach((button
 function renderLessonGroupSwitcher() {
   const container = $('#lessonGroupSwitcher'); const kind = state.activeTheme;
   if (!['english', 'hanzi', 'action'].includes(kind)) { container.hidden = true; container.replaceChildren(); return; }
-  if (kind === 'action') {
-    // 朗诵台改用按目录分层的篇目浏览器（旧的平铺篇目条已被它取代）。
-    const groups = recitalGroups();
-    if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
-    container.hidden = false;
-    container.innerHTML = recitalBrowserMarkup();
-    bindRecitalBrowser(container);
-    return;
-  }
-  const groups = contentGroups(kind).filter((group) => group.name && group.words.length >= 2); const active = activeContentGroup(kind);
+  // 三个主题都用同一套「按目录分层的篇目浏览器」：朗诵篇目 / 汉字分组 / 英文分组。
+  const scope = BROWSER_SCOPES[kind];
+  const groups = scope.groups().filter((group) => group.name && (group.lines?.length || group.words?.length));
   if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
+  const tree = buildDirectoryTree(groups);
+  const node = directoryNode(tree, browserScopePath(kind)) || tree;
+  if (node.dirs.size + node.groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
   container.hidden = false;
-  container.innerHTML = `<span>${kind === 'hanzi' ? '汉字分组' : '英文分组'}</span><div role="tablist" aria-label="${kind === 'hanzi' ? '汉字' : '英文'}学习分组">${groups.map((group) => `<button type="button" role="tab" data-lesson-group="${escapeHtml(group.id)}" aria-selected="${group.id === active.id}" class="${group.id === active.id ? 'active' : ''}">${escapeHtml(group.name)}</button>`).join('')}</div>`;
-  $$('[data-lesson-group]', container).forEach((button) => button.addEventListener('click', () => {
-    const group = groups.find((item) => item.id === button.dataset.lessonGroup); if (!group || group.id === active.id) return;
-    setActiveContentGroup(kind, group.id); saveContentConfiguration(); applyAdminContent();
-    state.round = 0; state.completed = false; state.roundLocked = false; persistProgress(); renderHome(); renderRound(); showToast(`开始学习“${group.name}”分组。`);
-  }));
+  container.innerHTML = browserMarkup(kind, { groups, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
+  bindContentBrowser(container, kind, scope.onSelect);
 }
 function addLessonShortcutHints(area) {
   $$('button.primary-button', area).forEach((button) => {
@@ -1968,10 +1966,7 @@ let recitalPlaybackId = 0;
 let recitalAutoReadTimer = 0;
 const RECITAL_GAP_OPTIONS = [500, 1000, 2000, 3000];
 let recitalLineGapMs = (() => { const saved = Number(storageGet('luna-recital-line-gap')); return RECITAL_GAP_OPTIONS.includes(saved) ? saved : 500; })();
-// 朗诵篇目浏览器的当前层级（目录名来自内容，可随时改名/增删，代码不写死）。
-let recitalBrowsePath = (() => { const saved = load('luna-recital-path', []); return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : []; })();
 // 篇目浏览器是否铺开显示（默认紧凑两行，点"展开"才铺开）。
-let recitalBrowserExpanded = false;
 // 朗诵台记住读到第几句（整篇模式下播放结束也要保持计数，不回落）。
 let recitalCurrentLine = 0;
 function normaliseDirectory(value) { return String(value ?? '').split('/').map((part) => part.trim()).filter(Boolean).join('/'); }
@@ -2105,7 +2100,7 @@ function relocateLessonProgress(area, stash) {
   const label = stash?.querySelector('.progress-label') || $('.progress-label');
   const track = stash?.querySelector('.progress-track') || $('.progress-track');
   if (!side || !label || !track) return;
-  const host = area?.querySelector('#recitalProgressHost');
+  const host = area?.querySelector('#cardProgressHost');
   if (host) host.append(label, track);
   else side.prepend(label, track);
 }
@@ -2145,7 +2140,7 @@ function renderRound() {
       ? `<div class="recital-gap-row"><label for="recitalGapSelect">句间隔</label><select id="recitalGapSelect" aria-label="两句之间的停顿时间">${RECITAL_GAP_OPTIONS.map((value) => `<option value="${value}" ${value === recitalLineGapMs ? 'selected' : ''}>${recitalGapLabel(value)}</option>`).join('')}</select></div>`
       : '';
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">录下我的朗诵</button><div id="practicePlayback"></div>' : '';
-    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-head-row"><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div>${gapRow}</div><h2>${escapeHtml(game.title || game.word)}</h2><div class="recital-progress" id="recitalProgressHost"></div><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
+    area.innerHTML = `<article class="recital-card ${wholePiece ? 'is-whole-piece' : ''}"><div class="recital-curtain" aria-hidden="true"><i></i><i></i></div><p class="recital-kicker">朗诵小舞台</p><div class="recital-head-row"><div class="recital-mode-switch" role="group" aria-label="朗诵方式"><button type="button" class="${wholePiece ? '' : 'active'}" data-recital-mode="line" aria-pressed="${!wholePiece}">单句朗诵</button><button type="button" class="${wholePiece ? 'active' : ''}" data-recital-mode="whole" aria-pressed="${wholePiece}">整篇朗诵</button></div>${gapRow}</div><h2>${escapeHtml(game.title || game.word)}</h2><div class="card-progress" id="cardProgressHost"></div><button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(game.title || game.word)}》朗诵">${manuscript}<small id="reciteHint">${wholePiece ? '点任意一句即可从该句开始朗读；支持滚动查看' : '点文本，听露娜朗读'}</small></button><p class="recital-tip">${wholePiece ? '听完整篇后，试着一口气朗诵下来。' : game.zh}</p>${lessonPrimaryActionsMarkup()}${recordingAction}</article>`;
     const pieceTitle = game.title || game.word || piece.name || '';
     const readText = (startIndex = 0, readTitle = false) => {
       playRecitalLines(wholePiece ? piece.lines : [recitalText], $('#reciteListen'), startIndex, readTitle ? pieceTitle : '');
@@ -2515,48 +2510,78 @@ function renameContentFolder(kind, from, to) {
   if (kind === 'recital') renderRecitalGroupList(); else renderContentGroupDirectory(kind);
   showToast(`目录已改名为「${name}」。`);
 }
-// 朗诵篇目浏览器：目录树由内容的 directory 字段现算，任意层级、任意名字。
-function recitalBrowserMarkup() {
-  const groups = recitalGroups();
-  const tree = buildDirectoryTree(groups);
-  let path = recitalBrowsePath;
-  let node = directoryNode(tree, path);
-  if (!node) { path = []; recitalBrowsePath = []; save('luna-recital-path', path); node = tree; }
-  const activeId = activeRecitalGroup().id;
-  const items = [
-    ...[...node.dirs.values()].map((folder) => `<button class="recital-browser-item is-folder" type="button" data-recital-folder="${escapeHtml(folder.name)}"><span class="recital-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} 篇</em></button>`),
-    ...node.groups.map((group) => `<button class="recital-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-recital-article="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? '<em>正在朗诵</em>' : ''}</button>`),
-  ].join('');
-  const header = path.length ? `朗诵篇目/${path.join('/')}` : '全部篇目';
-  const expanded = recitalBrowserExpanded;
-  // 细线图标：向上箭头（上一层）与双折线（展开/收起），线宽适中、比例克制
-  const iconUp = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>';
-  const iconExpand = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>';
-  const iconCollapse = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>';
-  const upButton = path.length ? `<button class="recital-browser-action" type="button" data-recital-up aria-label="回到上一层" title="上一层">${iconUp}</button>` : '';
-  const toggleButton = `<button class="recital-browser-action" type="button" data-recital-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? iconCollapse : iconExpand}</button>`;
-  return `<nav class="recital-browser ${expanded ? 'is-expanded' : ''}" aria-label="朗诵篇目"><div class="recital-browser-head"><span class="recital-browser-title">${escapeHtml(header)}</span><span class="recital-browser-actions">${upButton}${toggleButton}</span></div><div class="recital-browser-items">${items || '<span class="recital-browser-empty">这一层还没有内容</span>'}</div></nav>`;
+// 通用篇目浏览器（朗诵篇目 / 汉字分组 / 英文分组共用）：
+// 目录树由分组的 directory 现算，任意层级、任意名字，代码不写死任何关键词。
+const BROWSER_PATHS_KEY = 'luna-browser-paths';
+let browserPaths = (() => { const saved = load(BROWSER_PATHS_KEY, {}); return saved && typeof saved === 'object' ? saved : {}; })();
+let browserExpanded = {};
+const BROWSER_ICONS = {
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>',
+  expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>',
+  collapse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>',
+};
+function browserScopePath(scope) {
+  const saved = browserPaths[scope];
+  return Array.isArray(saved) ? saved.filter((part) => typeof part === 'string') : [];
 }
-function bindRecitalBrowser(root) {
-  $$('[data-recital-folder]', root).forEach((button) => button.addEventListener('click', () => {
-    recitalBrowsePath = [...recitalBrowsePath, button.dataset.recitalFolder];
-    save('luna-recital-path', recitalBrowsePath);
-    renderRound(); // renderRound 内部会重绘篇目浏览器
-  }));
-  $$('[data-recital-up]', root).forEach((button) => button.addEventListener('click', () => {
-    recitalBrowsePath = recitalBrowsePath.slice(0, -1);
-    save('luna-recital-path', recitalBrowsePath);
+function setBrowserScopePath(scope, path) {
+  browserPaths[scope] = path;
+  save(BROWSER_PATHS_KEY, browserPaths);
+}
+function browserMarkup(scope, options) {
+  const { groups, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇' } = options;
+  const tree = buildDirectoryTree(groups);
+  const path = browserScopePath(scope);
+  const node = directoryNode(tree, path) || tree;
+  const items = [
+    ...[...node.dirs.values()].map((folder) => `<button class="content-browser-item is-folder" type="button" data-browser-folder="${escapeHtml(folder.name)}"><span class="content-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} ${unitLabel}</em></button>`),
+    ...node.groups.map((group) => `<button class="content-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-browser-group="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? `<em>${activeLabel}</em>` : ''}</button>`),
+  ].join('');
+  const header = path.length ? `${pathPrefix}/${path.join('/')}` : rootTitle;
+  const expanded = Boolean(browserExpanded[scope]);
+  const upButton = path.length ? `<button class="content-browser-action" type="button" data-browser-up aria-label="回到上一层" title="上一层">${BROWSER_ICONS.up}</button>` : '';
+  const toggleButton = `<button class="content-browser-action" type="button" data-browser-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? BROWSER_ICONS.collapse : BROWSER_ICONS.expand}</button>`;
+  return `<nav class="content-browser ${expanded ? 'is-expanded' : ''}" aria-label="${escapeHtml(pathPrefix)}"><div class="content-browser-head"><span class="content-browser-title">${escapeHtml(header)}</span><span class="content-browser-actions">${upButton}${toggleButton}</span></div><div class="content-browser-items">${items || '<span class="content-browser-empty">这一层还没有内容</span>'}</div></nav>`;
+}
+function bindContentBrowser(root, scope, onSelect) {
+  $$('[data-browser-folder]', root).forEach((button) => button.addEventListener('click', () => {
+    setBrowserScopePath(scope, [...browserScopePath(scope), button.dataset.browserFolder]);
+    renderLessonGroupSwitcher();
     renderRound();
   }));
-  $$('[data-recital-toggle]', root).forEach((button) => button.addEventListener('click', () => {
-    recitalBrowserExpanded = !recitalBrowserExpanded;
+  $$('[data-browser-up]', root).forEach((button) => button.addEventListener('click', () => {
+    setBrowserScopePath(scope, browserScopePath(scope).slice(0, -1));
+    renderLessonGroupSwitcher();
     renderRound();
   }));
-  $$('[data-recital-article]', root).forEach((button) => button.addEventListener('click', () => selectRecitalArticle(button.dataset.recitalArticle)));
-  // 紧凑模式是单行滑动，把正在朗诵的那篇挪到可见处
-  const items = $('.recital-browser-items', root);
-  const active = $('.recital-browser-item.is-article.active', root);
-  if (items && active && !recitalBrowserExpanded) items.scrollLeft = Math.max(0, active.offsetLeft - items.offsetLeft - 8);
+  $$('[data-browser-toggle]', root).forEach((button) => button.addEventListener('click', () => {
+    browserExpanded[scope] = !browserExpanded[scope];
+    renderLessonGroupSwitcher();
+    renderRound();
+  }));
+  $$('[data-browser-group]', root).forEach((button) => button.addEventListener('click', () => onSelect(button.dataset.browserGroup)));
+  // 紧凑模式是单行滑动，把当前选中的那一项挪到可见处
+  const items = $('.content-browser-items', root);
+  const active = $('.content-browser-item.is-article.active', root);
+  if (items && active && !browserExpanded[scope]) items.scrollLeft = Math.max(0, active.offsetLeft - items.offsetLeft - 8);
+}
+const BROWSER_SCOPES = {
+  action: { pathPrefix: '朗诵篇目', rootTitle: '全部篇目', activeLabel: '正在朗诵', unitLabel: '篇', groups: () => recitalGroups(), activeId: () => activeRecitalGroup().id, onSelect: (id) => selectRecitalArticle(id) },
+  hanzi: { pathPrefix: '汉字分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('hanzi'), activeId: () => activeContentGroup('hanzi').id, onSelect: (id) => selectContentGroup('hanzi', id) },
+  english: { pathPrefix: '英文分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('english'), activeId: () => activeContentGroup('english').id, onSelect: (id) => selectContentGroup('english', id) },
+};
+function selectContentGroup(kind, groupId) {
+  const group = contentGroups(kind).find((item) => item.id === groupId);
+  if (!group) return;
+  stopRecitalPlayer();
+  setActiveContentGroup(kind, groupId);
+  saveContentConfiguration();
+  applyAdminContent();
+  state.round = 0; state.completed = false; state.roundLocked = false;
+  persistProgress();
+  renderHome();
+  renderRound();
+  showToast(`开始学习“${group.name}”分组。`);
 }
 function selectRecitalArticle(groupId) {
   const group = recitalGroups().find((item) => item.id === groupId);

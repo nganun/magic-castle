@@ -32,8 +32,8 @@ export const DEFAULT_LEARNING_CONTENT = {
     "groups": [
       {
         "id": "middle-forth-1h",
-        "name": "中四班-上学期",
-        "file": "hanzi/课堂/01-中四班-上学期.txt",
+        "name": "中班上",
+        "file": "hanzi/课堂/01-中班上.txt",
         "directory": "课堂",
         "order": 1,
         "image": false,
@@ -46,13 +46,20 @@ export const DEFAULT_LEARNING_CONTENT = {
           "胡须",
           "入口",
           "兴高采烈",
-          "白色"
+          "白色",
+          "象",
+          "猩猩",
+          "企鹅",
+          "冰块",
+          "草原",
+          "自信满满",
+          "非洲"
         ]
       },
       {
         "id": "xiao-si-ban-xia-xue-qi",
-        "name": "小四班-下学期",
-        "file": "hanzi/课堂/02-小四班-下学期.txt",
+        "name": "小班下",
+        "file": "hanzi/课堂/02-小班下.txt",
         "directory": "课堂",
         "order": 2,
         "image": false,
@@ -229,8 +236,8 @@ export const DEFAULT_LEARNING_CONTENT = {
           "金鱼水里穿裙子。",
           "谁在天上推剪子？",
           "燕子天上推剪子。",
-          "谁在草丛拉锯子？",
-          "螳螂草丛拉锯子。",
+          "谁在草丛扯锯子？",
+          "螳螂草丛扯锯子。",
           "谁在屋角织网子？",
           "蜘蛛屋角织网子。"
         ]
@@ -315,7 +322,7 @@ export const DEFAULT_LEARNING_CONTENT = {
           "老鼠嗅着油豆香。",
           "爬上缸，跳进筐，",
           "偷油偷豆两头忙。",
-          "又豪兴，又慌张，",
+          "又高兴，又慌张，",
           "脚一滑，身一晃，",
           "“扑通”一声跌进缸。"
         ]
