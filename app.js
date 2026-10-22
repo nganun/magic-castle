@@ -1942,7 +1942,7 @@ function renderLessonGroupSwitcher() {
   if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
   const tree = buildDirectoryTree(groups);
   const node = directoryNode(tree, browserScopePath(kind)) || tree;
-  if (node.dirs.size + node.groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
+  if (countTreeItems(tree) < 2) { container.hidden = true; container.replaceChildren(); return; }
   container.hidden = false;
   container.innerHTML = browserMarkup(kind, { groups, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
   bindContentBrowser(container, kind, scope.onSelect);
@@ -2130,7 +2130,7 @@ function renderRound() {
     const recordingAction = state.recordingEnabled ? '<button class="record-practice" id="recordPractice" type="button">跟我说一说</button><div id="practicePlayback"></div>' : '';
     area.innerHTML = currentTheme().id === 'hanzi'
       ? hanziLearnMarkup(game, recordingAction)
-      : `<div class="learn-word-card"><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
+      : `<div class="learn-word-card"><div class="card-progress" id="cardProgressHost"></div><img src="${game.image}" alt="${game.word} 的图片" /><div><p>看一看，听一听</p><h2>${game.word}</h2><span>${game.zh}</span></div>${sentenceMarkup(game.word)}${lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`)}</div>${recordingAction}`;
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
     $('#hanziSpeak')?.addEventListener('click', (event) => {
       const glyph = event.currentTarget;
