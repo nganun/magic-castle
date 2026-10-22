@@ -29,7 +29,9 @@ body {
 
 html, body {
     width: 100%;
-    height: 100%;
+    /* 不要撑满视口：让文档高度等于内容高度，父页面才能把 iframe 收到刚好，
+       否则底部会留一块空白 */
+    height: auto;
 }
 
 p {

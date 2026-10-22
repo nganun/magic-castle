@@ -1200,6 +1200,16 @@ window.onload = function () {
         // Find initial clusters and moves
         findMoves();
         findClusters();
+
+        // 告诉父页面内容有多高，iframe 就能刚好包住，不留空白
+        reportHeight();
+    }
+
+    // 把当前内容高度发给父页面（只在被 iframe 嵌入时）
+    function reportHeight() {
+        if (!window.parent || window.parent === window) return;
+        const height = Math.ceil(document.documentElement.scrollHeight);
+        window.parent.postMessage({ type: 'match3-height', height }, '*');
     }
 
     // Finish game
@@ -1954,6 +1964,10 @@ window.onload = function () {
         isPaused = false;
         faqModal.style.display = "none";
     });
+
+    // 宽度变化时棋盘会缩放，高度也要跟着报给父页面
+    window.addEventListener('resize', reportHeight);
+    window.addEventListener('load', reportHeight);
 
     window.onclick = function (event) {
         //event.preventDefault();

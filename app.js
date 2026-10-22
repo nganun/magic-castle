@@ -1123,6 +1123,14 @@ function renderRhythmGame(area) {
 function renderMatchGame(area) {
   area.innerHTML = arcadeFrame('魔法消消乐', '连接三个或更多相同宝石', `<div class="match-game-shell"><iframe id="matchGameFrame" src="vendor/match-3-game/index.html" title="魔法消消乐" loading="eager"></iframe></div><p class="arcade-rule">拖动相邻宝石，连成三个或更多同色宝石即可消除。</p>`);
   bindArcadeBack();
+  // 消消乐把内容高度报过来，iframe 收到刚好，底部不留空白
+  const frame = $('#matchGameFrame');
+  if (frame) {
+    const applyHeight = (height) => { frame.style.height = `${Math.max(300, Number(height) || 0)}px`; };
+    frame.addEventListener('load', () => {
+      try { applyHeight(frame.contentDocument?.documentElement?.scrollHeight); } catch { /* 跨域时忽略 */ }
+    });
+  }
 }
 function arrowMoveResult(arrow, arrows, size) {
   const delta = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[arrow.direction];
@@ -1255,6 +1263,13 @@ async function lockFruitOrientation(source) {
 }
 window.addEventListener('message', (event) => {
   const fruitFrame = $('[data-fruit-game-frame]');
+  // 消消乐（iframe）报来内容高度：把 iframe 收到刚好，底部不留空白
+  if (event.data?.type === 'match3-height') {
+    const matchFrame = $('#matchGameFrame');
+    if (matchFrame && event.source === matchFrame.contentWindow) {
+      matchFrame.style.height = `${Math.max(300, Number(event.data.height) || 0)}px`;
+    }
+  }
   if (event.data?.type === 'magic-castle:fruit-landscape-request') {
     lockFruitOrientation(event.source);
   }
