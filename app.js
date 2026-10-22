@@ -1126,10 +1126,31 @@ function renderMatchGame(area) {
   // 消消乐把内容高度报过来，iframe 收到刚好，底部不留空白
   const frame = $('#matchGameFrame');
   if (frame) {
-    const applyHeight = (height) => { frame.style.height = `${Math.max(300, Number(height) || 0)}px`; };
-    frame.addEventListener('load', () => {
-      try { applyHeight(frame.contentDocument?.documentElement?.scrollHeight); } catch { /* 跨域时忽略 */ }
-    });
+    const applyHeight = (height) => {
+      const value = Math.round(Number(height) || 0);
+      if (!value) return; // 量不到就别动，别把 iframe 压扁
+      frame.style.height = `${Math.max(300, value)}px`;
+      frame.style.minHeight = '0px'; // 别让样式表里的 min-height 又把底部撑出空白
+    };
+    // 兜底：不等 iframe 脚本回报，直接量它内容里最后一个元素的位置
+    const measure = () => {
+      try {
+        const doc = frame.contentDocument;
+        if (!doc) return 0;
+        const viewport = doc.documentElement.clientHeight || 0;
+        const top = doc.body.getBoundingClientRect().top;
+        let bottom = 0;
+        doc.body.querySelectorAll('*').forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return;            // 隐藏的元素
+          if (viewport && rect.height > viewport * 1.2) return;        // 被拉满的容器
+          bottom = Math.max(bottom, rect.bottom);
+        });
+        return bottom > top ? Math.ceil(bottom - top + 12) : 0;
+      } catch { return 0; }
+    };
+    frame.addEventListener('load', () => applyHeight(measure()));
+    window.setTimeout(() => applyHeight(measure()), 600);
   }
 }
 function arrowMoveResult(arrow, arrows, size) {
