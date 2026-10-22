@@ -35,9 +35,16 @@ const ADMIN_CONTENT_STORAGE_KEY = 'luna-admin-content-v4';
 const adminContent = load(ADMIN_CONTENT_STORAGE_KEY, JSON.parse(JSON.stringify(ADMIN_DEFAULT)));
 // 官方内容分三层：内置（打进 APK）⊂ 远程官方快照（同步下来的）⊂ 本机生效层（家长改的）。
 let remoteContentSnapshot = load(REMOTE_CONTENT_STORAGE_KEY, null);
+// 官方内容 = 已同步的快照 与 内置内容 中更新的那份。
+// 快照可能来自旧的内容分发站（甚至旧 App），若内置内容已经包含快照的全部分组，说明内置更新，用它。
 function officialContent() {
-  if (remoteContentSnapshot?.entries?.length) return contentFromEntries(remoteContentSnapshot.entries);
-  return ADMIN_DEFAULT;
+  const remote = remoteContentSnapshot?.entries?.length ? contentFromEntries(remoteContentSnapshot.entries) : null;
+  if (!remote) return ADMIN_DEFAULT;
+  const groupIds = (content) => Object.values(content).filter((kind) => kind?.groups).flatMap((kind) => kind.groups.map((group) => group.id));
+  const builtIds = new Set(groupIds(ADMIN_DEFAULT));
+  const remoteIds = groupIds(remote);
+  const builtInIsNewer = remoteIds.every((id) => builtIds.has(id));
+  return builtInIsNewer ? ADMIN_DEFAULT : remote;
 }
 function subjectConfig(kind) { return adminContent[kind]; }
 const editingContentGroupIds = { english: null, hanzi: null };
@@ -55,7 +62,7 @@ function contentGroups(kind) {
         id: String(group?.id || `${kind}-${index + 1}`),
         name: repairTruncatedName(typeof group?.name === 'string' ? group.name.trim().slice(0, 24) : '', match?.name),
         image: typeof group?.image === 'boolean' ? group.image : Boolean(match?.image),
-        directory: typeof group?.directory === 'string' ? group.directory : (match?.directory ?? ''),
+        directory: match?.directory ?? (typeof group?.directory === 'string' ? group.directory : ''),
         notes: group?.notes && typeof group.notes === 'object' ? group.notes : (match?.notes ?? {}),
         words: normaliseContentWords(kind, group?.words)
       };
@@ -111,7 +118,7 @@ function recitalGroups() {
         ...group,
         id: String(group?.id || `recital-${index + 1}`),
         name: repairTruncatedName(String(group?.name || '').trim().slice(0, 24), match?.name) || `朗诵第 ${index + 1} 组`,
-        directory: typeof group?.directory === 'string' ? group.directory : (match?.directory ?? ''),
+        directory: match?.directory ?? (typeof group?.directory === 'string' ? group.directory : ''),
         notes: group?.notes && typeof group.notes === 'object' ? group.notes : (match?.notes ?? {}),
         lines: normaliseRecitalLines(repairLines(group?.lines, match?.lines))
       };
