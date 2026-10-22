@@ -31,18 +31,19 @@ test('端到端：从内容清单下载文本文件并合并，服务器返回�
     // 第一次同步：没有本机快照，应下载全部文件
     const first = await syncRemoteContent({ baseUrl });
     assert.equal(first.changed, true);
-    assert.equal(first.changedFiles.length, 21);
+    assert.equal(first.changedFiles.length, first.manifest.files.length);
+    assert.ok(first.manifest.files.length >= 21, '内容文件数量不应少于迁移时的 21 个');
     const official = contentFromEntries(first.entries);
-    assert.equal(official.hanzi.groups.length, 6);
-    assert.equal(official.recital.groups.length, 14);
-    assert.equal(official.english.groups.length, 1);
+    const built = (await import(resolve(root, 'features/default-content.js'))).DEFAULT_LEARNING_CONTENT;
+    ['english', 'hanzi', 'recital'].forEach((kind) => {
+      assert.equal(official[kind].groups.length, built[kind].groups.length, `${kind} 的分组数应与内置内容一致`);
+    });
 
     // 第二次同步：清单没变，应判定为无变化
     const second = await syncRemoteContent({ baseUrl, previousSnapshot: { manifest: first.manifest, entries: first.entries } });
     assert.equal(second.changed, false);
 
     // 拿官方内容与内置内容合并：内容一致 → 不应有新增/更新/冲突
-    const built = (await import(resolve(root, 'features/default-content.js'))).DEFAULT_LEARNING_CONTENT;
     const { summary } = mergeSyncedContent({ previousOfficial: built, nextOfficial: official, local: built });
     assert.equal(summary.added.length, 0);
     assert.equal(summary.updated.length, 0);
@@ -58,7 +59,7 @@ test('内容清单与远端不一致时，只下载变化的文件', async () =>
   try {
     const first = await syncRemoteContent({ baseUrl });
     const changed = diffManifest(first.manifest.files, first.manifest.files.map((file) => ({ ...file, sha256: 'changed' })));
-    assert.equal(changed.changed.length, 21);
+    assert.equal(changed.changed.length, first.manifest.files.length);
     assert.equal(changed.added.length, 0);
     assert.equal(changed.removed.length, 0);
   } finally {

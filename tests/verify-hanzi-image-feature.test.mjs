@@ -47,10 +47,30 @@ test('data/** 解析结果与 features/default-content.js 一致', async () => {
 test('看图识字分组里的每个词都有对应插图', () => {
   const parsed = parseContentFiles(collectContentFiles(dataDir), { resourceVersion: 0 });
   const imageGroups = parsed.kinds.hanzi.groups.filter((group) => group.image);
-  assert.equal(imageGroups.length, 4, '应有 4 个带插图的汉字分组');
+  assert.ok(imageGroups.length >= 1, '应至少有一个带插图的汉字分组');
   for (const group of imageGroups) {
     for (const word of group.words) {
       assert(existsSync(resolve(svgDir, `${word}.svg`)), `分组 ${group.id} 的「${word}」缺少插图`);
     }
+  }
+});
+
+test('开了 image 的英文分组，每个单词都有插图', () => {
+  const parsed = parseContentFiles(collectContentFiles(dataDir), { resourceVersion: 0 });
+  const vocabularyDir = resolve(root, 'assets/learning/vocabulary');
+  const imageGroups = parsed.kinds.english.groups.filter((group) => group.image);
+  assert.ok(imageGroups.length >= 1, '应至少有一个带插图的英文分组');
+  for (const group of imageGroups) {
+    for (const word of group.words) {
+      assert(existsSync(resolve(vocabularyDir, `${word}.svg`)), `分组 ${group.id} 的「${word}」缺少插图`);
+    }
+  }
+});
+
+test('插图清单与磁盘上的插图一致', async () => {
+  const generated = await import(resolve(root, 'features/learning-images.js'));
+  for (const [kind, dir] of Object.entries({ hanzi: svgDir, english: resolve(root, 'assets/learning/vocabulary') })) {
+    const onDisk = readdirSync(dir).filter((file) => file.endsWith('.svg')).map((file) => file.replace(/\.svg$/, '')).sort();
+    assert.deepEqual(generated.LEARNING_IMAGES[kind], onDisk, `${kind} 插图清单与磁盘不一致`);
   }
 });

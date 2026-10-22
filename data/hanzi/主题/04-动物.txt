@@ -1,5 +1,5 @@
 # id: animal
-# 图片：开
+# image：true
 小狗
 小猫
 小猪

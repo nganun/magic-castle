@@ -1,4 +1,5 @@
 # id: english-colors
+# image: true
 red
 green
 black

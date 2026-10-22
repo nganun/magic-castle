@@ -7,6 +7,7 @@ import { themeNeedsReview as isThemeReviewDue, recommendedThemeId as getRecommen
 import { createBuiltInThemes } from './features/theme-catalog.js';
 import { WORD_TRANSLATIONS, HANZI_SCENES, WORD_SENTENCES } from './features/content-catalog.js';
 import { DEFAULT_LEARNING_CONTENT } from './features/default-content.js';
+import { LEARNING_IMAGES } from './features/learning-images.js';
 import { buildDirectoryTree, contentFromEntries, directoryNode, normaliseContentWords, normaliseRecitalLines, repairTruncatedName } from './features/content-files.js';
 import { mergeSyncedContent, restoreOfficialContent } from './features/content-sync.js';
 import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/content-channel.js';
@@ -152,8 +153,12 @@ function buildRecitalTheme() {
 }
 function textCard(text, fill = '#f1e8ff') { return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180"><rect width="240" height="180" rx="28" fill="${fill}"/><text x="120" y="108" text-anchor="middle" font-family="sans-serif" font-size="${text.length > 5 ? 42 : 72}" font-weight="800" fill="#6744a5">${text}</text></svg>`)}`; }
 function hanziWordImageUrl(word) {
-  if (!word) return '';
+  if (!word || !(LEARNING_IMAGES.hanzi || []).includes(word)) return '';
   return `assets/learning/hanzi/${encodeURIComponent(word)}.svg`;
+}
+function englishWordImageUrl(word) {
+  if (!word || !(LEARNING_IMAGES.english || []).includes(word)) return '';
+  return `assets/learning/vocabulary/${encodeURIComponent(word)}.svg`;
 }
 let hanziImageHintVisible = storageGet('luna-hanzi-image-hint-visible') === 'true';
 function toggleHanziImageHint() {
@@ -168,13 +173,18 @@ function toggleHanziImageHint() {
 function buildCustomTheme(id, title, subtitle, words, isHanzi = false, hasImage = false) {
   const fallback = isHanzi ? ['人', '大人', '人口'] : ['red', 'yellow', 'blue'];
   const list = words.length >= 2 ? words : fallback;
-  const rounds = list.map((word) => ({ type: 'learn', chip: isHanzi ? (word.length > 1 ? '认识词组' : '认识汉字') : '认识单词', word, image: isHanzi ? (hasImage ? hanziWordImageUrl(word) : textCard(word, '#fff0dc')) : wordImage(word) || textCard(word), zh: isHanzi ? `看一看，读一读“${word}”。` : `看一看，这是 ${word}。` }));
-  const reviewRounds = list.map((word, index) => { const other = list[(index + 1) % list.length]; return { type: index % 2 ? 'listen' : 'match', chip: index % 2 ? '听音找一找' : '魔法复习', prompt: isHanzi ? `Find ${word}` : 'Which word matches?', word, image: isHanzi ? (hasImage ? hanziWordImageUrl(word) : textCard(word, '#fff0dc')) : wordImage(word) || textCard(word), zh: isHanzi ? '听一听，找到对应的汉字或词组。' : '看图片，选出对应的英文单词。', choices: [word, other], correct: word }; });
+  const imageFor = (word) => {
+    if (isHanzi) return hasImage ? (hanziWordImageUrl(word) || textCard(word, '#fff0dc')) : textCard(word, '#fff0dc');
+    if (hasImage) return englishWordImageUrl(word) || wordImage(word) || textCard(word);
+    return wordImage(word) || textCard(word);
+  };
+  const rounds = list.map((word) => ({ type: 'learn', chip: isHanzi ? (word.length > 1 ? '认识词组' : '认识汉字') : '认识单词', word, image: imageFor(word), zh: isHanzi ? `看一看，读一读“${word}”。` : `看一看，这是 ${word}。` }));
+  const reviewRounds = list.map((word, index) => { const other = list[(index + 1) % list.length]; return { type: index % 2 ? 'listen' : 'match', chip: index % 2 ? '听音找一找' : '魔法复习', prompt: isHanzi ? `Find ${word}` : 'Which word matches?', word, image: imageFor(word), zh: isHanzi ? '听一听，找到对应的汉字或词组。' : '看图片，选出对应的英文单词。', choices: [word, other], correct: word }; });
   return { id, title, subtitle, words: list, rewards: ['hat_wizard', 'gl_star', 'held_book'], rounds, reviewRounds };
 }
 function applyAdminContent() {
   const english = activeContentGroup('english'); const hanzi = activeContentGroup('hanzi');
-  THEMES.english = buildCustomTheme('english', '英文单词', english.name, english.words);
+  THEMES.english = buildCustomTheme('english', '英文单词', english.name, english.words, false, Boolean(english.image));
   THEMES.hanzi = buildCustomTheme('hanzi', '汉字魔法', hanzi.name, hanzi.words, true, Boolean(hanzi.image));
   THEMES.action = buildRecitalTheme();
 }

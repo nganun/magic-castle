@@ -1,5 +1,5 @@
 # id: fruit
-# 图片：开
+# image: true
 西瓜
 蓝莓
 橙子

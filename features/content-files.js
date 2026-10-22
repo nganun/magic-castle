@@ -190,7 +190,7 @@ export function parseContentFile(path, text) {
     file: path,
     directory,
     order: order ?? Number.MAX_SAFE_INTEGER,
-    image: kind === 'hanzi' ? Boolean(image) : false,
+    image: Boolean(image), // 任何类型都可以开"看图"；english 用插图清单找 assets/learning/vocabulary/<词>.svg
     notes,
   };
   if (kind === 'recital') group.lines = values;

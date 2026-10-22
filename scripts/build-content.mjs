@@ -6,6 +6,17 @@ import { dirname, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { buildDefaultLearningContent, parseContentFiles } from '../features/content-files.js';
 
+// 插图清单：App 端据此判断某个词有没有现成插图，没有就退回文字卡片，避免出现破图。
+async function collectLearningImages(root) {
+  const kinds = { hanzi: 'assets/learning/hanzi', english: 'assets/learning/vocabulary' };
+  const result = {};
+  for (const [kind, dir] of Object.entries(kinds)) {
+    const entries = await readdir(resolve(root, dir), { withFileTypes: true }).catch(() => []);
+    result[kind] = entries.filter((entry) => entry.isFile() && entry.name.endsWith('.svg')).map((entry) => entry.name.replace(/\.svg$/, '')).sort();
+  }
+  return result;
+}
+
 export async function buildContent({ root = process.cwd() } = {}) {
   const dataDir = resolve(root, 'data');
   const distContentDir = resolve(root, 'dist/content');
@@ -46,6 +57,10 @@ export async function buildContent({ root = process.cwd() } = {}) {
   await writeFile(
     resolve(root, 'features/default-content.js'),
     `// Generated from data/**. Do not edit directly.\nexport const DEFAULT_LEARNING_CONTENT = ${JSON.stringify(content, null, 2)};\n`,
+  );
+  await writeFile(
+    resolve(root, 'features/learning-images.js'),
+    `// Generated from assets/learning/**. Do not edit directly.\nexport const LEARNING_IMAGES = ${JSON.stringify(await collectLearningImages(root), null, 2)};\n`,
   );
 
   await rm(distContentDir, { recursive: true, force: true });

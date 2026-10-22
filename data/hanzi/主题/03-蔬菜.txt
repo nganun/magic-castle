@@ -1,5 +1,5 @@
 # id: vegitable
-# 图片：开
+# image: true
 胡萝卜
 西红柿
 土豆

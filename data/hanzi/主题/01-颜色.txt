@@ -1,5 +1,5 @@
 # id: color
-# 图片：开
+# image: true
 白色
 黑色
 红色

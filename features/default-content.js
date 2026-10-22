@@ -2,16 +2,37 @@
 export const DEFAULT_LEARNING_CONTENT = {
   "resourceVersion": 4,
   "english": {
-    "activeGroupId": "english-colors",
+    "activeGroupId": "number",
     "deletedGroupIds": [],
     "groups": [
+      {
+        "id": "number",
+        "name": "数字",
+        "file": "english/基础/数字.txt",
+        "directory": "基础",
+        "order": 9007199254740991,
+        "image": true,
+        "notes": {},
+        "words": [
+          "one",
+          "two",
+          "three",
+          "four",
+          "five",
+          "six",
+          "seven",
+          "eight",
+          "nine",
+          "ten"
+        ]
+      },
       {
         "id": "english-colors",
         "name": "颜色单词",
         "file": "english/基础/颜色单词.txt",
         "directory": "基础",
         "order": 9007199254740991,
-        "image": false,
+        "image": true,
         "notes": {},
         "words": [
           "red",

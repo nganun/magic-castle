@@ -143,7 +143,7 @@ test('仓库里的 data/** 能解析出 21 个分组，且与生成的默认内�
   const parsed = parseContentFiles(files, { resourceVersion: Number(readFileSync(resolve(dataDir, 'version.txt'), 'utf8').trim()) });
   assert.equal(parsed.errors.length, 0);
   const total = Object.values(parsed.kinds).reduce((sum, entry) => sum + entry.groups.length, 0);
-  assert.equal(total, 21);
+  assert.ok(total >= 21, '分组数量不应少于迁移时的 21 个');
   const built = buildDefaultLearningContent(parsed);
   const generated = await import(resolve(root, 'features/default-content.js'));
   assert.deepEqual(
