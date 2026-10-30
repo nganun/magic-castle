@@ -11,12 +11,13 @@ import { LEARNING_IMAGES } from './features/learning-images.js';
 import { buildDirectoryTree, contentFromEntries, directoryNode, normaliseContentWords, normaliseRecitalLines, repairTruncatedName } from './features/content-files.js';
 import { mergeSyncedContent, restoreOfficialContent } from './features/content-sync.js';
 import { REMOTE_CONTENT_STORAGE_KEY, syncRemoteContent } from './features/content-channel.js';
-import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createArrowBoard, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
+import { ARCADE_GAMES, ARCADE_HANZI_PICTURE_ITEMS, createColorRound, createFruitWave, createLightsBoard, createListeningRound, createMemoryDeck, createNumberRound, nextArcadeLane, nextRhythmColor, ARCADE_BOARD_SIZE } from './features/arcade-games.js';
 import { BUILD_INFO } from './features/build-info.js';
 import { clamp, chineseNumber, escapeHtml } from './features/utils.js';
 import { applyTtsReading } from './features/tts-reading.js';
 import { bindContentBrowser, browserMarkup, browserScopePath, countTreeItems } from './features/content-browser.js';
-import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
+import { englishLearnCardMarkup, hanziLearnCardMarkup, hanziSceneMarkup, lessonGroupPathLabel, lessonPrimaryActionsMarkup, miscLearnCardMarkup, recitalLearnCardMarkup } from './features/lesson-cards.js';
+import { getMiscVisual } from './features/misc-visuals.js';
 import { bindNumberBoard, numberBoardCardMarkup, numberQuizCardMarkup, numberStageCardMarkup } from './features/number-tower.js';
 import { playSfx } from './features/audio-sfx.js';
 import { triggerConfetti } from './features/confetti.js';
@@ -61,7 +62,7 @@ function officialContent() {
   return builtInIsNewer ? ADMIN_DEFAULT : remote;
 }
 function subjectConfig(kind) { return adminContent[kind]; }
-const editingContentGroupIds = { english: null, hanzi: null };
+const editingContentGroupIds = { english: null, hanzi: null, misc: null };
 function contentGroups(kind) {
   const subject = subjectConfig(kind);
   if (!Array.isArray(subject.deletedGroupIds)) subject.deletedGroupIds = [];
@@ -216,10 +217,38 @@ function buildCustomTheme(id, title, subtitle, words, isHanzi = false, hasImage 
   const reviewRounds = list.map((word, index) => { const other = list[(index + 1) % list.length]; return { type: index % 2 ? 'listen' : 'match', chip: index % 2 ? '听音找一找' : '魔法复习', prompt: isHanzi ? `Find ${word}` : 'Which word matches?', word, image: imageFor(word), zh: isHanzi ? '听一听，找到对应的汉字或词组。' : '看图片，选出对应的英文单词。', choices: [word, other], correct: word }; });
   return { id, title, subtitle, words: list, rewards: ['hat_wizard', 'gl_star', 'held_book'], rounds, reviewRounds };
 }
+function buildMiscTheme(group) {
+  const fallback = ['三角形', '正方形', '长方形', '圆形', '半圆形', '梯形'];
+  const list = (group?.words && group.words.length >= 2) ? group.words : fallback;
+  const name = group?.name || '基础形状';
+  const rounds = list.map((word) => ({
+    type: 'learn',
+    chip: '综合认知',
+    word,
+    image: '',
+    zh: `看一看，认一认“${word}”。`,
+  }));
+  const reviewRounds = list.map((word, index) => {
+    const other = list[(index + 1) % list.length];
+    return {
+      type: 'listen',
+      chip: '听音认一认',
+      prompt: `Find ${word}`,
+      word,
+      image: '',
+      zh: `听一听，哪个是“${word}”？`,
+      choices: [word, other],
+      correct: word,
+    };
+  });
+  return { id: 'color', title: MAP_META.color.name, subtitle: name, words: list, rewards: ['hat_wizard', 'gl_star', 'held_wand'], rounds, reviewRounds };
+}
 function applyAdminContent() {
   const english = activeContentGroup('english'); const hanzi = activeContentGroup('hanzi');
+  const misc = activeContentGroup('misc');
   THEMES.english = buildCustomTheme('english', MAP_META.english.name, english.name, english.words, false, Boolean(english.image));
   THEMES.hanzi = buildCustomTheme('hanzi', MAP_META.hanzi.name, hanzi.name, hanzi.words, true, Boolean(hanzi.image));
+  THEMES.color = buildMiscTheme(misc);
   THEMES.action = buildRecitalTheme();
 }
 
@@ -231,7 +260,7 @@ function wordImage(word) {
 function wordMeaning(word) {
   const translation = WORD_TRANSLATIONS[word];
   if (translation) return translation;
-  for (const kind of ['english', 'hanzi']) {
+  for (const kind of ['english', 'hanzi', 'misc']) {
     for (const group of contentGroups(kind)) {
       const note = group.notes?.[word];
       if (note) return note;
@@ -740,7 +769,7 @@ function renderArcade() {
   const area = $('#arcadeArea');
   if (!state.arcadeGameId) {
     const daily = arcadeDailyPlays();
-    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p><div class="arcade-progress"><span>今日小游戏</span><b>${Math.min(daily, 3)} / 3</b><i style="--arcade-progress:${Math.min(daily, 3) / 3 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => `<button class="arcade-game-card arcade-game-${game.id}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small><em>${game.meta}</em></span></button>`).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestArrows ? `<span>箭头最高 ${state.arcadeStats.bestArrows} 个</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
+    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p><div class="arcade-progress"><span>今日小游戏</span><b>${Math.min(daily, 3)} / 3</b><i style="--arcade-progress:${Math.min(daily, 3) / 3 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => `<button class="arcade-game-card arcade-game-${game.id}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small><em>${game.meta}</em></span></button>`).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
     $$('[data-arcade-game]', area).forEach((button) => button.addEventListener('click', () => { state.arcadeGameId = button.dataset.arcadeGame; state.arcadeState = null; renderArcade(); }));
     return;
   }
@@ -750,13 +779,12 @@ function renderArcade() {
   if (state.arcadeGameId === 'colors') renderColorGame(area);
   if (state.arcadeGameId === 'rhythm') renderRhythmGame(area);
   if (state.arcadeGameId === 'match') renderMatchGame(area);
-  if (state.arcadeGameId === 'arrows') renderArrowGame(area);
   if (state.arcadeGameId === 'fruit') renderFruitGame(area);
   if (state.arcadeGameId === 'whack') renderWhackGame(area);
   if (state.arcadeGameId === 'catch') renderCatchGame(area);
   if (state.arcadeGameId === 'lights') renderLightsGame(area);
   if (state.arcadeGameId === 'tictactoe') renderTicTacToeGame(area);
-  if (['game2048', 'hanoi', 'klotski', 'sudoku', 'bulls'].includes(state.arcadeGameId)) renderVendorMiniGame(area, state.arcadeGameId);
+  if (VENDOR_MINI_GAMES[state.arcadeGameId]) renderVendorMiniGame(area, state.arcadeGameId);
 }
 function arcadeLevelProgress(level, maxLevels) {
   if (!level || !maxLevels) return '';
@@ -977,7 +1005,7 @@ function renderListeningGame(area) {
   }));
 }
 function renderNumberGame(area) {
-  const MAX_LEVELS = 5;
+  const MAX_LEVELS = 10;
   if (!state.arcadeState) {
     state.arcadeState = { level: 1, maxLevels: MAX_LEVELS, ...createNumberRound(1) };
   }
@@ -1153,79 +1181,6 @@ function renderMatchGame(area) {
     window.setTimeout(() => applyHeight(measure()), 600);
   }
 }
-function arrowMoveResult(arrow, arrows, size) {
-  const delta = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] }[arrow.direction];
-  let row = arrow.row + delta[0]; let col = arrow.col + delta[1]; let steps = 1;
-  while (row >= 0 && row < size && col >= 0 && col < size) {
-    if (arrows.some((item) => item.id !== arrow.id && item.row === row && item.col === col)) return { blocked: true, steps, dx: delta[1], dy: delta[0] };
-    row += delta[0]; col += delta[1]; steps += 1;
-  }
-  return { blocked: false, steps, dx: delta[1], dy: delta[0] };
-}
-function renderArrowGame(area) {
-  const MAX_LEVELS = 3;
-  if (!state.arcadeState) {
-    const size = 3;
-    state.arcadeState = {
-      level: 1,
-      maxLevels: MAX_LEVELS,
-      size,
-      arrows: createArrowBoard(size),
-      cleared: 0,
-      failures: 0,
-      moving: null
-    };
-  }
-  const game = state.arcadeState;
-  area.innerHTML = arcadeFrame(
-    '箭头快跑',
-    `点击箭头冲向边框 (${game.size}×${game.size} 棋盘)`,
-    `${arcadeStatus([['剩余', game.arrows.length, 'violet'], ['已消除', game.cleared, 'sky'], ['失误', `${game.failures}/3`, game.failures ? 'pink' : 'gold']])}<div class="arrow-grid" style="--arrow-grid:${game.size}">${game.arrows.map((arrow) => {
-      const moving = game.moving?.id === arrow.id;
-      const movement = moving ? game.moving : null;
-      return `<button class="arrow-tile ${moving ? `moving ${movement.blocked ? 'blocked-move' : 'exit-move'}` : ''}" type="button" data-arrow-id="${arrow.id}" style="--arrow-move-x:${movement ? movement.dx * movement.steps * 100 : 0}%;--arrow-move-y:${movement ? movement.dy * movement.steps * 100 : 0}%"><span>${{ up: '↑', down: '↓', left: '←', right: '→' }[arrow.direction]}</span></button>`;
-    }).join('')}</div><p class="arcade-rule">箭头会沿方向移动：碰到其它箭头算失误，成功冲出边框才会消除。</p>`,
-    arcadeLevelProgress(game.level, game.maxLevels)
-  );
-  bindArcadeBack();
-  $$('[data-arrow-id]', area).forEach((button) => button.addEventListener('click', () => {
-    if (game.moving) return;
-    const arrow = game.arrows.find((item) => item.id === button.dataset.arrowId);
-    const movement = arrowMoveResult(arrow, game.arrows, game.size);
-    game.moving = { id: arrow.id, ...movement };
-    renderArrowGame(area);
-    window.setTimeout(() => {
-      if (movement.blocked) {
-        game.failures += 1;
-        if (game.failures >= 3) {
-          state.arcadeState = null;
-          showToast('撞到其它箭头了，本局重试！');
-          renderArcade();
-          return;
-        }
-      } else {
-        game.arrows = game.arrows.filter((item) => item.id !== arrow.id);
-        game.cleared += 1;
-      }
-      game.moving = null;
-      if (!movement.blocked && !game.arrows.length) {
-        if (game.level < game.maxLevels) {
-          game.level += 1;
-          const nextSize = game.level === 2 ? 4 : 5;
-          game.size = nextSize;
-          game.arrows = createArrowBoard(nextSize);
-          game.failures = 0;
-          showToast(`🎯 第 ${game.level - 1} 关全部冲出！进入第 ${game.level} 关（${nextSize}×${nextSize} 棋盘）`);
-          renderArrowGame(area);
-          return;
-        }
-        finishArcadeRound('箭头快跑', { arrowScore: game.cleared });
-        return;
-      }
-      renderArrowGame(area);
-    }, 420);
-  }));
-}
 function distanceToSegment(point, start, end) {
   const dx = end.x - start.x; const dy = end.y - start.y;
   const lengthSquared = dx * dx + dy * dy;
@@ -1237,6 +1192,14 @@ const VENDOR_MINI_GAMES = {
   fruit: { title: '水果魔法切切乐', description: '原始水果切切乐 UI', src: 'vendor/mini-games/fruitninjia/index.html' },
   whack: { title: '打地鼠', description: '看准了敲！别让地鼠跑掉', src: 'vendor/mini-games/whac-a-mole.html' },
   catch: { title: '接水果', description: '移动篮子，接住落下的水果', src: 'vendor/mini-games/library/fruit-catch.html' },
+  screw: { title: '打个螺丝', description: '拧下螺丝，收纳所有的彩色垫板', src: 'vendor/mini-games/screw/index.html' },
+  fruitbox: { title: '消个水果', description: '点击水果放入卡槽，三个消除', src: 'vendor/mini-games/fruitbox/index.html' },
+  arrowshoot: { title: '一箭又一箭', description: '看准靶心与角度，箭无虚发', src: 'vendor/mini-games/arrow-shoot/index.html' },
+  sheep: { title: '羊了个羊：星球', description: '星球上的堆叠消除大挑战', src: 'vendor/mini-games/sheep/index.html' },
+  goose: { title: '抓大鹅', description: '3D 杂乱场景中找出三个相同物品', src: 'vendor/mini-games/goose/index.html' },
+  beads: { title: '快乐拼拼豆', description: '挑选彩色豆豆，拼出精美像素画', src: 'vendor/mini-games/beads/index.html' },
+  xlegex: { title: '兔了个兔', description: '可爱的兔子卡片三消趣味挑战', src: 'vendor/mini-games/xlegex/index.html' },
+  yulegeyu: { title: '鱼了个鱼', description: '海洋鱼类主题叠层收纳三消', src: 'vendor/mini-games/yulegeyu/index.html' },
   game2048: { title: '2048', description: '经典合并数字挑战', src: 'vendor/mini-games/library/2048.html' },
   hanoi: { title: '汉诺塔', description: '移动圆盘到目标柱', src: 'vendor/mini-games/library/hanoi.html' },
   klotski: { title: '华容道', description: '经典横刀立马布局', src: 'vendor/mini-games/library/klotski.html' },
@@ -1513,16 +1476,16 @@ function startLearnCountdown(seconds = 3) {
 }
 
 function speakForCurrentTheme(text, onend) {
-  return currentTheme().id === 'hanzi' ? speakChinese(text, onend) : speak(text, onend);
+  return (currentTheme().id === 'hanzi' || currentTheme().id === 'color') ? speakChinese(text, onend) : speak(text, onend);
 }
 function autoReadWordCard(word) {
-  const card = $('.learn-word-card');
+  const card = $('.learn-word-card') || $('.misc-learn-card');
   const isHanzi = currentTheme().id === 'hanzi';
+  const isMisc = currentTheme().id === 'color';
   const translation = wordMeaning(word);
-  card?.classList.add('is-speaking', isHanzi ? 'speaking-chinese' : 'speaking-english');
-  // Hanzi cards read the character itself in Chinese. Other courses keep the
-  // English-first, Chinese-explanation sequence.
-  if (isHanzi) {
+  card?.classList.add('is-speaking', isHanzi || isMisc ? 'speaking-chinese' : 'speaking-english');
+  // Hanzi and Misc cards read the word in Chinese.
+  if (isHanzi || isMisc) {
     speakChinese(word, () => card?.classList.remove('is-speaking', 'speaking-chinese'));
     return;
   }
@@ -1583,7 +1546,7 @@ function openGroupModal(kind = 'hanzi') {
 }
 function openHanziGroupModal() { openGroupModal('hanzi'); }
 function speakGroupWord(kind, word, onend) {
-  return kind === 'hanzi' ? speakChinese(word, onend) : speak(word, onend);
+  return (kind === 'hanzi' || kind === 'misc') ? speakChinese(word, onend) : speak(word, onend);
 }
 function groupWordImageUrl(kind, word) {
   return kind === 'hanzi' ? hanziWordImageUrl(word) : englishWordImageUrl(word);
@@ -1687,13 +1650,13 @@ function updateHanziGridGeometry(count) {
 
 function renderHanziGroupModal() {
   const kind = groupModalKind;
-  const active = kind === 'hanzi' ? activeContentGroup('hanzi') : activeContentGroup('english');
+  const active = activeContentGroup(kind);
   const words = active.words;
   const groups = contentGroups(kind).filter((g) => g.name && g.words.length >= 2);
   const currentWord = currentRounds()[state.round]?.word;
 
   $('#hanziGroupModalTitle').textContent = active.name;
-  $('#hanziGroupModalCount').textContent = `共 ${words.length} ${kind === 'hanzi' ? '字' : '词'}`;
+  $('#hanziGroupModalCount').textContent = `共 ${words.length} ${kind === 'hanzi' ? '字' : (kind === 'misc' ? '项' : '词')}`;
 
   const tabsContainer = $('#hanziModalGroupTabs');
   if (tabsContainer) {
@@ -1719,7 +1682,7 @@ function renderHanziGroupModal() {
           renderHome();
           renderRound();
           renderHanziGroupModal();
-          showToast(`已切换到“${activeContentGroup('hanzi').name}”分组。`);
+          showToast(`已切换到“${activeContentGroup(kind).name}”分组。`);
         });
       });
     } else {
@@ -1733,12 +1696,16 @@ function renderHanziGroupModal() {
 
   const modalToggleBtn = $('#hanziModalImageToggleBtn');
   if (modalToggleBtn) {
-    modalToggleBtn.hidden = !isImageGroup;
-    modalToggleBtn.classList.toggle('is-active', showImage);
-    modalToggleBtn.setAttribute('aria-pressed', String(showImage));
-    const label = $('#hanziModalImageToggleLabel');
-    if (label) label.textContent = '看图识字';
-    modalToggleBtn.onclick = () => (kind === 'hanzi' ? toggleHanziImageHint() : toggleEnglishImageHint());
+    if (kind === 'misc') {
+      modalToggleBtn.hidden = true;
+    } else {
+      modalToggleBtn.hidden = !isImageGroup;
+      modalToggleBtn.classList.toggle('is-active', showImage);
+      modalToggleBtn.setAttribute('aria-pressed', String(showImage));
+      const label = $('#hanziModalImageToggleLabel');
+      if (label) label.textContent = '看图识字';
+      modalToggleBtn.onclick = () => (kind === 'hanzi' ? toggleHanziImageHint() : toggleEnglishImageHint());
+    }
   }
 
   updateHanziGridGeometry(words.length);
@@ -1757,13 +1724,24 @@ function renderHanziGroupModal() {
     } else {
       cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学这个</button>`;
     }
-    const thumbnailHtml = showImage ? `
-      <div class="hanzi-card-thumbnail">
-        <img src="${groupWordImageUrl(kind, word)}" alt="${escapeHtml(word)}" loading="lazy" />
-      </div>
-    ` : '';
+    let thumbnailHtml = '';
+    const hasThumb = kind === 'misc' || showImage;
+    if (kind === 'misc') {
+      const visual = getMiscVisual(word);
+      thumbnailHtml = `
+        <div class="hanzi-card-thumbnail misc-thumbnail">
+          ${visual.svg}
+        </div>
+      `;
+    } else if (showImage) {
+      thumbnailHtml = `
+        <div class="hanzi-card-thumbnail">
+          <img src="${groupWordImageUrl(kind, word)}" alt="${escapeHtml(word)}" loading="lazy" />
+        </div>
+      `;
+    }
     return `
-      <div class="hanzi-fullscreen-card ${showImage ? 'has-thumb' : ''} ${isCurrent ? 'is-current' : ''} ${isMastered ? 'is-mastered' : ''} ${isLearned ? 'is-learned' : ''}" data-hanzi-word="${escapeHtml(word)}" data-hanzi-length="${word.length}" tabindex="0" role="button" aria-label="${escapeHtml(word)}，点击听读音">
+      <div class="hanzi-fullscreen-card ${hasThumb ? 'has-thumb' : ''} ${isCurrent ? 'is-current' : ''} ${isMastered ? 'is-mastered' : ''} ${isLearned ? 'is-learned' : ''}" data-hanzi-word="${escapeHtml(word)}" data-hanzi-length="${word.length}" tabindex="0" role="button" aria-label="${escapeHtml(word)}，点击听读音">
         <div class="hanzi-card-topline">
           <span class="hanzi-card-index">#${index + 1}</span>
           ${cornerTag}
@@ -2236,9 +2214,22 @@ function renderRound() {
     const learnGroup = currentTheme().id === 'english' ? activeContentGroup('english') : null;
     const groupPath = learnGroup ? lessonGroupPathLabel(learnGroup) : currentTheme().title;
     const groupCount = learnGroup ? learnGroup.words.length : currentTheme().words.length;
-    area.innerHTML = currentTheme().id === 'hanzi'
-      ? hanziLearnMarkup(game, recordingAction)
-      : englishLearnCardMarkup({
+    if (currentTheme().id === 'hanzi') {
+      area.innerHTML = hanziLearnMarkup(game, recordingAction);
+    } else if (currentTheme().id === 'color') {
+      const miscGroup = activeContentGroup('misc');
+      const groupPath = miscGroup ? lessonGroupPathLabel(miscGroup) : currentTheme().title;
+      const groupCount = miscGroup ? miscGroup.words.length : currentTheme().words.length;
+      area.innerHTML = miscLearnCardMarkup({
+        word: game.word,
+        note: miscGroup?.notes?.[game.word] || '',
+        groupPath,
+        totalWords: groupCount,
+        actions: lessonPrimaryActionsMarkup(),
+        recording: recordingAction,
+      });
+    } else {
+      area.innerHTML = englishLearnCardMarkup({
         word: game.word,
         note: game.zh,
         image: game.image,
@@ -2250,11 +2241,18 @@ function renderRound() {
         actions: lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`),
         recording: recordingAction,
       });
+    }
     // 插图缺失时退回文字卡片，避免出现破图
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
     $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
     $('#openEnglishGroupBtn')?.addEventListener('click', () => openGroupModal('english'));
     $('#englishImageToggleBtn')?.addEventListener('click', toggleEnglishImageHint);
+    $('#openMiscGroupBtn')?.addEventListener('click', () => openGroupModal('misc'));
+    $('#miscSpeak')?.addEventListener('click', (event) => {
+      const el = event.currentTarget;
+      el.classList.add('speaking');
+      speakChinese(game.word, () => el.classList.remove('speaking'));
+    });
     $('#hanziSpeak')?.addEventListener('click', (event) => {
       const glyph = event.currentTarget;
       glyph.classList.add('speaking');
@@ -2590,7 +2588,7 @@ function disableParentMode() {
   setParentModeEnabled(false); closeParent(); showToast('家长模式已关闭；下次打开需要重新答题。');
 }
 function renderAdminContentSummary() {
-  ['english', 'hanzi'].forEach((kind) => {
+  ['english', 'hanzi', 'misc'].forEach((kind) => {
     const group = activeContentGroup(kind); const groups = contentGroups(kind);
     $(`#${kind}ConfigMeta`).textContent = `正在学习：${group.name} · ${groups.length} 个分组 · ${group.words.length} 项`;
   });
@@ -2659,8 +2657,16 @@ function restoreOfficialLearningContent() {
   applySyncedContent(restored);
   showToast('已恢复为官方内容。');
 }
-function groupTitle(kind) { return kind === 'hanzi' ? MAP_META.hanzi.name : MAP_META.english.name; }
-function groupWordLabel(kind) { return kind === 'hanzi' ? '汉字、词组或成语' : '英文单词'; }
+function groupTitle(kind) {
+  if (kind === 'hanzi') return MAP_META.hanzi.name;
+  if (kind === 'misc') return MAP_META.color.name;
+  return MAP_META.english.name;
+}
+function groupWordLabel(kind) {
+  if (kind === 'hanzi') return '汉字、词组或成语';
+  if (kind === 'misc') return '形状、颜色或认知词汇';
+  return '英文单词';
+}
 function groupItemsPreview(group) { return group.words.length ? group.words.slice(0, 4).map((word) => `<span>${escapeHtml(word)}</span>`).join('') + (group.words.length > 4 ? `<i>+${group.words.length - 4}</i>` : '') : '<i>待写入内容</i>'; }
 // 分组按目录（学期/单元）折叠展示；没有目录的归到「未分类」。
 function groupFolders(groups) {
@@ -2737,11 +2743,19 @@ function renderContentGroupDirectory(kind) {
 }
 function openContentConfig(kind) {
   const group = editingContentGroup(kind);
-  $('#contentConfigType').value = kind; $('#contentConfigTitle').textContent = groupTitle(kind); $('#contentConfigDescription').textContent = `每个分组是一份独立的学习清单。新增分组会先以空白草稿显示；填写至少两项内容并保存后，才会成为${kind === 'hanzi' ? '汉字图书塔' : '单词森林'}当前使用的内容。`;
+  const title = groupTitle(kind);
+  $('#contentConfigType').value = kind;
+  $('#contentConfigTitle').textContent = title;
+  $('#contentConfigDescription').textContent = `每个分组是一份独立的学习清单。新增分组会先以空白草稿显示；填写至少两项内容并保存后，才会成为${title}当前使用的内容。`;
   renderContentGroupDirectory(kind);
-  $('#contentGroupName').value = group.name; $('#contentGroupWords').value = group.words.join(kind === 'hanzi' ? '，' : ', '); $('#contentGroupDirectory').value = group.directory || '';
-  $('#contentGroupNameLabel').textContent = `${kind === 'hanzi' ? '汉字' : '英文'}分组名称`; $('#contentGroupWordsLabel').textContent = `${groupWordLabel(kind)}（用逗号、分号或换行分隔）`;
-  $('#contentConfigModal').classList.add('open'); $('#contentConfigModal').setAttribute('aria-hidden', 'false'); setTimeout(() => $('.content-group-card.active', $('#contentGroupList'))?.focus(), 80);
+  $('#contentGroupName').value = group.name;
+  $('#contentGroupWords').value = group.words.join(kind === 'english' ? ', ' : '，');
+  $('#contentGroupDirectory').value = group.directory || '';
+  $('#contentGroupNameLabel').textContent = `${title}分组名称`;
+  $('#contentGroupWordsLabel').textContent = `${groupWordLabel(kind)}（用逗号、分号或换行分隔）`;
+  $('#contentConfigModal').classList.add('open');
+  $('#contentConfigModal').setAttribute('aria-hidden', 'false');
+  setTimeout(() => $('.content-group-card.active', $('#contentGroupList'))?.focus(), 80);
 }
 function closeContentConfig() { const kind = $('#contentConfigType').value; $('#contentConfigModal').classList.remove('open'); $('#contentConfigModal').setAttribute('aria-hidden', 'true'); if ($('#adminModal').classList.contains('open')) $(`#open${kind[0].toUpperCase()}${kind.slice(1)}Config`).focus(); else $('#parentButton').focus(); }
 function selectedContentGroup(kind) { return editingContentGroup(kind); }
@@ -2753,9 +2767,9 @@ function chooseContentGroup(groupId) {
 function saveSelectedContentGroup() {
   const kind = $('#contentConfigType').value; const group = selectedContentGroup(kind); const name = $('#contentGroupName').value.trim().slice(0, 24); const words = normaliseContentWords(kind, $('#contentGroupWords').value);
   if (!name) { showToast('请为分组取一个名称。'); $('#contentGroupName').focus(); return; }
-  if (words.length < 2) { showToast(`${kind === 'hanzi' ? '汉字' : '英文'}分组至少填写 2 项。`); $('#contentGroupWords').focus(); return; }
+  if (words.length < 2) { showToast(`${groupTitle(kind)}分组至少填写 2 项。`); $('#contentGroupWords').focus(); return; }
   group.name = name; group.words = words; group.directory = normaliseDirectory($('#contentGroupDirectory').value); setActiveContentGroup(kind, group.id); editingContentGroupIds[kind] = group.id; saveContentConfiguration(); applyAdminContent(); renderAdminContentSummary();
-  if (state.activeTheme === kind) { state.round = 0; state.completed = false; persistProgress(); }
+  if ((kind === 'misc' && state.activeTheme === 'color') || state.activeTheme === kind) { state.round = 0; state.completed = false; persistProgress(); }
   renderHome(); refreshContentConfig(kind); showToast(`“${name}”已保存，并设为正在学习。`);
 }
 function addContentGroup() {
@@ -2772,7 +2786,7 @@ function deleteContentGroup() {
   groups.splice(index, 1);
   if (wasActive) setActiveContentGroup(kind, (groups.find((item) => item.name && item.words.length >= 2) || groups[0]).id);
   editingContentGroupIds[kind] = (groups[Math.max(0, index - 1)] || groups[0]).id; saveContentConfiguration(); applyAdminContent(); renderAdminContentSummary();
-  if (state.activeTheme === kind) { state.round = 0; state.completed = false; persistProgress(); }
+  if ((kind === 'misc' && state.activeTheme === 'color') || state.activeTheme === kind) { state.round = 0; state.completed = false; persistProgress(); }
   renderHome(); refreshContentConfig(kind); showToast('分组已删除。');
 }
 function renderRecitalGroupList() {
@@ -2837,6 +2851,185 @@ async function importProgress(file) {
   }
 }
 
+const ISSUE_STORAGE_KEY = 'luna-castle-issues-v1';
+let currentIssueFilter = 'all';
+
+function loadIssues() {
+  return load(ISSUE_STORAGE_KEY, []);
+}
+function saveIssues(issues) {
+  save(ISSUE_STORAGE_KEY, issues);
+}
+
+function openIssueTracker() {
+  $('#issueTrackerModal')?.classList.add('open');
+  $('#issueTrackerModal')?.setAttribute('aria-hidden', 'false');
+  renderIssues(currentIssueFilter);
+  setTimeout(() => $('#issueTitle')?.focus(), 100);
+}
+function closeIssueTracker() {
+  $('#issueTrackerModal')?.classList.remove('open');
+  $('#issueTrackerModal')?.setAttribute('aria-hidden', 'true');
+}
+
+function issueTypeBadge(type) {
+  const map = {
+    bug: { label: '🐞 Bug 缺陷', cls: 'badge-bug' },
+    feature: { label: '💡 新想法', cls: 'badge-feature' },
+    improvement: { label: '🎨 体验优化', cls: 'badge-improvement' },
+  };
+  const item = map[type] || { label: type, cls: 'badge-default' };
+  return `<span class="issue-badge ${item.cls}">${item.label}</span>`;
+}
+
+function issueToMarkdown(issue) {
+  const typeMap = { bug: '🐞 Bug 缺陷', feature: '💡 新想法/需求', improvement: '🎨 体验优化' };
+  const statusMap = { open: '待处理 (Open)', resolved: '已解决 (Resolved)' };
+  const time = new Date(issue.createdAt).toLocaleString('zh-CN', { hour12: false });
+  return `### [${issue.type.toUpperCase()}] ${issue.title}
+- **类型**: ${typeMap[issue.type] || issue.type}
+- **状态**: ${statusMap[issue.status] || issue.status}
+- **记录时间**: ${time}
+${issue.details ? `\n**详细说明**:\n${issue.details}\n` : ''}`;
+}
+
+async function copyAllIssuesMarkdown() {
+  const issues = loadIssues().filter((item) => item.status !== 'resolved');
+  if (!issues.length) {
+    showToast('当前没有待处理的 Issue。');
+    return;
+  }
+  const md = `# 魔法城堡 (Magic Castle) - 反馈与待办清单\n\n> 导出时间：${new Date().toLocaleString('zh-CN')}\n\n` +
+    issues.map(issueToMarkdown).join('\n---\n\n');
+  try {
+    await navigator.clipboard.writeText(md);
+    showToast('已复制待办 Issue 的 Markdown 到剪贴板！📋');
+  } catch {
+    showToast('剪贴板写入失败，请检查浏览器权限。');
+  }
+}
+
+function exportIssuesMarkdown() {
+  const issues = loadIssues();
+  if (!issues.length) {
+    showToast('暂无记录可导出。');
+    return;
+  }
+  const md = `# 魔法城堡 (Magic Castle) - 反馈与想法汇总\n\n> 导出时间：${new Date().toLocaleString('zh-CN')}\n\n` +
+    issues.map(issueToMarkdown).join('\n---\n\n');
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `magic-castle-issues-${new Date().toISOString().slice(0, 10)}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('已导出 Markdown 文件！💾');
+}
+
+function renderIssues(filter = currentIssueFilter) {
+  currentIssueFilter = filter;
+  const issues = loadIssues();
+  const filtered = issues.filter((item) => {
+    if (filter === 'open') return item.status !== 'resolved';
+    if (filter === 'resolved') return item.status === 'resolved';
+    return true;
+  });
+  const countEl = $('#issueCount');
+  if (countEl) countEl.textContent = String(issues.length);
+  $$('.issue-filter-btn').forEach((btn) => btn.classList.toggle('active', btn.dataset.filter === filter));
+
+  const list = $('#issueList');
+  if (!list) return;
+  if (!filtered.length) {
+    list.innerHTML = `<p class="issue-empty">暂无${filter === 'open' ? '待处理' : filter === 'resolved' ? '已解决' : ''}记录。在上方记下一条灵感或遇到的问题吧！</p>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((issue) => {
+    const isResolved = issue.status === 'resolved';
+    const timeStr = new Date(issue.createdAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+      <div class="issue-card ${isResolved ? 'is-resolved' : ''}" data-issue-id="${escapeHtml(issue.id)}">
+        <div class="issue-card-top">
+          <div class="issue-card-tags">
+            ${issueTypeBadge(issue.type)}
+            <span class="issue-status-tag ${isResolved ? 'tag-resolved' : 'tag-open'}">${isResolved ? '已解决 ✓' : '待处理'}</span>
+          </div>
+          <span class="issue-time">${timeStr}</span>
+        </div>
+        <h4 class="issue-card-title">${escapeHtml(issue.title)}</h4>
+        ${issue.details ? `<p class="issue-card-details">${escapeHtml(issue.details)}</p>` : ''}
+        <div class="issue-card-actions">
+          <button class="issue-btn-status" type="button" data-action="toggle-status">${isResolved ? '标记为未解决' : '标记已解决 ✓'}</button>
+          <button class="issue-btn-copy" type="button" data-action="copy-md">复制 Markdown</button>
+          <button class="issue-btn-delete" type="button" data-action="delete">删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $$('[data-issue-id]', list).forEach((card) => {
+    const id = card.dataset.issueId;
+    $('[data-action="toggle-status"]', card)?.addEventListener('click', () => {
+      const items = loadIssues();
+      const target = items.find((i) => i.id === id);
+      if (!target) return;
+      target.status = target.status === 'resolved' ? 'open' : 'resolved';
+      saveIssues(items);
+      renderIssues();
+      showToast(target.status === 'resolved' ? '已标记为解决！🎉' : '已重新打开待办。');
+    });
+    $('[data-action="copy-md"]', card)?.addEventListener('click', async () => {
+      const items = loadIssues();
+      const target = items.find((i) => i.id === id);
+      if (!target) return;
+      try {
+        await navigator.clipboard.writeText(issueToMarkdown(target));
+        showToast('已复制该条 Markdown！📋');
+      } catch {
+        showToast('复制失败，请检查剪贴板权限。');
+      }
+    });
+    $('[data-action="delete"]', card)?.addEventListener('click', () => {
+      if (!window.confirm('确定删除这条便签吗？')) return;
+      const items = loadIssues().filter((i) => i.id !== id);
+      saveIssues(items);
+      renderIssues();
+      showToast('已删除记录。');
+    });
+  });
+}
+
+function handleIssueFormSubmit(event) {
+  event.preventDefault();
+  const titleInput = $('#issueTitle');
+  const detailsInput = $('#issueDetails');
+  const title = titleInput?.value.trim();
+  if (!title) {
+    titleInput?.focus();
+    return;
+  }
+  const typeRadio = $('input[name="issueType"]:checked');
+  const type = typeRadio ? typeRadio.value : 'bug';
+  const details = detailsInput?.value.trim() || '';
+  const newIssue = {
+    id: String(Date.now()),
+    type,
+    title,
+    details,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+  };
+  const issues = loadIssues();
+  issues.unshift(newIssue);
+  saveIssues(issues);
+  titleInput.value = '';
+  if (detailsInput) detailsInput.value = '';
+  renderIssues();
+  showToast('便签已记录！✍️');
+}
+
 $$('[data-screen]').forEach((button) => button.addEventListener('click', () => setScreen(button.dataset.screen)));
 $$('[data-magic-house-tab]').forEach((button) => button.addEventListener('click', () => setMagicHouseTab(button.dataset.magicHouseTab)));
 $('#topbarLessonTitle').addEventListener('click', () => { if (state.screen === 'arcade' && state.arcadeGameId) { clearTimeout(arcadeSequenceTimer); clearTimeout(whackTimer); clearTimeout(catchTimer); state.arcadeGameId = ''; state.arcadeState = null; renderTopbarContext(); renderArcade(); return; } if (state.screen === 'home') setScreen(state.homeContext === 'closet' ? 'closet' : state.homeContext === 'arcade' ? 'arcade' : 'lesson'); });
@@ -2861,10 +3054,17 @@ $('#adminButton').addEventListener('click', () => { closeParent(); openAdmin(); 
 $('#closeAdmin').addEventListener('click', closeAdmin);
 $('#syncContentButton')?.addEventListener('click', syncLearningContent);
 $('#restoreOfficialContentButton')?.addEventListener('click', restoreOfficialLearningContent);
-$('#openEnglishConfig').addEventListener('click', () => openContentConfig('english')); $('#openHanziConfig').addEventListener('click', () => openContentConfig('hanzi')); $('#openRecitalConfig').addEventListener('click', openRecitalConfig);
+$('#openEnglishConfig').addEventListener('click', () => openContentConfig('english')); $('#openHanziConfig').addEventListener('click', () => openContentConfig('hanzi')); $('#openRecitalConfig').addEventListener('click', openRecitalConfig); $('#openMiscConfig')?.addEventListener('click', () => openContentConfig('misc'));
 $('#closeContentConfig').addEventListener('click', closeContentConfig); $('#saveContentGroup').addEventListener('click', saveSelectedContentGroup); $('#addContentGroup').addEventListener('click', addContentGroup); $('#deleteContentGroup').addEventListener('click', deleteContentGroup);
 $('#contentConfigModal').addEventListener('click', (event) => { if (event.target === $('#contentConfigModal')) closeContentConfig(); });
 $('#closeRecitalConfig').addEventListener('click', closeRecitalConfig); $('#addRecitalGroup').addEventListener('click', addRecitalGroup); $('#saveRecitalGroup').addEventListener('click', saveRecitalGroup); $('#deleteRecitalGroup').addEventListener('click', deleteRecitalGroup); $('#recitalConfigModal').addEventListener('click', (event) => { if (event.target === $('#recitalConfigModal')) closeRecitalConfig(); });
+$('#openIssueTrackerBtn')?.addEventListener('click', () => { closeParent(); openIssueTracker(); });
+$('#closeIssueTracker')?.addEventListener('click', closeIssueTracker);
+$('#issueTrackerModal')?.addEventListener('click', (event) => { if (event.target === $('#issueTrackerModal')) closeIssueTracker(); });
+$('#issueForm')?.addEventListener('submit', handleIssueFormSubmit);
+$('#copyAllIssuesMarkdown')?.addEventListener('click', copyAllIssuesMarkdown);
+$('#exportIssuesMarkdown')?.addEventListener('click', exportIssuesMarkdown);
+$$('.issue-filter-btn').forEach((btn) => btn.addEventListener('click', () => renderIssues(btn.dataset.filter)));
 $('#exportProgress').addEventListener('click', exportProgress);
 $('#importProgress').addEventListener('click', () => $('#importProgressFile').click());
 $('#importProgressFile').addEventListener('change', (event) => { importProgress(event.target.files[0]); event.target.value = ''; });
@@ -2915,6 +3115,6 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });
 window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade'].includes(screen) ? screen : 'home', { push: false }); });
 document.addEventListener('keydown', handleLessonShortcuts);
-document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#issueTrackerModal')?.classList.contains('open')) closeIssueTracker(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); });
 
 $('.app-shell').classList.add('home-active'); renderTopbarContext(); mountHomeMap(); renderWardrobe(); renderHome(); updateProgress(); renderParentModeState(); renderSpeechRateControl(); renderParentProfileControls(); renderContentSyncStatus(); if (location.hash) window.dispatchEvent(new PopStateEvent('popstate'));

@@ -17,7 +17,8 @@ test('中文数字：0~100 的读法', () => {
 });
 
 test('数字泡泡：范围 0~100，各关逐级放大', () => {
-  const ranges = [1, 2, 3, 4, 5].map((level) => {
+  const limits = [5, 10, 10, 15, 20, 30, 50, 60, 80, 100];
+  const ranges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => {
     let min = Infinity;
     let max = -Infinity;
     for (let i = 0; i < 200; i += 1) {
@@ -28,7 +29,7 @@ test('数字泡泡：范围 0~100，各关逐级放大', () => {
   });
   ranges.forEach(({ level, min, max }) => {
     assert.equal(min, 0, `第 ${level} 关应能出现 0`);
-    assert.ok(max <= [5, 10, 20, 50, 100][level - 1], `第 ${level} 关超过上限`);
+    assert.ok(max <= limits[level - 1], `第 ${level} 关超过上限`);
   });
 });
 

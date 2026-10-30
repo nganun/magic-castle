@@ -111,8 +111,8 @@ test('目录树由 directory 字段现算：层级、名字都不写死', () => 
 test('内置内容结构与旧的 default-learning-content.json 对齐', () => {
   const content = buildDefaultLearningContent(parseContentFiles([], { resourceVersion: 4 }));
   assert.equal(content.resourceVersion, 4);
-  assert.deepEqual(Object.keys(content).sort(), ['english', 'hanzi', 'recital', 'resourceVersion']);
-  ['english', 'hanzi', 'recital'].forEach((kind) => {
+  assert.deepEqual(Object.keys(content).sort(), ['english', 'hanzi', 'misc', 'recital', 'resourceVersion']);
+  ['english', 'hanzi', 'recital', 'misc'].forEach((kind) => {
     assert.ok(Array.isArray(content[kind].groups));
     assert.ok(Array.isArray(content[kind].deletedGroupIds));
   });

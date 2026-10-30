@@ -26,3 +26,4 @@ AC8DM18_Doorbell_IC.mp3
 # 临时粘贴的截图
 *.png
 !assets/**/*.png
+!vendor/**/*.png

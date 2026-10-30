@@ -121,10 +121,45 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')basket.x=Math.max(0,basket.x-25)
   if(e.key==='ArrowRight')basket.x=Math.min(W-basket.w,basket.x+25)
 })
-function moveBasket(clientX){if(!running)return;const r=CV.getBoundingClientRect();const x=(clientX-r.left)*W/r.width;basket.x=Math.max(0,Math.min(W-basket.w,x-basket.w/2))}
-document.addEventListener('mousemove',e=>moveBasket(e.clientX))
-CV.addEventListener('pointerdown',e=>{CV.setPointerCapture?.(e.pointerId);moveBasket(e.clientX)})
-CV.addEventListener('pointermove',e=>moveBasket(e.clientX))
+function moveBasket(clientX){
+  if(!running) return;
+  const r = CV.getBoundingClientRect();
+  if(!r.width) return;
+  const x = (clientX - r.left) * (W / r.width);
+  basket.x = Math.max(0, Math.min(W - basket.w, x - basket.w / 2));
+}
+
+let isPointerDown = false;
+function onPointerMove(e) {
+  if (!running) return;
+  if (e.touches && e.touches.length > 0) {
+    moveBasket(e.touches[0].clientX);
+  } else if (e.clientX !== undefined) {
+    moveBasket(e.clientX);
+  }
+}
+
+// 阻止触摸默认滚动，确保丝滑滑动
+['touchstart', 'touchmove'].forEach(type => {
+  window.addEventListener(type, e => {
+    if (running && e.touches && e.touches.length > 0) {
+      onPointerMove(e);
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+});
+
+window.addEventListener('pointerdown', e => {
+  if (!running) return;
+  isPointerDown = true;
+  onPointerMove(e);
+});
+window.addEventListener('pointermove', e => {
+  if (running) onPointerMove(e);
+});
+window.addEventListener('pointerup', () => { isPointerDown = false; });
+window.addEventListener('pointercancel', () => { isPointerDown = false; });
+
 startBtn.addEventListener('click',startGame)
 init();render()
 </script></body></html>

@@ -782,5 +782,46 @@ export const DEFAULT_LEARNING_CONTENT = {
         ]
       }
     ]
+  },
+  "misc": {
+    "activeGroupId": "shapes",
+    "deletedGroupIds": [],
+    "groups": [
+      {
+        "id": "shapes",
+        "name": "形状",
+        "file": "misc/基础/形状.txt",
+        "directory": "基础",
+        "order": 9007199254740991,
+        "image": true,
+        "notes": {},
+        "words": [
+          "三角形",
+          "正方形",
+          "长方形",
+          "圆形",
+          "半圆形",
+          "梯形"
+        ]
+      },
+      {
+        "id": "colors",
+        "name": "颜色",
+        "file": "misc/基础/颜色.txt",
+        "directory": "基础",
+        "order": 9007199254740991,
+        "image": true,
+        "notes": {},
+        "words": [
+          "红色",
+          "蓝色",
+          "白色",
+          "黑色",
+          "绿色",
+          "黄色",
+          "紫色"
+        ]
+      }
+    ]
   }
 };

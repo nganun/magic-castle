@@ -1,14 +1,14 @@
 // 学习内容文本源解析器：Node 构建脚本与浏览器 App 共用同一份实现，避免两边规则漂移。
 //
 // 目录结构：data/<类型>/[子目录/]<分组>.txt
-//   - 类型目录：english（英文单词）、hanzi（汉字与词组）、recital（朗诵文本）
+//   - 类型目录：english（英文单词）、hanzi（汉字与词组）、recital（朗诵文本）、misc（综合认知）
 //   - 子目录：学期/单元，仅用于整理与工作台折叠展示
 //   - 文件名：分组名，可用「01-」这类数字前缀决定同目录内的顺序（显示名里去掉前缀）
-//   - 每行：一个词/词组（english、hanzi）或一句（recital）
+//   - 每行：一个词/词组（english、hanzi、misc）或一句（recital）
 //   - 指令行：# id: xxx（分组 id）、# 名称：xxx（显示名）、# 图片：开|关（看图识字开关）
 //   - 行尾竖线：西瓜|一种绿色水果 —— 竖线后是可选注释，存入分组的 notes
 
-export const CONTENT_KINDS = ['english', 'hanzi', 'recital'];
+export const CONTENT_KINDS = ['english', 'hanzi', 'recital', 'misc'];
 export const CONTENT_WORD_LIMIT = 24;
 export const CONTENT_RECITAL_LINE_LIMIT = 120;
 
@@ -27,8 +27,9 @@ export function safeHanzi(value) {
   return splitContentWords(value).filter((word) => HANZI_TERM.test(word)).slice(0, CONTENT_WORD_LIMIT);
 }
 export function normaliseContentWords(kind, words) {
-  const list = Array.isArray(words) ? words.join(kind === 'hanzi' ? '，' : ',') : words;
-  return kind === 'hanzi' ? safeHanzi(list) : safeEnglishWords(list);
+  const isHanziLike = kind === 'hanzi' || kind === 'misc';
+  const list = Array.isArray(words) ? words.join(isHanziLike ? '，' : ',') : words;
+  return isHanziLike ? safeHanzi(list) : safeEnglishWords(list);
 }
 export function normaliseRecitalLines(value) {
   return String(Array.isArray(value) ? value.join('\n') : value).split(/\n+/).map((line) => line.trim()).filter(Boolean).slice(0, CONTENT_RECITAL_LINE_LIMIT);
@@ -122,7 +123,7 @@ function parseDirective(line) {
 
 function keepItem(kind, item, errors, warnings, path, line) {
   if (kind === 'recital') return true; // 朗诵是自由文本句子，不做词形校验
-  if (kind === 'hanzi') {
+  if (kind === 'hanzi' || kind === 'misc') {
     if (!HANZI_TERM.test(item)) {
       warnings.push({ path, line, message: `「${item}」不是 1~8 个汉字，已跳过` });
       return false;
@@ -208,7 +209,7 @@ export function compareContentGroups(left, right) {
 }
 
 export function parseContentFiles(files, options = {}) {
-  const kinds = { english: { groups: [] }, hanzi: { groups: [] }, recital: { groups: [] } };
+  const kinds = Object.fromEntries(CONTENT_KINDS.map((kind) => [kind, { groups: [] }]));
   const errors = [];
   const warnings = [];
   const byId = new Map();
@@ -236,25 +237,24 @@ export function buildDefaultLearningContent(parsed) {
     const groups = (parsed.kinds[kind]?.groups || []).map(({ kind: _kind, ...group }) => group);
     return { activeGroupId: groups[0]?.id ?? '', deletedGroupIds: [], groups };
   };
-  return {
-    resourceVersion: parsed.resourceVersion,
-    english: build('english'),
-    hanzi: build('hanzi'),
-    recital: build('recital'),
-  };
+  const result = { resourceVersion: parsed.resourceVersion };
+  CONTENT_KINDS.forEach((kind) => {
+    result[kind] = build(kind);
+  });
+  return result;
 }
 
 // 官方内容（远端快照）→ 与内置内容同形的 kind 分层结构。
 export function contentFromEntries(entries = []) {
-  const kinds = { english: [], hanzi: [], recital: [] };
+  const kinds = Object.fromEntries(CONTENT_KINDS.map((kind) => [kind, []]));
   entries.forEach((entry) => {
     if (!entry?.group || !kinds[entry.kind]) return;
     kinds[entry.kind].push({ kind: entry.kind, ...entry.group });
   });
   Object.values(kinds).forEach((groups) => groups.sort(compareContentGroups));
-  return {
-    english: { groups: kinds.english.map(({ kind: _kind, ...group }) => group) },
-    hanzi: { groups: kinds.hanzi.map(({ kind: _kind, ...group }) => group) },
-    recital: { groups: kinds.recital.map(({ kind: _kind, ...group }) => group) },
-  };
+  const result = {};
+  CONTENT_KINDS.forEach((kind) => {
+    result[kind] = { groups: kinds[kind].map(({ kind: _kind, ...group }) => group) };
+  });
+  return result;
 }

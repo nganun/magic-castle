@@ -3,12 +3,19 @@ export const ARCADE_BOARD_SIZE = 8;
 export const ARCADE_GAMES = [
   { id: 'memory', name: '魔法翻翻乐', icon: '✦', description: '翻开卡片，找到一样的魔法伙伴。', meta: '关卡递增 · 每日奖励' },
   { id: 'listen', name: '听音找一找', icon: '◖', description: '听露娜读一读，点出正确图片。', meta: '关卡递增 · 每日奖励' },
-  { id: 'numbers', name: '数字泡泡', icon: '123', description: '听到数字后，点破正确泡泡。', meta: '关卡递增 · 每日奖励' },
+  { id: 'numbers', name: '数字泡泡', icon: '123', description: '听到数字后，点破正确泡泡。', meta: '10个关卡 · 每日奖励' },
   { id: 'colors', name: '颜色魔法', icon: '●', description: '听到颜色后，点中正确魔法色。', meta: '关卡递增 · 每日奖励' },
   { id: 'rhythm', name: '星星节奏', icon: '♫', description: '记住闪亮顺序，跟着点一遍。', meta: '难度递增 · 挑战纪录' },
   { id: 'match', name: '魔法消消乐', icon: '✹', description: '点中相连的魔法宝石，连续消除。', meta: '约 2 分钟 · 挑战纪录' },
-  { id: 'arrows', name: '箭头快跑', icon: '➜', description: '找出没有阻挡的箭头，全部消除。', meta: '关卡递增 · 挑战纪录' },
   { id: 'fruit', name: '水果魔法切切乐', icon: '✣', description: '滑动切开飞来的魔法水果，小心炸弹。', meta: '全屏横屏 · 挑战纪录' },
+  { id: 'screw', name: '打个螺丝', icon: '🔩', description: '拧下螺丝，收纳所有的彩色垫板。', meta: '物理拼图 · 每日奖励' },
+  { id: 'fruitbox', name: '消个水果', icon: '🍓', description: '点击水果放入卡槽，三个消除。', meta: '卡槽消除 · 益智挑战' },
+  { id: 'arrowshoot', name: '一箭又一箭', icon: '🏹', description: '看准靶心与角度，箭无虚发。', meta: '射击物理 · 每日挑战' },
+  { id: 'sheep', name: '羊了个羊：星球', icon: '🐑', description: '星球上的堆叠消除大挑战。', meta: '经典堆叠 · 每日奖励' },
+  { id: 'goose', name: '抓大鹅', icon: '🦢', description: '3D 杂乱场景中找出三个相同物品。', meta: '3D 收纳 · 经典玩法' },
+  { id: 'beads', name: '快乐拼拼豆', icon: '🫧', description: '挑选彩色豆豆，拼出精美像素画。', meta: '像素拼图 · 休闲治愈' },
+  { id: 'xlegex', name: '兔了个兔', icon: '🐰', description: '可爱的兔子卡片三消趣味挑战。', meta: '萌兔三消 · 经典消除' },
+  { id: 'yulegeyu', name: '鱼了个鱼', icon: '🐟', description: '海洋鱼类主题叠层收纳三消。', meta: '海洋主题 · 策略消除' },
   { id: 'whack', name: '打地鼠', icon: '●', description: '看准了敲！别让地鼠跑掉。', meta: '反应力 · 每日奖励' },
   { id: 'catch', name: '接水果', icon: '⌒', description: '移动篮子，接住落下的水果。', meta: '反应力 · 每日奖励' },
   { id: 'lights', name: '点灯游戏', icon: '✦', description: '翻转灯光，熄灭全部魔法格。', meta: '关卡递增 · 每日奖励' },
@@ -142,11 +149,16 @@ export function createColorRound(choiceCount = 3) {
 export function createNumberRound(level = 1) {
   const config = [
     { max: 5, count: 3 },
+    { max: 10, count: 3 },
     { max: 10, count: 4 },
+    { max: 15, count: 4 },
     { max: 20, count: 5 },
+    { max: 30, count: 5 },
     { max: 50, count: 6 },
-    { max: 100, count: 7 },
-  ][Math.min(level - 1, 4)] || { max: 10, count: 3 };
+    { max: 60, count: 6 },
+    { max: 80, count: 7 },
+    { max: 100, count: 8 },
+  ][Math.min(level - 1, 9)] || { max: 10, count: 3 };
 
   // 数字范围 0 ~ max（含 0）
   const pick = () => Math.floor(Math.random() * (config.max + 1));

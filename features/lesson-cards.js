@@ -2,6 +2,7 @@
 // 共同骨架（顶行、进度区、图片区、底部动作）在这里统一，三张卡只提供各自的内容与配色。
 
 import { HANZI_SCENES } from './content-catalog.js';
+import { getMiscVisual } from './misc-visuals.js';
 import { escapeHtml } from './utils.js';
 
 const LESSON_GROUP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
@@ -97,6 +98,26 @@ export function recitalLearnCardMarkup({ title, directory, wholePiece, modeSwitc
       ${lessonCardProgress()}
       <button class="recital-text ${wholePiece ? 'whole-piece' : ''}" id="reciteListen" type="button" aria-label="播放《${escapeHtml(title)}》朗诵">${manuscript}<small id="reciteHint">${hint}</small></button>
       <p class="recital-tip">${tip}</p>
+      ${actions}
+      ${recording}
+    </article>`;
+}
+
+/** 彩虹花园（综合认知）：形状、颜色等认知大卡片 */
+export function miscLearnCardMarkup({ word, note, groupPath, totalWords, actions, recording = '' }) {
+  const visual = getMiscVisual(word);
+  const topline = lessonCardTopline(escapeHtml(groupPath), lessonGroupChipMarkup({ id: 'openMiscGroupBtn', count: totalWords, unit: '认知' }), 'misc-card-topline');
+  return `<article class="misc-learn-card">
+      ${lessonCardCurtainMarkup()}
+      ${topline}
+      ${lessonCardProgress()}
+      <div class="misc-visual-stage" aria-label="${escapeHtml(word)}的图形展示">
+        <div class="misc-visual-frame">${visual.svg}</div>
+      </div>
+      <button class="misc-word-header" id="miscSpeak" type="button" aria-label="朗读 ${escapeHtml(word)}">
+        <b class="misc-word-title">${escapeHtml(word)}</b>
+        ${note ? `<span class="misc-word-note">${escapeHtml(note)}</span>` : '<small class="misc-word-hint">点击听发音</small>'}
+      </button>
       ${actions}
       ${recording}
     </article>`;

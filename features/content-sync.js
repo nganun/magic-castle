@@ -1,9 +1,9 @@
 // 学习内容三方合并：把官方新版本合并进本机生效层，保住家长自己的修改。
 // 纯函数，不碰 DOM 与存储，便于在 Node 里直接单测。
 
-import { sameGroupContent } from './content-files.js';
+import { CONTENT_KINDS, sameGroupContent } from './content-files.js';
 
-const KINDS = ['english', 'hanzi', 'recital'];
+const KINDS = CONTENT_KINDS;
 
 function groupMap(groups = []) {
   const map = new Map();
