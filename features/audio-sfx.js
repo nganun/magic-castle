@@ -118,7 +118,14 @@ function playFanfare(ctx) {
   });
 }
 
+const sfxLastPlayed = {};
+
 export function playSfx(type) {
+  const now = Date.now();
+  if (sfxLastPlayed[type] && now - sfxLastPlayed[type] < 70) {
+    return;
+  }
+  sfxLastPlayed[type] = now;
   const ctx = getAudioContext();
   if (!ctx) return;
   try {

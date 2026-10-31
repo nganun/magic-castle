@@ -27,6 +27,13 @@ import { getStrokeName } from './vendor/hanzi-writer/stroke-names.js';
 const CHILD_NAME = '荆宝';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+function triggerHaptic(duration = 15) {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(duration);
+    }
+  } catch {}
+}
 const { getText: storageGet, load, save, saveText } = createStorage(() => showToast?.('这台设备暂时无法保存学习记录。'));
 let globalSpeechRate = clamp(Number(storageGet('luna-global-speech-rate') || 1), .5, 1.5);
 // 中文 TTS 的实际语速系数（speakChinese 使用）。
@@ -654,6 +661,7 @@ function setScreen(name, { push = true } = {}) {
   else if (name === 'home' && previousScreen === 'lesson') state.homeContext = 'lesson';
   if (state.screen === 'lesson' && name !== 'lesson') finishLessonSession();
   if (state.screen === 'arcade' && name !== 'arcade') {
+    clearArcadeAutoExit();
     if (arcadeTicker) { clearInterval(arcadeTicker); arcadeTicker = null; }
     finishArcadeSession();
   }
@@ -711,6 +719,21 @@ function canStartLesson() {
 let arcadeSessionStartedAt = null;
 let arcadeTicker = null;
 let arcadeWarnedFiveMin = false;
+let arcadeAutoExitTimer = null;
+
+function clearArcadeAutoExit() {
+  if (arcadeAutoExitTimer) {
+    clearTimeout(arcadeAutoExitTimer);
+    arcadeAutoExitTimer = null;
+  }
+}
+
+function hasAnyArcadeCredit() {
+  if (parentModeEnabled) return true;
+  if (getUniversalCoins() > 0) return true;
+  const specificDict = state.arcadeStats.specificCoins?.[todayKey] || {};
+  return Object.values(specificDict).some(count => Number(count) > 0);
+}
 
 function gameTodaySeconds() {
   const base = state.study.date === todayKey ? (state.study.gameSeconds || 0) : 0;
@@ -728,47 +751,83 @@ function finishArcadeSession() {
   persistProgress();
 }
 
-function canAccessArcade({ speak = true } = {}) {
-  if (parentModeEnabled) return true;
+function arcadeDailyPlays() { return Number(state.arcadeStats.dailyPlays?.[todayKey] || 0); }
+
+// 魔法转盘与游戏币系统
+const WHEEL_SECTORS = [
+  { id: 'universal_1', name: '通用魔法币 ×1', icon: '🪙', type: 'universal', count: 1, color: '#f59e0b' },
+  { id: 'specific_fruit', name: '切切乐专属币 ×1', icon: '🍎', type: 'specific', gameId: 'fruit', count: 1, color: '#ef4444' },
+  { id: 'specific_sheep', name: '羊了个羊专属币 ×1', icon: '🐑', type: 'specific', gameId: 'sheep', count: 1, color: '#10b981' },
+  { id: 'specific_rhythm', name: '星星节奏专属币 ×1', icon: '♫', type: 'specific', gameId: 'rhythm', count: 1, color: '#8b5cf6' },
+  { id: 'universal_2', name: '幸运暴击！通用币 ×2', icon: '🪙🪙', type: 'universal', count: 2, color: '#ec4899' },
+  { id: 'specific_whack', name: '打地鼠专属币 ×1', icon: '●', type: 'specific', gameId: 'whack', count: 1, color: '#f97316' },
+  { id: 'specific_memory', name: '翻翻乐专属币 ×1', icon: '✦', type: 'specific', gameId: 'memory', count: 1, color: '#06b6d4' },
+  { id: 'stars_gift', name: '星光大礼包：星星 ×2', icon: '⭐⭐', type: 'stars', count: 2, color: '#eab308' },
+];
+
+function arcadeSpinsAvailable() {
+  const granted = Number(state.arcadeStats.wheelSpinsGranted?.[todayKey] || 0);
+  const used = Number(state.arcadeStats.wheelSpinsUsed?.[todayKey] || 0);
+  return Math.max(0, granted - used);
+}
+
+function updateArcadeSpinsFromStudy() {
   const studySec = studyTodaySeconds();
-  if (studySec < 600) {
-    if (speak) {
-      speakChinese('只有先学习了才能玩游戏哟');
-      showToast(`今天已学习 ${Math.floor(studySec / 60)} 分钟，先学满 10 分钟再来玩游戏吧！`);
-    }
-    return false;
+  // 每学习 10 分钟 (600秒) 奖 1 次，每天上限 3 次
+  const earnedTotal = Math.min(3, Math.floor(studySec / 600));
+  const currentGranted = Number(state.arcadeStats.wheelSpinsGranted?.[todayKey] || 0);
+  if (earnedTotal > currentGranted) {
+    state.arcadeStats.wheelSpinsGranted = {
+      ...(state.arcadeStats.wheelSpinsGranted || {}),
+      [todayKey]: earnedTotal
+    };
+    persistProgress();
   }
-  const remaining = studySec - gameTodaySeconds();
-  if (remaining <= 0) {
-    if (speak) {
-      speakChinese('游戏时间已经用完啦，进行学习可以扩展游戏时长哟');
-      showToast('今天的游戏时间已经用完啦，去学习可以增加游戏时长哟！');
+}
+
+function getUniversalCoins() {
+  return Number(state.arcadeStats.universalCoins?.[todayKey] || 0);
+}
+
+function getSpecificCoins(gameId) {
+  return Number(state.arcadeStats.specificCoins?.[todayKey]?.[gameId] || 0);
+}
+
+function isArcadeGamePlayable(gameId) {
+  if (parentModeEnabled) return true;
+  if (getUniversalCoins() > 0) return true;
+  return getSpecificCoins(gameId) > 0;
+}
+
+function consumeArcadeGameCredit(gameId) {
+  if (parentModeEnabled) return;
+  const specific = getSpecificCoins(gameId);
+  if (specific > 0) {
+    state.arcadeStats.specificCoins = {
+      ...(state.arcadeStats.specificCoins || {}),
+      [todayKey]: {
+        ...(state.arcadeStats.specificCoins?.[todayKey] || {}),
+        [gameId]: specific - 1
+      }
+    };
+  } else {
+    const universal = getUniversalCoins();
+    if (universal > 0) {
+      state.arcadeStats.universalCoins = {
+        ...(state.arcadeStats.universalCoins || {}),
+        [todayKey]: universal - 1
+      };
     }
-    return false;
   }
-  return true;
+  persistProgress();
+}
+
+function canAccessArcade({ speak = true } = {}) {
+  return true; // 小朋友可以随时自由进入小小游戏机大厅查看与互动
 }
 
 function tickArcadeTime() {
-  if (parentModeEnabled) return;
-  const studySec = studyTodaySeconds();
-  const gameSec = gameTodaySeconds();
-  const remaining = studySec - gameSec;
-  if (remaining > 330) {
-    arcadeWarnedFiveMin = false;
-  }
-  if (remaining <= 300 && remaining > 0 && !arcadeWarnedFiveMin) {
-    arcadeWarnedFiveMin = true;
-    speakChinese('还有 5 分钟的游戏时间，进行学习可以扩展游戏时长哟');
-    showToast('还有 5 分钟的游戏时间，进行学习可以扩展游戏时长哟');
-  }
-  if (remaining <= 0) {
-    if (arcadeTicker) { clearInterval(arcadeTicker); arcadeTicker = null; }
-    finishArcadeSession();
-    speakChinese('游戏时间已经用完啦，进行学习可以扩展游戏时长哟');
-    showToast('今日游戏时间已用完，去学习可以扩展游戏时长哟！');
-    setScreen('home');
-  }
+  // 小小游戏机游玩权限完全由游戏币与转盘驱动，不再按时间强制掐断退出大厅
 }
 function updateDailyStreak() {
   const previous = state.streak.lastCompletedDate;
@@ -838,7 +897,6 @@ function renderHome() {
 let arcadeSequenceTimer = null;
 let whackTimer = null;
 let catchTimer = null;
-function arcadeDailyPlays() { return Number(state.arcadeStats.dailyPlays?.[todayKey] || 0); }
 function openArcade() {
   if (!canAccessArcade()) return;
   state.arcadeGameId = '';
@@ -858,19 +916,267 @@ function completeArcadeGame(name, { rhythmScore = 0, arrowScore = 0 } = {}) {
   showToast(playedBefore < 3 ? `完成${name}，今天的小游戏打卡成功！` : `完成${name}！`);
 }
 function arcadeStatus(items) { return `<div class="arcade-status">${items.map(([label, value, tone = 'violet']) => `<span class="${tone}"><b>${value}</b>${label}</span>`).join('')}</div>`; }
+
+function openArcadeWheelModal() {
+  updateArcadeSpinsFromStudy();
+  const spins = arcadeSpinsAvailable();
+  $('#wheelRemainingSpins').textContent = spins;
+  $('#arcadeWheelModal').classList.add('open');
+  $('#arcadeWheelModal').setAttribute('aria-hidden', 'false');
+  renderWheelDisc();
+}
+
+function closeArcadeWheelModal() {
+  $('#arcadeWheelModal').classList.remove('open');
+  $('#arcadeWheelModal').setAttribute('aria-hidden', 'true');
+  renderArcade();
+}
+
+let isSpinningWheel = false;
+let currentWheelRotation = 0;
+
+function renderWheelDisc() {
+  const disc = $('#wheelDisc');
+  if (!disc) return;
+  const numSectors = WHEEL_SECTORS.length; // 8
+  const anglePerSector = 360 / numSectors; // 45deg
+  // 生成标准 SVG 饼图扇区，确保每个扇区角度严格对称闭合无接缝
+  const cx = 140;
+  const cy = 140;
+  const r = 138;
+
+  let paths = '';
+  let labels = '';
+
+  WHEEL_SECTORS.forEach((sector, i) => {
+    // 扇区从 -90deg (12点方向) 开始顺时针排布
+    // 扇区 i 覆盖范围: [i * 45 - 90, (i + 1) * 45 - 90]
+    // 扇区中心角: (i + 0.5) * 45 - 90
+    const startDeg = i * anglePerSector - 90;
+    const endDeg = (i + 1) * anglePerSector - 90;
+    const startRad = (startDeg * Math.PI) / 180;
+    const endRad = (endDeg * Math.PI) / 180;
+
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+
+    const pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
+    paths += `<path d="${pathD}" fill="${sector.color}" stroke="#ffffff" stroke-width="2" data-sector-idx="${i}" />`;
+
+    // 文字与图标位置：半径在 88px 处
+    const midDeg = (i + 0.5) * anglePerSector - 90;
+    const midRad = (midDeg * Math.PI) / 180;
+    const textRadius = 88;
+    const tx = cx + textRadius * Math.cos(midRad);
+    const ty = cy + textRadius * Math.sin(midRad);
+    // 文字角度使其沿着轮盘径向朝外可读
+    const textRot = midDeg + 90;
+
+    labels += `<g transform="translate(${tx}, ${ty}) rotate(${textRot})" pointer-events="none">
+      <text y="-8" text-anchor="middle" font-size="19" font-family="'Baloo 2', sans-serif">${sector.icon}</text>
+      <text y="10" text-anchor="middle" font-size="9" font-weight="900" fill="#ffffff" stroke="#333333" stroke-width="0.5" font-family="sans-serif">${sector.name.split('：')[0].slice(0, 5)}</text>
+    </g>`;
+  });
+
+  disc.innerHTML = `<svg viewBox="0 0 280 280" width="100%" height="100%" class="wheel-svg">
+    ${paths}
+    ${labels}
+  </svg>`;
+
+  $$('path[data-sector-idx]', disc).forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = Number(el.dataset.sectorIdx);
+      const sector = WHEEL_SECTORS[idx];
+      if (sector) {
+        playSfx('pop');
+        triggerHaptic(10);
+        speakChinese(`这是【${sector.name}】！抽中它可以点亮小游戏哟！`);
+      }
+    });
+  });
+}
+
+function spinArcadeWheel() {
+  if (isSpinningWheel) return;
+  updateArcadeSpinsFromStudy();
+  const spins = arcadeSpinsAvailable();
+  if (spins <= 0 && !parentModeEnabled) {
+    playSfx('wrong');
+    speakChinese('转盘机会用完啦！去认真学习 10 分钟就能再转一次哟！');
+    showToast('去认真学习满 10 分钟，就能获得新的魔法大转盘机会！');
+    return;
+  }
+
+  isSpinningWheel = true;
+  $('#spinWheelBtn').disabled = true;
+  playSfx('pop');
+  triggerHaptic(20);
+
+  // 随机抽取一个扇区（也可以按概率加权）
+  const targetIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
+  const selectedSector = WHEEL_SECTORS[targetIndex];
+  const numSectors = WHEEL_SECTORS.length;
+  const sectorAngle = 360 / numSectors;
+
+  // 顶部指针在 0 度 (12 点方向)。
+  // 扇区 i 覆盖范围为 [i * 45 - 90, (i + 1) * 45 - 90]
+  // 扇区正中心角度为 i * 45 + 22.5 - 90 = i * 45 - 67.5 度
+  // 当转盘顺时针旋转 R 度后，该扇区中心的新角度为 (i * 45 - 67.5 + R)
+  // 要让它精准对齐 12 点方向 (-90 度)，即：
+  // i * 45 - 67.5 + R ≡ -90 (mod 360) => R ≡ -22.5 - i * 45 (mod 360) ≡ 337.5 - i * 45
+  // 计算到达该扇区正中心的目标纯角：
+  const targetExactAngle = (360 + 337.5 - targetIndex * sectorAngle) % 360;
+  // 当前角度在 360 周期内的剩余角
+  const currentMod = currentWheelRotation % 360;
+  // 前进到该绝对中心所需的度数
+  let forward = (targetExactAngle - currentMod + 360) % 360;
+  if (forward < 10) forward += 360; // 避免转动幅度太小
+  // 增加 6 圈旋转 (2160 度)
+  const totalDelta = 360 * 6 + forward;
+  currentWheelRotation += totalDelta;
+
+  const disc = $('#wheelDisc');
+  disc.style.transition = 'transform 3.8s cubic-bezier(0.15, 0.9, 0.2, 1)';
+  disc.style.transform = `rotate(${currentWheelRotation}deg)`;
+
+  setTimeout(() => {
+    isSpinningWheel = false;
+    $('#spinWheelBtn').disabled = false;
+    // 扣除次数
+    if (!parentModeEnabled) {
+      const used = Number(state.arcadeStats.wheelSpinsUsed?.[todayKey] || 0);
+      state.arcadeStats.wheelSpinsUsed = {
+        ...(state.arcadeStats.wheelSpinsUsed || {}),
+        [todayKey]: used + 1
+      };
+    }
+    // 发放奖励
+    if (selectedSector.type === 'universal') {
+      const cur = getUniversalCoins();
+      state.arcadeStats.universalCoins = {
+        ...(state.arcadeStats.universalCoins || {}),
+        [todayKey]: cur + selectedSector.count
+      };
+      playSfx('fanfare');
+      triggerHaptic(40);
+      triggerConfetti();
+      speakChinese(`恭喜你！抽到了${selectedSector.name}！全场游戏全部点亮啦！`);
+      showToast(`🎉 抽中【${selectedSector.name}】！全场游戏已点亮！`);
+    } else if (selectedSector.type === 'specific') {
+      const gameId = selectedSector.gameId;
+      const cur = getSpecificCoins(gameId);
+      state.arcadeStats.specificCoins = {
+        ...(state.arcadeStats.specificCoins || {}),
+        [todayKey]: {
+          ...(state.arcadeStats.specificCoins?.[todayKey] || {}),
+          [gameId]: cur + selectedSector.count
+        }
+      };
+      playSfx('fanfare');
+      triggerHaptic(40);
+      triggerConfetti();
+      const gameName = ARCADE_GAMES.find(g => g.id === gameId)?.name || '小游戏';
+      speakChinese(`恭喜你！抽到了${selectedSector.name}！快去玩【${gameName}】吧！`);
+      showToast(`🎉 抽中【${selectedSector.name}】！已点亮【${gameName}】！`);
+    } else if (selectedSector.type === 'stars') {
+      state.stars = (state.stars || 0) + selectedSector.count;
+      state.ocOwned = getUnlockedWardrobeItems(state.stars);
+      saveOcAvatar();
+      playSfx('fanfare');
+      triggerHaptic(40);
+      triggerConfetti();
+      speakChinese(`太幸运啦！额外获得 ${selectedSector.count} 颗魔法星！快去星光奇遇之路看看吧！`);
+      showToast(`🎉 抽中【${selectedSector.name}】！`);
+    }
+    persistProgress();
+    $('#wheelRemainingSpins').textContent = arcadeSpinsAvailable();
+  }, 4000);
+}
+
 function renderArcade() {
   if (state.arcadeGameId !== 'fruit') releaseFruitOrientation();
   renderTopbarContext();
+  updateArcadeSpinsFromStudy();
   const area = $('#arcadeArea');
   if (!state.arcadeGameId) {
+    clearArcadeAutoExit();
     const daily = arcadeDailyPlays();
+    const spins = arcadeSpinsAvailable();
+    const universalCoins = getUniversalCoins();
+    const studySec = studyTodaySeconds();
+    const minutes = Math.floor(studySec / 60);
+    const nextSpinMins = Math.max(0, 10 - (minutes % 10));
+
+    // 非家长模式下：若既无转盘机会，又无任何可用游戏币，语音提示并在 5 秒后自动退出
+    if (!parentModeEnabled && spins === 0 && !hasAnyArcadeCredit()) {
+      speakChinese(`${childName()}，今天还没有学习时间来开启转盘哟！先去认真学 10 分钟吧！`);
+      showToast(`⏱️ 暂无可用游戏币或转盘机会，5 秒后带你去魔法城堡学习...`);
+      arcadeAutoExitTimer = setTimeout(() => {
+        if (state.screen === 'arcade' && !state.arcadeGameId) {
+          setScreen('lesson');
+        }
+      }, 5000);
+    }
+
+    const wheelStatusBadge = spins > 0
+      ? `<button class="arcade-wheel-trigger-btn active" type="button" id="openArcadeWheelBtn"><span>🎡 魔法大转盘</span><b>${spins} 次抽奖可用！点我点亮游戏</b></button>`
+      : `<button class="arcade-wheel-trigger-btn" type="button" id="openArcadeWheelBtn"><span>🎡 魔法大转盘</span><small>今日已学 ${minutes} 分钟 · 还差 ${nextSpinMins} 分钟获得转盘</small></button>`;
+
     const modeBadge = parentModeEnabled
-      ? `<div class="arcade-parent-mode-badge" role="status">🛡️ 当前处于家长模式下（无游戏限制）</div>`
-      : `<div class="arcade-time-status" role="status">⏱️ 今日已学 ${Math.floor(studyTodaySeconds() / 60)} 分钟 · 剩余游戏时间 ${Math.max(0, Math.ceil((studyTodaySeconds() - gameTodaySeconds()) / 60))} 分钟</div>`;
-    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p>${modeBadge}<div class="arcade-progress"><span>今日小游戏</span><b>${Math.min(daily, 3)} / 3</b><i style="--arcade-progress:${Math.min(daily, 3) / 3 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => `<button class="arcade-game-card arcade-game-${game.id}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small></span></button>`).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
+      ? `<div class="arcade-parent-mode-badge" role="status">🛡️ 家长模式：全场常亮 · 无限畅玩</div>`
+      : `<div class="arcade-coin-status" role="status"><span class="coin-token">🪙</span><strong>通用魔法币：${universalCoins} 枚</strong><small>（抽中通用币全场点亮 · 抽中专属币定向点亮）</small></div>`;
+
+    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p>${modeBadge}${wheelStatusBadge}<div class="arcade-progress"><span>今日游玩局数</span><b>${daily} 局</b><i style="--arcade-progress:${Math.min(daily, 6) / 6 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => {
+      const playable = isArcadeGamePlayable(game.id);
+      const specific = getSpecificCoins(game.id);
+      const tag = parentModeEnabled ? '' : (specific > 0 ? `<em class="arcade-game-badge specific">🎟️ 专属可用</em>` : (universalCoins > 0 ? `<em class="arcade-game-badge universal">🪙 通用点亮</em>` : `<em class="arcade-game-badge dormant">💤 沉睡中</em>`));
+      return `<button class="arcade-game-card arcade-game-${game.id} ${playable ? 'lit' : 'dormant'}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small></span>${tag}</button>`;
+    }).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
+
+    $('#openArcadeWheelBtn')?.addEventListener('click', () => {
+      playSfx('pop');
+      if (spins > 0) {
+        speakChinese(`太棒啦，${childName()}！你有 ${spins} 次转盘机会，快来抽大奖吧！`);
+      } else {
+        speakChinese(`今天已学 ${minutes} 分钟，再认真学 ${nextSpinMins} 分钟，就能来转大转盘啦！`);
+      }
+      openArcadeWheelModal();
+    });
+
+    $('.arcade-coin-status', area)?.addEventListener('click', () => {
+      playSfx('pop');
+      triggerHaptic(10);
+      if (universalCoins > 0) {
+        speakChinese(`你现在拥有 ${universalCoins} 枚通用魔法币，全场游戏都为你点亮啦！想玩哪一个都可以哟！`);
+      } else {
+        speakChinese('这里是你的魔法游戏币，认真学习后转动大转盘，就能拿到魔法币来点亮小游戏哟！');
+      }
+    });
+
     $$('[data-arcade-game]', area).forEach((button) => button.addEventListener('click', () => {
-      if (!canAccessArcade()) return;
-      state.arcadeGameId = button.dataset.arcadeGame;
+      const gameId = button.dataset.arcadeGame;
+      const gameName = ARCADE_GAMES.find(g => g.id === gameId)?.name || '小游戏';
+      if (!isArcadeGamePlayable(gameId)) {
+        playSfx('wrong');
+        triggerHaptic(20);
+        speakChinese(`【${gameName}】还在睡觉呢，去转动魔法大转盘，拿到魔法币就能把它唤醒啦！`);
+        showToast(`【${gameName}】正在沉睡中！学习满 10 分钟转大转盘可将其点亮！`);
+        // 自动引导转盘或学习
+        if (arcadeSpinsAvailable() > 0) {
+          setTimeout(openArcadeWheelModal, 800);
+        } else {
+          setTimeout(() => setScreen('lesson'), 1600);
+        }
+        return;
+      }
+      playSfx('pop');
+      triggerHaptic(15);
+      speakChinese(`【${gameName}】已经为你点亮啦，快来玩吧！`);
+      consumeArcadeGameCredit(gameId);
+      state.arcadeGameId = gameId;
       state.arcadeState = null;
       renderArcade();
     }));
@@ -2055,6 +2361,7 @@ function startHanziQuiz(shouldPromptFirst = false) {
   currentHanziWriter.quiz({
     onCorrectStroke: (strokeData) => {
       playSfx('ding');
+      triggerHaptic(15);
       const totalStrokes = currentHanziWriter._character?.strokes?.length || (strokeData.strokeNum + 1);
       const nextStrokeIndex = strokeData.strokeNum + 1;
       if (nextStrokeIndex < totalStrokes) {
@@ -2536,6 +2843,14 @@ function awardGroupStar() {
   } else {
     showToast(`获得 1 颗魔法星（共 ${state.stars} 颗，还差 ${5 - (state.stars % 5)} 颗解锁下一件饰品）！`);
   }
+  // 上课奖励游戏币（每日最多奖励 2 枚）
+  const currentBonus = Number(state.arcadeStats.coinsBonus?.[todayKey] || 0);
+  if (currentBonus < 2) {
+    state.arcadeStats.coinsBonus = { ...(state.arcadeStats.coinsBonus || {}), [todayKey]: currentBonus + 1 };
+    setTimeout(() => {
+      showToast('🎁 努力学习奖励：额外获得 1 枚小小游戏机魔法币 🪙！');
+    }, 1800);
+  }
 }
 function completeReview() {
   state.completed = true;
@@ -2629,6 +2944,7 @@ function renderOcItems() {
 function openReward() {
   $('#rewardModal').classList.add('open'); $('#rewardModal').setAttribute('aria-hidden', 'false'); $('#rewardChest').classList.add('opening');
   if (state.soundOn) playSfx('victory');
+  triggerHaptic(40);
   triggerConfetti();
   const unlockedCount = state.ocOwned.length;
   const latestItemId = unlockedCount > 0 ? state.ocOwned[unlockedCount - 1] : null;
@@ -2769,11 +3085,19 @@ function renderRoadmap() {
         setMagicHouseTab('closet');
         showToast(`已为你换上【${meta?.name || '新装扮'}】！`);
       } else if (idx === unlockedCount) {
-        // 当前目标：鼓励提示
+        // 当前目标：鼓励提示 + 快速去学习闭环
         const need = reqStars - stars;
         if (state.soundOn) playSfx('tap');
+        triggerHaptic(20);
         speakChinese(`加油，${childName()}！只要再拿 ${need} 颗星，就能点亮【${meta?.name || '新道具'}】啦！`);
-        showToast(`再获得 ${need} 颗星就能开启这个盲盒啦！`);
+        showToast(`再获得 ${need} 颗星就能开启这个盲盒啦！快去完成一课吧！`);
+        // 延时引导或再次点击直接去上课
+        if (card.dataset.promptLearn === 'true') {
+          setScreen('lesson');
+        } else {
+          card.dataset.promptLearn = 'true';
+          setTimeout(() => { delete card.dataset.promptLearn; }, 3500);
+        }
       } else {
         // 后续未解锁
         if (state.soundOn) playSfx('tap');
@@ -3326,6 +3650,7 @@ $$('[data-magic-house-tab]').forEach((button) => button.addEventListener('click'
 $('#topbarLessonTitle').addEventListener('click', () => { if (state.screen === 'arcade' && state.arcadeGameId) { clearTimeout(arcadeSequenceTimer); clearTimeout(whackTimer); clearTimeout(catchTimer); state.arcadeGameId = ''; state.arcadeState = null; renderTopbarContext(); renderArcade(); return; } if (state.screen === 'home') setScreen(state.homeContext === 'closet' ? 'closet' : state.homeContext === 'arcade' ? 'arcade' : 'lesson'); });
 $('#magicHouse').addEventListener('click', () => { setScreen('closet'); showToast('欢迎来到魔法屋，给露娜换上新装吧！'); });
 $('#gemCountBtn')?.addEventListener('click', () => {
+  speakChinese(`${childName()}现在拥有 ${state.stars} 颗魔法星！一起来看星光奇遇之路吧！`);
   setScreen('roadmap');
   showToast(`你有 ${state.stars} 颗魔法星，来看你的星光奇遇之路吧！`);
 });
@@ -3430,6 +3755,9 @@ $('#checkForUpdate').addEventListener('click', async () => {
 });
 $('#voiceTest').addEventListener('click', () => { chooseEnglishVoice(); speak(`Hello, ${childName()}! I am Luna. Let us learn English together.`); });
 $('#claimReward').addEventListener('click', () => { closeReward(); $('#newDot').hidden = false; setScreen('closet'); showToast('新的 OC-English 装扮已经放进衣橱！'); });
+$('#closeWheelModal')?.addEventListener('click', closeArcadeWheelModal);
+$('#arcadeWheelModal')?.addEventListener('click', (event) => { if (event.target === $('#arcadeWheelModal')) closeArcadeWheelModal(); });
+$('#spinWheelBtn')?.addEventListener('click', spinArcadeWheel);
 $('#dailyWrapHome').addEventListener('click', () => { closeDailyWrapUp(); setScreen('home'); });
 $('#dailyWrapCloset').addEventListener('click', () => { closeDailyWrapUp(); setScreen('closet'); });
 $('#parentModal').addEventListener('click', (event) => { if (event.target === $('#parentModal')) closeParent(); });
@@ -3452,6 +3780,6 @@ window.addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });
 window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade','roadmap'].includes(screen) ? screen : 'home', { push: false }); });
 document.addEventListener('keydown', handleLessonShortcuts);
-document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#issueTrackerModal')?.classList.contains('open')) closeIssueTracker(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#issueTrackerModal')?.classList.contains('open')) closeIssueTracker(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); else if (event.key === 'Escape' && $('#arcadeWheelModal')?.classList.contains('open')) closeArcadeWheelModal(); });
 
 $('.app-shell').classList.add('home-active'); renderTopbarContext(); mountHomeMap(); renderWardrobe(); renderHome(); updateProgress(); renderSoundToggleState(); renderParentModeState(); renderSpeechRateControl(); renderParentProfileControls(); renderContentSyncStatus(); if (location.hash) window.dispatchEvent(new PopStateEvent('popstate'));

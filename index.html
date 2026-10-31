@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="preload" href="assets/fonts/castle-kai.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="style.css?v=1.0.26" />
+    <link rel="stylesheet" href="style.css?v=1.0.27" />
     <link rel="stylesheet" href="styles/screens/adventure-map.css" />
     <link rel="stylesheet" href="styles/screens/roadmap.css" />
   </head>
@@ -193,6 +193,29 @@
         <button class="primary-button" type="button" id="claimReward">放进我的衣橱 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
       </div>
     </div>
+    <div class="modal arcade-wheel-modal" id="arcadeWheelModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="wheelTitle">
+      <div class="modal-card arcade-wheel-card">
+        <header class="arcade-wheel-header">
+          <div class="arcade-wheel-heading">
+            <span class="section-kicker">学习专属奖励</span>
+            <h2 id="wheelTitle">🎡 魔法大转盘</h2>
+          </div>
+          <button class="modal-close icon-button" id="closeWheelModal" type="button" aria-label="关闭转盘">×</button>
+        </header>
+        <p class="wheel-desc">认真学习赚取魔法币，点亮你想玩的小游戏！</p>
+        <div class="wheel-stage-container">
+          <div class="wheel-pointer" aria-hidden="true">▼</div>
+          <div class="wheel-disc" id="wheelDisc">
+            <!-- 8 个扇区由 JS 动态生成 -->
+          </div>
+          <button class="wheel-center-btn" id="spinWheelBtn" type="button">
+            <b>抽奖</b>
+            <small>SPIN</small>
+          </button>
+        </div>
+        <div class="wheel-status-bar" id="wheelStatusBar">剩余转盘机会：<b id="wheelRemainingSpins">0</b> 次</div>
+      </div>
+    </div>
     <div class="modal hanzi-writer-modal" id="hanziWriterModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hanziWriterTitle">
       <div class="modal-card hanzi-writer-card">
         <header class="hanzi-writer-header">
@@ -266,6 +289,6 @@
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="vendor/hanzi-writer/hanzi-writer.min.js?v=1.0.10"></script>
-    <script type="module" src="app.js?v=1.0.26"></script>
+    <script type="module" src="app.js?v=1.0.27"></script>
   </body>
 </html>
