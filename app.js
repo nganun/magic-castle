@@ -641,11 +641,12 @@ function routeFor(name) { return name === 'lesson' ? `#lesson/${state.activeThem
 function renderTopbarContext() {
   const crumb = $('#topbarLessonTitle');
   const isRoadmapContext = state.screen === 'roadmap';
+  const isParentContext = state.screen === 'parent';
   const isClosetContext = state.screen === 'closet' || state.screen === 'home' && state.homeContext === 'closet';
   const isArcadeContext = state.screen === 'arcade' || state.screen === 'home' && state.homeContext === 'arcade';
-  const label = isRoadmapContext ? '星光奇遇之路' : (isArcadeContext ? '小小游戏机' : (isClosetContext ? '魔法屋' : currentTheme().title));
+  const label = isRoadmapContext ? '星光奇遇之路' : (isParentContext ? '家长控制中心' : (isArcadeContext ? '小小游戏机' : (isClosetContext ? '魔法屋' : currentTheme().title)));
   const arcadeGameOpen = state.screen === 'arcade' && Boolean(state.arcadeGameId);
-  const isCurrentScreen = state.screen === 'roadmap' || state.screen === 'lesson' || state.screen === 'closet' || state.screen === 'arcade' && !arcadeGameOpen;
+  const isCurrentScreen = state.screen === 'parent' || state.screen === 'roadmap' || state.screen === 'lesson' || state.screen === 'closet' || state.screen === 'arcade' && !arcadeGameOpen;
   crumb.querySelector('b').textContent = label;
   crumb.disabled = isCurrentScreen;
   crumb.setAttribute('aria-label', arcadeGameOpen ? '返回小小游戏机大厅' : (isCurrentScreen ? `当前位置：${label}` : `继续${label}`));
@@ -683,6 +684,7 @@ function setScreen(name, { push = true } = {}) {
   }
   if (name === 'closet') { renderWardrobe(); setMagicHouseTab(state.magicHouseTab); }
   if (name === 'roadmap') renderRoadmap();
+  if (name === 'parent') { renderParentProfileControls(); setParentTab(parentActiveTab || 'overview'); }
   $('#main').focus({ preventScroll: true });
 }
 
@@ -698,9 +700,62 @@ function studyTodaySeconds() {
 }
 function markActivityToday() { state.activityDates = Array.from(new Set([...(state.activityDates || []), todayKey])).sort().slice(-90); }
 function renderStudyCalendar() {
-  const calendar = $('#studyCalendar'); if (!calendar) return;
-  const weekdays = ['日', '一', '二', '三', '四', '五', '六']; const activeDates = new Set(state.activityDates || []); const today = new Date();
-  calendar.innerHTML = Array.from({ length: 7 }, (_, index) => { const date = new Date(today); date.setDate(today.getDate() - 6 + index); const key = localDateKey(date); const active = activeDates.has(key); return `<div class="${active ? 'active' : ''} ${key === todayKey ? 'today' : ''}"><i></i><span>${weekdays[date.getDay()]}</span></div>`; }).join('');
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  const activeDates = new Set(state.activityDates || []);
+  const today = new Date();
+
+  // 1. 家长中心完整周日历
+  const parentCal = $('#studyCalendar');
+  if (parentCal) {
+    parentCal.innerHTML = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 6 + index);
+      const key = localDateKey(date);
+      const active = activeDates.has(key);
+      return `<div class="${active ? 'active' : ''} ${key === todayKey ? 'today' : ''}"><i></i><span>${weekdays[date.getDay()]}</span></div>`;
+    }).join('');
+  }
+
+  // 2. 首页星光宝石链 (Starlight Gem Chain)
+  const homeCal = $('#homeStudyCalendar');
+  const streakCount = (state.streak && state.streak.count) || 0;
+  const streakBadge = $('#homeCalendarStreak');
+  if (streakBadge) {
+    streakBadge.innerHTML = streakCount > 0 ? `🔥 连续 <b>${streakCount}</b> 天` : '✨ 今日待点亮';
+  }
+
+  if (homeCal) {
+    homeCal.innerHTML = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 6 + index);
+      const key = localDateKey(date);
+      const isToday = key === todayKey;
+      const active = activeDates.has(key);
+      const weekday = weekdays[date.getDay()];
+
+      let gemClass = 'gem-missed';
+      let gemIcon = '○';
+      let title = `周${weekday}`;
+
+      if (isToday) {
+        if (active) {
+          gemClass = 'gem-today-lit';
+          gemIcon = '🌟';
+          title = `今天（周${weekday}）已点亮`;
+        } else {
+          gemClass = 'gem-today-pending';
+          gemIcon = '💎';
+          title = `今天（周${weekday}）待点亮`;
+        }
+      } else if (active) {
+        gemClass = 'gem-lit';
+        gemIcon = '⭐';
+        title = `周${weekday}已打卡`;
+      }
+
+      return `<span class="starlight-gem ${gemClass}" title="${title}" aria-label="${title}"><i class="gem-symbol">${gemIcon}</i><small class="gem-day">${weekday}</small></span>`;
+    }).join('');
+  }
 }
 function finishLessonSession() {
   if (!lessonSessionStartedAt) return;
@@ -755,14 +810,14 @@ function arcadeDailyPlays() { return Number(state.arcadeStats.dailyPlays?.[today
 
 // 魔法转盘与游戏币系统
 const WHEEL_SECTORS = [
-  { id: 'universal_1', name: '通用魔法币 ×1', icon: '🪙', type: 'universal', count: 1, color: '#f59e0b' },
-  { id: 'specific_fruit', name: '切切乐专属币 ×1', icon: '🍎', type: 'specific', gameId: 'fruit', count: 1, color: '#ef4444' },
-  { id: 'specific_sheep', name: '羊了个羊专属币 ×1', icon: '🐑', type: 'specific', gameId: 'sheep', count: 1, color: '#10b981' },
-  { id: 'specific_rhythm', name: '星星节奏专属币 ×1', icon: '♫', type: 'specific', gameId: 'rhythm', count: 1, color: '#8b5cf6' },
-  { id: 'universal_2', name: '幸运暴击！通用币 ×2', icon: '🪙🪙', type: 'universal', count: 2, color: '#ec4899' },
-  { id: 'specific_whack', name: '打地鼠专属币 ×1', icon: '●', type: 'specific', gameId: 'whack', count: 1, color: '#f97316' },
-  { id: 'specific_memory', name: '翻翻乐专属币 ×1', icon: '✦', type: 'specific', gameId: 'memory', count: 1, color: '#06b6d4' },
-  { id: 'stars_gift', name: '星光大礼包：星星 ×2', icon: '⭐⭐', type: 'stars', count: 2, color: '#eab308' },
+  { id: 'universal_1', name: '通用魔法币 ×1', label: '通用币', icon: '🪙', type: 'universal', count: 1, color: '#f59e0b' },
+  { id: 'specific_fruit', name: '切切乐专属币 ×1', label: '切切乐', icon: '🍎', type: 'specific', gameId: 'fruit', count: 1, color: '#ef4444' },
+  { id: 'specific_sheep', name: '羊了个羊专属币 ×1', label: '小绵羊', icon: '🐑', type: 'specific', gameId: 'sheep', count: 1, color: '#10b981' },
+  { id: 'specific_rhythm', name: '星星节奏专属币 ×1', label: '节奏星', icon: '♫', type: 'specific', gameId: 'rhythm', count: 1, color: '#8b5cf6' },
+  { id: 'universal_2', name: '幸运暴击！通用币 ×2', label: '双倍币', icon: '🪙🪙', type: 'universal', count: 2, color: '#ec4899' },
+  { id: 'specific_whack', name: '打地鼠专属币 ×1', label: '打地鼠', icon: '●', type: 'specific', gameId: 'whack', count: 1, color: '#f97316' },
+  { id: 'specific_memory', name: '翻翻乐专属币 ×1', label: '翻翻乐', icon: '✦', type: 'specific', gameId: 'memory', count: 1, color: '#06b6d4' },
+  { id: 'stars_gift', name: '星光大礼包：星星 ×2', label: '魔法星', icon: '⭐⭐', type: 'stars', count: 2, color: '#eab308' },
 ];
 
 function arcadeSpinsAvailable() {
@@ -893,6 +948,7 @@ function renderHome() {
   $$('[data-theme]').forEach((button) => button.addEventListener('click', () => selectTheme(button.dataset.theme, true)));
   $('#dailyRoute').onclick = () => selectTheme($('#dailyRoute').dataset.theme, true);
   renderHomeAvatar();
+  renderStudyCalendar();
 }
 let arcadeSequenceTimer = null;
 let whackTimer = null;
@@ -965,18 +1021,18 @@ function renderWheelDisc() {
     const pathD = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
     paths += `<path d="${pathD}" fill="${sector.color}" stroke="#ffffff" stroke-width="2" data-sector-idx="${i}" />`;
 
-    // 文字与图标位置：半径在 88px 处
+    // 文字与图标位置：半径在 90px 处
     const midDeg = (i + 0.5) * anglePerSector - 90;
     const midRad = (midDeg * Math.PI) / 180;
-    const textRadius = 88;
+    const textRadius = 90;
     const tx = cx + textRadius * Math.cos(midRad);
     const ty = cy + textRadius * Math.sin(midRad);
     // 文字角度使其沿着轮盘径向朝外可读
     const textRot = midDeg + 90;
 
     labels += `<g transform="translate(${tx}, ${ty}) rotate(${textRot})" pointer-events="none">
-      <text y="-8" text-anchor="middle" font-size="19" font-family="'Baloo 2', sans-serif">${sector.icon}</text>
-      <text y="10" text-anchor="middle" font-size="9" font-weight="900" fill="#ffffff" stroke="#333333" stroke-width="0.5" font-family="sans-serif">${sector.name.split('：')[0].slice(0, 5)}</text>
+      <text y="-8" text-anchor="middle" font-size="24" font-family="'Baloo 2', sans-serif">${sector.icon}</text>
+      <text y="14" text-anchor="middle" font-size="13.5" font-weight="900" fill="#ffffff" stroke="#2a1b4e" stroke-width="2.5" paint-order="stroke fill" font-family="'Nunito', sans-serif">${sector.label || sector.name.slice(0, 3)}</text>
     </g>`;
   });
 
@@ -1110,15 +1166,15 @@ function renderArcade() {
     const minutes = Math.floor(studySec / 60);
     const nextSpinMins = Math.max(0, 10 - (minutes % 10));
 
-    // 非家长模式下：若既无转盘机会，又无任何可用游戏币，语音提示并在 5 秒后自动退出
+    // 非家长模式下：若既无转盘机会，又无任何可用游戏币，语音提示并在 10 秒后自动返回首页
     if (!parentModeEnabled && spins === 0 && !hasAnyArcadeCredit()) {
       speakChinese(`${childName()}，今天还没有学习时间来开启转盘哟！先去认真学 10 分钟吧！`);
-      showToast(`⏱️ 暂无可用游戏币或转盘机会，5 秒后带你去魔法城堡学习...`);
+      showToast(`⏱️ 暂无可用游戏币或转盘机会，10 秒后返回魔法城堡...`);
       arcadeAutoExitTimer = setTimeout(() => {
         if (state.screen === 'arcade' && !state.arcadeGameId) {
-          setScreen('lesson');
+          setScreen('home');
         }
-      }, 5000);
+      }, 10000);
     }
 
     const wheelStatusBadge = spins > 0
@@ -1799,6 +1855,52 @@ function updateProgress() {
   const theme = currentTheme(); const total = currentRounds().length;
   $('#starTotal').textContent = state.stars;
   $('#gemCountBtn')?.setAttribute('aria-label', `拥有 ${state.stars} 颗魔法星，查看星光奇遇之路`);
+
+  // 更新首页学习时长展示与 10 分钟分段彩虹能量轨
+  const studySec = studyTodaySeconds();
+  const studyMins = Math.floor(studySec / 60);
+  const homeBadge = $('#homeStudyMinutes');
+  if (homeBadge) {
+    homeBadge.textContent = `探险 ${studyMins} 分钟`;
+  }
+  $('#homeStudyBadge')?.setAttribute('aria-label', `今天已探险 ${studyMins} 分钟`);
+
+  const limitMins = Number(state.study.limitMinutes || 0);
+  const targetMins = limitMins > 0 ? limitMins : 30;
+  const percent = Math.min(100, Math.round((studyMins / targetMins) * 100));
+
+  const fillEl = $('#studyTimeFill');
+  if (fillEl) {
+    fillEl.style.width = `${percent}%`;
+    if (percent >= 100) {
+      fillEl.className = 'study-time-fill status-complete';
+    } else if (percent >= 70) {
+      fillEl.className = 'study-time-fill status-warm';
+    } else {
+      fillEl.className = 'study-time-fill status-fresh';
+    }
+  }
+
+  const tailEl = $('#studyBadgeTail');
+  if (tailEl) {
+    if (percent >= 100) {
+      tailEl.innerHTML = '<span class="study-target-complete">👑 达成</span>';
+    } else {
+      tailEl.innerHTML = `<span class="study-target-label">/ ${targetMins}分</span>`;
+    }
+  }
+
+  const ticksEl = $('#studyTimeTicks');
+  if (ticksEl) {
+    const tickCount = Math.max(1, Math.round(targetMins / 10));
+    ticksEl.innerHTML = Array.from({ length: tickCount - 1 }, (_, i) => {
+      const tickMin = (i + 1) * 10;
+      const tickPercent = (tickMin / targetMins) * 100;
+      const isReached = studyMins >= tickMin;
+      return `<i class="time-tick ${isReached ? 'reached' : ''}" style="left:${tickPercent}%" title="${tickMin}分钟"></i>`;
+    }).join('');
+  }
+
   $('#parentStars').textContent = state.stars;
   $('#parentWords').textContent = masteredWordCount();
   $('#parentStreak').textContent = state.streak.count;
@@ -2808,11 +2910,12 @@ function handleChoice(button, game) {
   }
 }
 function showWordCelebration(word, title = '我认识了！') {
-  const overlay = document.createElement('div');
-  overlay.className = 'word-celebration';
-  overlay.setAttribute('aria-hidden', 'true');
-  overlay.innerHTML = `<div class="word-burst"></div><div class="celebration-word"><span>${escapeHtml(title)}</span><b>${escapeHtml(word)}</b><em>✦</em></div><i class="burst-star star-one">✦</i><i class="burst-star star-two">✦</i><i class="burst-star star-three">✦</i><i class="burst-star star-four">✦</i><i class="burst-confetti confetti-one"></i><i class="burst-confetti confetti-two"></i><i class="burst-confetti confetti-three"></i><i class="burst-confetti confetti-four"></i>`;
-  $('#gameArea').append(overlay);
+  const card = $('.learn-word-card') || $('.misc-learn-card') || $('.recital-card') || $('.number-action-card') || $('#gameArea > div');
+  if (card) {
+    card.classList.remove('card-mastered');
+    void card.offsetWidth;
+    card.classList.add('card-mastered');
+  }
 }
 function handleCorrect(word, kind = 'match', extras = {}) {
   if (state.roundLocked) return;
@@ -2825,7 +2928,7 @@ function handleCorrect(word, kind = 'match', extras = {}) {
   setTimeout(() => {
     if (state.round >= currentRounds().length) { if (state.lessonMode === 'review') completeReview(); else completeTheme(); }
     renderRound();
-  }, kind === 'learn' || kind === 'board' ? 1350 : 850);
+  }, 450);
 }
 function awardGroupStar() {
   const prevStars = state.stars || 0;
@@ -2904,17 +3007,24 @@ function setMagicHouseTab(tab) {
   if (next === 'book') renderMagicHouseBook();
   if (next === 'achievements') renderMagicHouseAchievements();
 }
+function triggerAvatarDressPop() {
+  const avatar = $('#ocAvatar');
+  if (!avatar) return;
+  avatar.classList.remove('avatar-dress-pop');
+  void avatar.offsetWidth;
+  avatar.classList.add('avatar-dress-pop');
+}
 function renderWardrobe() {
   $('#ocAvatar').innerHTML = renderCharacterSVG(state.ocAvatar, 1.45);
   $('#ocCollectionCount').textContent = `${state.ocOwned.length + 1} / ${OC_WARDROBE.length + OC_PART_OPTIONS.hair.length}`;
   const category = OC_CATEGORY_META.find((item) => item.id === state.ocTab);
-  $('#ocLookName').textContent = '点一点右边的装扮，给露娜换新造型。';
+  $('#ocLookName').textContent = '✨ 点选装扮盒，给露娜试穿新造型';
   renderOcTabs(); renderOcItems(); renderMagicHouseCounts();
   renderHomeAvatar();
 }
 function renderOcTabs() {
   $('#ocCategoryTabs').innerHTML = OC_CATEGORY_META.map((category) => `<button class="oc-category-tab ${state.ocTab === category.id ? 'active' : ''}" type="button" data-oc-tab="${category.id}">${wardrobeIcon(category.id)}<span>${category.label}</span></button>`).join('');
-  $$('[data-oc-tab]').forEach((button) => button.addEventListener('click', () => { state.ocTab = button.dataset.ocTab; renderOcTabs(); renderOcItems(); }));
+  $$('[data-oc-tab]').forEach((button) => button.addEventListener('click', () => { state.ocTab = button.dataset.ocTab; renderOcTabs(); renderOcItems(); const grid = $('#ocItemGrid'); if (grid) grid.scrollLeft = 0; }));
 }
 function renderOcItems() {
   const grid = $('#ocItemGrid');
@@ -2931,6 +3041,8 @@ function renderOcItems() {
       saveOcAvatar();
       setDailyTask('dress');
       renderWardrobe();
+      triggerAvatarDressPop();
+      playSfx('pop');
       showToast('换了一个新发型！');
     }));
     return;
@@ -2938,7 +3050,15 @@ function renderOcItems() {
   const category = OC_CATEGORY_META.find((item) => item.id === state.ocTab);
   const items = OC_WARDROBE.filter((item) => item.slot === category.slot);
   grid.innerHTML = items.map((item) => { const owned = state.ocOwned.includes(item.id); const equipped = state.ocAvatar.outfit[category.slot] === item.id; return `<button class="oc-item-card ${owned ? '' : 'locked'} ${equipped ? 'equipped' : ''}" type="button" data-oc-item="${item.id}" ${owned ? '' : 'disabled'}><span class="oc-item-preview slot-${category.slot}">${owned ? wardrobeThumb(item.id) : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="11" rx="2"/></svg>'}</span><strong>${item.name}</strong><small>${owned ? (equipped ? '正在使用' : '点一下试试') : '完成课程解锁'}</small></button>`; }).join('');
-  $$('[data-oc-item]').forEach((button) => button.addEventListener('click', () => { state.ocAvatar.outfit[category.slot] = button.dataset.ocItem; saveOcAvatar(); setDailyTask('dress'); renderWardrobe(); showToast('露娜换好了新装扮！'); }));
+  $$('[data-oc-item]').forEach((button) => button.addEventListener('click', () => {
+    state.ocAvatar.outfit[category.slot] = button.dataset.ocItem;
+    saveOcAvatar();
+    setDailyTask('dress');
+    renderWardrobe();
+    triggerAvatarDressPop();
+    playSfx('pop');
+    showToast('露娜换好了新装扮！');
+  }));
 }
 
 function openReward() {
@@ -3027,7 +3147,7 @@ function renderRoadmap() {
     } else if (isCurrent) {
       statusClass = 'current';
       const diff = requiredStars - stars;
-      badgeText = `目标 · 还差 ${diff} 星`;
+      badgeText = `差 ${diff} 星解锁`;
       descText = `当前进度 ${stars}/${requiredStars} ⭐`;
     }
 
@@ -3041,10 +3161,12 @@ function renderRoadmap() {
     rows.push(`
       <div class="roadmap-node-row ${posClass}" ${isCurrent ? 'id="roadmapCurrentTarget"' : ''}>
         <button class="roadmap-node-card ${statusClass}" type="button" data-roadmap-index="${index}" data-roadmap-id="${itemId}" aria-label="${itemName}，${badgeText}，${descText}">
-          <span class="roadmap-badge">${badgeText}</span>
           <span class="roadmap-node-thumb">${thumbHtml}</span>
           <div class="roadmap-node-body">
-            <span class="roadmap-node-stars">⭐ ${requiredStars} 星</span>
+            <div class="roadmap-node-header">
+              <span class="roadmap-node-stars">⭐ ${requiredStars} 星</span>
+              <span class="roadmap-badge">${badgeText}</span>
+            </div>
             <strong class="roadmap-node-name">${itemName}</strong>
             <span class="roadmap-node-desc">${descText}</span>
           </div>
@@ -3172,10 +3294,10 @@ function renderParentProfileControls() {
 }
 let parentActiveTab = 'overview';
 function setParentTab(tab) {
-  parentActiveTab = ['overview', 'settings', 'tools'].includes(tab) ? tab : 'overview';
+  parentActiveTab = tab || 'overview';
   $$('.parent-tab').forEach((button) => { const active = button.dataset.parentTab === parentActiveTab; button.classList.toggle('active', active); button.setAttribute('aria-selected', String(active)); });
   $$('.parent-tab-panel').forEach((panel) => { panel.hidden = panel.id !== `parentPanel${parentActiveTab[0].toUpperCase()}${parentActiveTab.slice(1)}`; });
-  if (parentActiveTab === 'tools') renderStarRecoveryControls();
+  renderStarRecoveryControls();
 }
 function prepareParentGate() {
   const first = Math.floor(Math.random() * 7) + 7;
@@ -3183,23 +3305,35 @@ function prepareParentGate() {
   parentGateAnswer = first + second;
   $('#parentGateQuestion').textContent = `请计算：${first} + ${second} = ?`;
   $('#parentGateAnswer').value = ''; $('#parentGateError').hidden = true;
-  $('#parentGate').hidden = false; $('#parentContent').hidden = true;
+  $('#parentGate').hidden = false;
 }
 function unlockParent() {
-  setParentModeEnabled(true); $('#parentGate').hidden = true; $('#parentContent').hidden = false;
-  renderParentProfileControls(); setParentTab('overview');
-  $('#profileSelect').focus();
+  setParentModeEnabled(true);
+  $('#parentGate').hidden = true;
+  $('#parentModal').classList.remove('open');
+  $('#parentModal').setAttribute('aria-hidden', 'true');
+  setScreen('parent');
 }
 function openParent() {
-  $('#parentModal').classList.add('open'); $('#parentModal').setAttribute('aria-hidden', 'false');
-  if (parentModeEnabled) { unlockParent(); return; }
-  prepareParentGate(); setTimeout(() => $('#parentGateAnswer').focus(), 100);
+  if (parentModeEnabled) {
+    setScreen('parent');
+    return;
+  }
+  $('#parentModal').classList.add('open');
+  $('#parentModal').setAttribute('aria-hidden', 'false');
+  prepareParentGate();
+  setTimeout(() => $('#parentGateAnswer').focus(), 100);
 }
 function closeParent() {
-  $('#parentModal').classList.remove('open'); $('#parentModal').setAttribute('aria-hidden', 'true'); $('#parentButton').focus();
+  $('#parentModal').classList.remove('open');
+  $('#parentModal').setAttribute('aria-hidden', 'true');
+  $('#parentButton').focus();
 }
 function disableParentMode() {
-  setParentModeEnabled(false); closeParent(); showToast('家长模式已关闭；下次打开需要重新答题。');
+  setParentModeEnabled(false);
+  closeParent();
+  showToast('家长模式已关闭；下次打开需要重新答题。');
+  if (state.screen === 'parent') setScreen('home');
 }
 function renderAdminContentSummary() {
   ['english', 'hanzi', 'misc'].forEach((kind) => {
@@ -3654,6 +3788,32 @@ $('#gemCountBtn')?.addEventListener('click', () => {
   setScreen('roadmap');
   showToast(`你有 ${state.stars} 颗魔法星，来看你的星光奇遇之路吧！`);
 });
+function onStudyTimePillClick() {
+  playSfx('pop');
+  triggerHaptic(10);
+  const studySec = studyTodaySeconds();
+  const mins = Math.floor(studySec / 60);
+  if (mins > 0) {
+    speakChinese(`太棒啦，${childName()}！今天已经认真探险了 ${mins} 分钟啦！继续加油哦！`);
+    showToast(`⏳ 今天已经认真探险了 ${mins} 分钟！`);
+  } else {
+    speakChinese(`你好，${childName()}！今天的魔法探险刚刚开始，快去点亮新关卡吧！`);
+    showToast(`⏳ 今天的探险刚刚开始，加油！`);
+  }
+}
+$('#homeStudyBadge')?.addEventListener('click', onStudyTimePillClick);
+$('#homeCalendarBadge')?.addEventListener('click', () => {
+  playSuccessChime();
+  const activeDates = new Set(state.activityDates || []);
+  const streakCount = (state.streak && state.streak.count) || 0;
+  if (activeDates.has(todayKey)) {
+    speakChinese(`太棒啦！今天已经点亮了魔法星，已连续打卡 ${streakCount} 天！`);
+    showToast(`🌟 太棒啦！今天已点亮魔法星，已连续打卡 ${streakCount} 天！`);
+  } else {
+    speakChinese(`今天的魔法水晶正等待被点亮，去任意地图探险完成一关吧！`);
+    showToast('💎 今天的星光水晶正等待被点亮，去任意地图探险完成一关吧！');
+  }
+});
 $('#roadmapGoCloset')?.addEventListener('click', () => {
   setScreen('closet');
   setMagicHouseTab('closet');
@@ -3682,7 +3842,7 @@ $('#soundToggle').addEventListener('click', () => {
     stopWardrobeMusic();
   } else if (state.screen === 'closet') startWardrobeMusic();
 });
-$('#parentButton').addEventListener('click', openParent); $('#closeParent').addEventListener('click', closeParent); $('#disableParentMode').addEventListener('click', disableParentMode);
+$('#parentButton').addEventListener('click', openParent); $('#closeParent').addEventListener('click', closeParent); $('#disableParentMode').addEventListener('click', disableParentMode); $('#parentBackBtn')?.addEventListener('click', () => setScreen('home'));
 $$('[data-parent-tab]').forEach((button) => button.addEventListener('click', () => setParentTab(button.dataset.parentTab)));
 $('#parentGateForm').addEventListener('submit', (event) => { event.preventDefault(); if (Number($('#parentGateAnswer').value) === parentGateAnswer) unlockParent(); else { $('#parentGateError').hidden = false; $('#parentGateAnswer').select(); } });
 $('#profileSelect').addEventListener('change', (event) => switchProfile(event.target.value));
@@ -3778,7 +3938,7 @@ window.addEventListener('resize', () => {
   if ($('#hanziWriterModal')?.classList.contains('open')) { renderHanziWriterWord(); }
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });
-window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade','roadmap'].includes(screen) ? screen : 'home', { push: false }); });
+window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade','roadmap','parent'].includes(screen) ? screen : 'home', { push: false }); });
 document.addEventListener('keydown', handleLessonShortcuts);
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#issueTrackerModal')?.classList.contains('open')) closeIssueTracker(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); else if (event.key === 'Escape' && $('#arcadeWheelModal')?.classList.contains('open')) closeArcadeWheelModal(); });
 

@@ -33,7 +33,7 @@
 .map-number { right:6%; top:51%; }
 .map-action { left:18%; top:78%; }
 .map-hanzi { right:18%; top:77%; }
-.daily-route { position:absolute; z-index:7; left:50%; bottom:14px; transform:translateX(-50%); min-height:38px; padding:0 15px; border:3px solid #fff; border-radius:999px; background:rgba(255,248,195,.93); color:#684792; box-shadow:0 4px 0 rgba(102,70,146,.2); font-weight:900; white-space:nowrap; }
+.daily-route { position:relative; min-height:38px; padding:0 15px; border:3px solid #fff; border-radius:999px; background:rgba(255,248,195,.93); color:#684792; box-shadow:0 4px 0 rgba(102,70,146,.2); font-weight:900; white-space:nowrap; }
 
 @media (min-width:601px) {
   html, body { width:100%; min-width:0; background:#edf0ff; }
@@ -53,7 +53,13 @@
   .map-number { left:50%; right:auto; top:87%; transform:translateX(-50%); }
   .map-action { left:4%; top:60%; }
   .map-hanzi { left:8%; right:auto; top:71%; }
-  .daily-route { bottom:8px; min-height:31px; padding:0 10px; border-width:2px; font-size:10px; }
+  .daily-route { min-height:32px; padding:0 12px; border-width:2px; font-size:12px; }
+  .home-map-badges { bottom:8px; gap:6px; flex-wrap:wrap; justify-content:center; }
+  .home-study-badge { min-height:36px; padding:4px 10px; gap:6px; }
+  .study-badge-label { font-size:11.5px; }
+  .study-time-track { width:72px; height:7px; }
+  .time-tick { height:10px; top:-1.5px; }
+  .study-badge-tail { font-size:10px; }
 }
 
 @media (max-width:600px) and (max-aspect-ratio:9/19) {
