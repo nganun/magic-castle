@@ -44,19 +44,25 @@ export function browserMarkup(scope, options) {
 }
 
 export function bindContentBrowser(root, { scope, path, onSelect, onChange }) {
-  root.querySelectorAll('[data-browser-folder]').forEach((button) => button.addEventListener('click', () => {
+  root.querySelectorAll('[data-browser-folder]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
     setBrowserScopePath(scope, [...path, button.dataset.browserFolder]);
     onChange();
   }));
-  root.querySelectorAll('[data-browser-up]').forEach((button) => button.addEventListener('click', () => {
+  root.querySelectorAll('[data-browser-up]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
     setBrowserScopePath(scope, path.slice(0, -1));
     onChange();
   }));
-  root.querySelectorAll('[data-browser-toggle]').forEach((button) => button.addEventListener('click', () => {
+  root.querySelectorAll('[data-browser-toggle]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
     browserExpanded[scope] = !browserExpanded[scope];
     onChange();
   }));
-  root.querySelectorAll('[data-browser-group]').forEach((button) => button.addEventListener('click', () => onSelect(button.dataset.browserGroup)));
+  root.querySelectorAll('[data-browser-group]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onSelect(button.dataset.browserGroup);
+  }));
   // 紧凑模式是单行滑动，把当前选中的那一项挪到可见处
   const items = root.querySelector('.content-browser-items');
   const active = root.querySelector('.content-browser-item.is-article.active');

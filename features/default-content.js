@@ -1,6 +1,6 @@
 // Generated from data/**. Do not edit directly.
 export const DEFAULT_LEARNING_CONTENT = {
-  "resourceVersion": 4,
+  "resourceVersion": 5,
   "english": {
     "activeGroupId": "number",
     "deletedGroupIds": [],
@@ -265,8 +265,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "kai-men",
         "name": "开门",
-        "file": "recital/中班上-儿歌/01-开门.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/01-开门.txt",
+        "directory": "中上-儿歌",
         "order": 1,
         "image": false,
         "notes": {},
@@ -280,8 +280,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "shu-ye-ge",
         "name": "树叶歌",
-        "file": "recital/中班上-儿歌/02-树叶歌.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/02-树叶歌.txt",
+        "directory": "中上-儿歌",
         "order": 2,
         "image": false,
         "notes": {},
@@ -295,8 +295,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "wen-da-ge",
         "name": "问答歌",
-        "file": "recital/中班上-儿歌/03-问答歌.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/03-问答歌.txt",
+        "directory": "中上-儿歌",
         "order": 3,
         "image": false,
         "notes": {},
@@ -314,8 +314,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "shang-lou",
         "name": "上楼",
-        "file": "recital/中班上-儿歌/04-上楼.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/04-上楼.txt",
+        "directory": "中上-儿歌",
         "order": 4,
         "image": false,
         "notes": {},
@@ -331,8 +331,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "qiu-feng-qing-qing-chui",
         "name": "秋风轻轻吹",
-        "file": "recital/中班上-儿歌/05-秋风轻轻吹.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/05-秋风轻轻吹.txt",
+        "directory": "中上-儿歌",
         "order": 5,
         "image": false,
         "notes": {},
@@ -350,8 +350,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "tu-he-du",
         "name": "兔和肚",
-        "file": "recital/中班上-儿歌/06-兔和肚.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/06-兔和肚.txt",
+        "directory": "中上-儿歌",
         "order": 6,
         "image": false,
         "notes": {},
@@ -365,8 +365,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "qiao-qiao-ban",
         "name": "跷跷板",
-        "file": "recital/中班上-儿歌/07-跷跷板.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/07-跷跷板.txt",
+        "directory": "中上-儿歌",
         "order": 7,
         "image": false,
         "notes": {},
@@ -381,8 +381,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "lao-su-xiu-zhe-you-dou-xiang",
         "name": "老鼠嗅着油豆香",
-        "file": "recital/中班上-儿歌/08-老鼠嗅着油豆香.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/08-老鼠嗅着油豆香.txt",
+        "directory": "中上-儿歌",
         "order": 8,
         "image": false,
         "notes": {},
@@ -399,8 +399,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "huan-huan-xi-xi-guo-nian-le",
         "name": "欢欢喜喜过年了",
-        "file": "recital/中班上-儿歌/09-欢欢喜喜过年了.txt",
-        "directory": "中班上-儿歌",
+        "file": "recital/中上-儿歌/09-欢欢喜喜过年了.txt",
+        "directory": "中上-儿歌",
         "order": 9,
         "image": false,
         "notes": {},
@@ -416,8 +416,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "delious-foods",
         "name": "美食播报",
-        "file": "recital/中班上-故事/00-美食播报.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/00-美食播报.txt",
+        "directory": "中上-故事",
         "order": 0,
         "image": false,
         "notes": {},
@@ -436,8 +436,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "three=little-cats",
         "name": "三只小猫",
-        "file": "recital/中班上-故事/01-三只小猫.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/01-三只小猫.txt",
+        "directory": "中上-故事",
         "order": 1,
         "image": false,
         "notes": {},
@@ -478,8 +478,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "xiao-xiang-sheng-bieng-le",
         "name": "小象生病了",
-        "file": "recital/中班上-故事/02-小象生病了.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/02-小象生病了.txt",
+        "directory": "中上-故事",
         "order": 2,
         "image": false,
         "notes": {},
@@ -535,8 +535,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "wo-xiang-bian-cheng-da-gao-ge",
         "name": "我想变成大高个",
-        "file": "recital/中班上-故事/03-我想变成大高个.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/03-我想变成大高个.txt",
+        "directory": "中上-故事",
         "order": 3,
         "image": false,
         "notes": {},
@@ -590,15 +590,14 @@ export const DEFAULT_LEARNING_CONTENT = {
         ]
       },
       {
-        "id": "recital/中班上-故事/小蜜蜂造房子",
+        "id": "xiao-mi-feng-zao-fang-zi",
         "name": "小蜜蜂造房子",
-        "file": "recital/中班上-故事/04-小蜜蜂造房子.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/04-小蜜蜂造房子.txt",
+        "directory": "中上-故事",
         "order": 4,
         "image": false,
         "notes": {},
         "lines": [
-          "id: xiao-mi-feng-zao-fang-zi",
           "很久很久以前，蜜蜂是不会造房子的，",
           "晚上就睡在树叶底下，",
           "下雨就躲在洞里。",
@@ -644,8 +643,8 @@ export const DEFAULT_LEARNING_CONTENT = {
       {
         "id": "zhe-mei-shen-me-nan-de",
         "name": "这没什么难的",
-        "file": "recital/中班上-故事/05-这没什么难的.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/05-这没什么难的.txt",
+        "directory": "中上-故事",
         "order": 5,
         "image": false,
         "notes": {},
@@ -708,15 +707,14 @@ export const DEFAULT_LEARNING_CONTENT = {
         ]
       },
       {
-        "id": "recital/中班上-故事/獾小姐的印章",
+        "id": "guan-xiao-jie-de-ying-zhang",
         "name": "獾小姐的印章",
-        "file": "recital/中班上-故事/06-獾小姐的印章.txt",
-        "directory": "中班上-故事",
+        "file": "recital/中上-故事/06-獾小姐的印章.txt",
+        "directory": "中上-故事",
         "order": 6,
         "image": false,
         "notes": {},
         "lines": [
-          "id: guan-xiao-jie-de-ying-zhang",
           "出版社来信邀请獾小姐成为签约作家，",
           "并请她在合同上盖姓名章。",
           "可是獾小姐没有属于自己的印章，",
@@ -780,6 +778,327 @@ export const DEFAULT_LEARNING_CONTENT = {
           "受到了很多读者的喜欢。",
           "这下大家都知道森林里住着一位作家呢！"
         ]
+      },
+      {
+        "id": "zhan-li-zi-tai-cao",
+        "name": "站立姿态操",
+        "file": "recital/中上-小主持人/01-站立姿态操.txt",
+        "directory": "中上-小主持人",
+        "order": 1,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "小明星，站上台。，",
+          "腿伸直，脚并扰。",
+          "挺起胸，笑起来，",
+          "眼睛亮，头摆正。",
+          "肩平要放松，",
+          "声音洪亮要自信。",
+          "我是舞台上闪耀的星，",
+          "闪耀的星。"
+        ]
+      },
+      {
+        "id": "xiao-he-shang-qiao-mu-yu",
+        "name": "小和尚敲木鱼",
+        "file": "recital/中上-小主持人/02-小和尚敲木鱼.txt",
+        "directory": "中上-小主持人",
+        "order": 2,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "一个小和尚，",
+          "头上光又光，",
+          "身穿着袈裟，",
+          "木鱼敲得笃笃响。",
+          "敲一下————笃，",
+          "敲两下————笃笃，",
+          "敲三下————笃笃笃，",
+          "敲了许多下————笃笃笃笃笃…………"
+        ]
+      },
+      {
+        "id": "xiao-lao-su-chi-la-jiao",
+        "name": "小老鼠吃辣椒",
+        "file": "recital/中上-小主持人/03-小老鼠吃辣椒.txt",
+        "directory": "中上-小主持人",
+        "order": 3,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "小老鼠，爱爬高，",
+          "瞧见墙上红辣椒。",
+          "眯眼笑，胡子翘，",
+          "辣椒香甜好味道。",
+          "拽下来，大口嚼，",
+          "哇————捂着嘴巴吱吱叫。"
+        ]
+      },
+      {
+        "id": "niu-niu-he-niu-niu",
+        "name": "牛牛和妞妞",
+        "file": "recital/中上-小主持人/04-牛牛和妞妞.txt",
+        "directory": "中上-小主持人",
+        "order": 4,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "牛牛要吃河边柳，",
+          "妞妞护柳要赶牛，",
+          "牛牛扭头看妞妞，",
+          "妞妞拾起小石头，",
+          "吓得牛牛扭头溜。"
+        ]
+      },
+      {
+        "id": "liang-zhi-xiao-niao",
+        "name": "两只小鸟",
+        "file": "recital/中上-小主持人/05-两只小鸟.txt",
+        "directory": "中上-小主持人",
+        "order": 5,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "雨，哗哗地下着。",
+          "树叶、树干全被淋湿了。",
+          "有两只聪明的小鸟飞到草地上，",
+          "躲到蘑菇伞下面。",
+          "一只小鸟说：“",
+          "我的左边淋雨了，你往右边靠一靠。”",
+          "另一只小鸟说：“",
+          "我的右边淋雨了，你往左边靠一靠。”",
+          "它俩你争我吵，",
+          "谁也不愿往外边挪，",
+          "却都向中间挤，",
+          "“咔嚓”一声，蘑菇伞断了…………",
+          "两只小鸟你看看我，我看看你，",
+          "不知说什么好。"
+        ]
+      },
+      {
+        "id": "xiao-zhu-chi-ren-wen-da-ge",
+        "name": "问答歌",
+        "file": "recital/中上-小主持人/06-问答歌.txt",
+        "directory": "中上-小主持人",
+        "order": 6,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "什么狮没头发？海狮没头发。",
+          "什么牛不拉车？蜗牛不拉车。",
+          "什么鼠比猫大，袋鼠比猫大。",
+          "什么猫不吃鱼？熊猫不吃鱼。",
+          "什么马没人骑？海马没人骑。"
+        ]
+      },
+      {
+        "id": "xiao-cha-hu",
+        "name": "小茶壶",
+        "file": "recital/中上-小主持人/07-小茶壶.txt",
+        "directory": "中上-小主持人",
+        "order": 7,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "我是一个小茶壶，个子矮矮肚子鼓。",
+          "一二三，右手弯，变出半圆像壶柄。",
+          "一二三，左手抬，变出壶嘴能倒水。",
+          "一二三，变变变，双手掐腰俩半圆，",
+          "茶壶变成小糖罐。"
+        ]
+      },
+      {
+        "id": "shu-zi-ge",
+        "name": "数字歌",
+        "file": "recital/中上-小主持人/08-数字歌.txt",
+        "directory": "中上-小主持人",
+        "order": 8,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "一二三，爬上山。",
+          "四五六，翻跟头。",
+          "七八九，拍皮球。",
+          "伸开两只手，十个手指头。"
+        ]
+      },
+      {
+        "id": "chi-cai",
+        "name": "吃菜",
+        "file": "recital/中上-小主持人/09-吃菜.txt",
+        "directory": "中上-小主持人",
+        "order": 9,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "小羊吃饭划当菜，",
+          "小鸡吃饭沙当菜，",
+          "小猪吃饭糠当菜，",
+          "小猫吃饭虾当菜，",
+          "小猴吃饭讨厌菜，",
+          "长得瘦弱模样怪。"
+        ]
+      },
+      {
+        "id": "qiu-tian-dao-le",
+        "name": "秋天到了",
+        "file": "recital/中上-小主持人/10.秋天到了.txt",
+        "directory": "中上-小主持人",
+        "order": 10,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "秋天到，秋天到，园里果子长得好。",
+          "枝头结石榴，架上挂葡萄，",
+          "黄澄澄的是梨，红彤彤的是枣。",
+          "秋天到，秋天到，地里蔬菜长得好。",
+          "冬瓜披白纱，茄子穿紫袍，",
+          "萝卜出来笑，又表又红是辣椒。"
+        ]
+      },
+      {
+        "id": "zhao-qi-zao",
+        "name": "朝起早",
+        "file": "recital/中上-小主持人/11-朝起早.txt",
+        "directory": "中上-小主持人",
+        "order": 11,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "朝起早，夜眠迟，",
+          "老易至，惜此时。",
+          "晨必盥，兼漱口，",
+          "便溺回，辄净手。"
+        ]
+      },
+      {
+        "id": "jiang-xue",
+        "name": "江雪",
+        "file": "recital/中上-小主持人/12-江雪.txt",
+        "directory": "中上-小主持人",
+        "order": 12,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "唐 柳宗元",
+          "千山鸟飞绝，",
+          "万径人踪灭。",
+          "孤舟蓑笠翁，",
+          "独钓寒江雪。"
+        ]
+      },
+      {
+        "id": "hu-li-tou-ji",
+        "name": "狐狸偷鸡",
+        "file": "recital/中上-小主持人/13-狐狸偷鸡.txt",
+        "directory": "中上-小主持人",
+        "order": 13,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "狐狸的肩膀上扛着一只鸡，",
+          "它逢人就说：“这只鸡是我买来的，",
+          "绝不是我偷来的。”",
+          "聪明的小乌龟说：“",
+          "尊敬的狐狸先生，",
+          "你说的话我完全相信，",
+          "不过，你的嘴巴上…………”",
+          "“啊！鸡毛，",
+          "上次偷鸡时嘴巴上就粘上了两根鸡毛。",
+          "这次，唉，真倒霉！又粘上了！”"
+        ]
+      },
+      {
+        "id": "an-quan-jiao-yu-san-jv-ban",
+        "name": "安全教育三句半",
+        "file": "recital/中上-小主持人/14-安全教育三句半.txt",
+        "directory": "中上-小主持人",
+        "order": 14,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "敲锣打鼓震天响，",
+          "听我来把新事讲，",
+          "千万注意别走神，",
+          "快讲！",
+          "小朋友们要知道，",
+          "学习知识很重要，",
+          "自我保护不可少，",
+          "重要！",
+          "水电安全要注意，",
+          "交通规则要遵守，",
+          "小孩玩火不可取，",
+          "记牢！",
+          "外出玩耍要自保，",
+          "文明礼貌最重要，",
+          "团结友爱发扬好，",
+          "重要！",
+          "我是家中小主人，",
+          "管好钥匙锁好门，",
+          "陌生人儿要想进，",
+          "没门儿！",
+          "遇到坏人别害怕，",
+          "冷静思考动脑筋，",
+          "机智呼叫打电话，",
+          "制服他！",
+          "咱是社会小主人，",
+          "应急电话记心中，",
+          "火警119，匪警110，",
+          "急救请拨120！",
+          "大家同来学自保，",
+          "幸福永远属于你，",
+          "永远属于你我他，",
+          "大家！"
+        ]
+      },
+      {
+        "id": "guo-qi",
+        "name": "国旗",
+        "file": "recital/中上-小主持人/15-国旗.txt",
+        "directory": "中上-小主持人",
+        "order": 15,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "国旗国旗我爱你，",
+          "五星红旗照大地，",
+          "高高飘在天空中。",
+          "小朋友们爱祖国，",
+          "向着国旗敬个礼。"
+        ]
+      },
+      {
+        "id": "ru-guo-wo-shi-yi-pian-xue-hua",
+        "name": "如果我是一片雪花",
+        "file": "recital/中上-小主持人/16-如果我是一片雪花.txt",
+        "directory": "中上-小主持人",
+        "order": 16,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "我飘落到哪里呢？",
+          "飘到小河里，变成一滴水，",
+          "和小鱼做游戏；",
+          "飘到广场上，堆个胖雪人，",
+          "和小朋友们做游戏；",
+          "飘落到小朋友的脸上，",
+          "快乐地融化在他们的微笑里。"
+        ]
+      },
+      {
+        "id": "shou-zhi-yao",
+        "name": "手指谣",
+        "file": "recital/中上-小主持人/17-手指谣.txt",
+        "directory": "中上-小主持人",
+        "order": 17,
+        "image": false,
+        "notes": {},
+        "lines": [
+          "食指食指碰碰，做只小鸡叽叽。",
+          "拇指拇指勾勾，做只小鸟飞飞。",
+          "食指中指并拢，做把剪刀嚓嚓。",
+          "小指小指勾勾，我们做个好朋友。"
+        ]
       }
     ]
   },
@@ -801,7 +1120,8 @@ export const DEFAULT_LEARNING_CONTENT = {
           "长方形",
           "圆形",
           "半圆形",
-          "梯形"
+          "梯形",
+          "椭圆形"
         ]
       },
       {

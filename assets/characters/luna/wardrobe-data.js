@@ -300,3 +300,91 @@ export const OC_WARDROBE = [
     "price": 60
   }
 ];
+
+// 可解锁发型（发型 3「长直发」为默认解锁，其余 8 款通过课程与星星解锁）
+export const HAIR_UNLOCK_ITEMS = [
+  { id: 'hair_0', name: '软软短发', slot: 'hair', hairIndex: 0 },
+  { id: 'hair_1', name: '齐刘海', slot: 'hair', hairIndex: 1 },
+  { id: 'hair_2', name: '波波头', slot: 'hair', hairIndex: 2 },
+  { id: 'hair_4', name: '呆毛短发', slot: 'hair', hairIndex: 4 },
+  { id: 'hair_5', name: '双马尾', slot: 'hair', hairIndex: 5 },
+  { id: 'hair_6', name: '侧马尾', slot: 'hair', hairIndex: 6 },
+  { id: 'hair_7', name: '姬式长直发', slot: 'hair', hairIndex: 7 },
+  { id: 'hair_8', name: '刺猬头', slot: 'hair', hairIndex: 8 },
+];
+
+export function getItemMeta(id) {
+  if (id.startsWith('hair_')) {
+    return HAIR_UNLOCK_ITEMS.find((h) => h.id === id) || { id, name: '发型', slot: 'hair' };
+  }
+  return OC_WARDROBE.find((item) => item.id === id) || null;
+}
+
+// 固定且按分类穿插轮替的解锁序列（发型、帽子、上衣、下装、鞋子、眼镜、手持、背部、耳饰）
+export const FIXED_WARDROBE_UNLOCK_SEQUENCE = [
+  'hair_0',
+  'hat_crown',
+  'top_starter',
+  'bottom_starter',
+  'shoes_starter',
+  'gl_round',
+  'held_balloon',
+  'back_wings',
+  'earring_jade',
+  'hair_1',
+  'hat_beanie',
+  'top_sailor',
+  'bottom_jeans',
+  'shoes_red',
+  'gl_star',
+  'held_bear',
+  'back_cape',
+  'hair_2',
+  'hat_cap',
+  'top_hoodie',
+  'bottom_skirt',
+  'shoes_boot',
+  'gl_heart',
+  'held_book',
+  'back_bow',
+  'hair_4',
+  'hat_straw',
+  'top_sweater',
+  'bottom_shorts',
+  'shoes_sport',
+  'gl_mono',
+  'held_flower',
+  'back_jet',
+  'hair_5',
+  'hat_wizard',
+  'top_dress',
+  'bottom_pink',
+  'shoes_glass',
+  'gl_vr',
+  'held_sword',
+  'back_butterfly',
+  'hair_6',
+  'hat_ribbon',
+  'top_suit',
+  'bottom_overalls',
+  'shoes_sandal',
+  'gl_patch',
+  'held_bag',
+  'hair_7',
+  'top_sport',
+  'bottom_tutu',
+  'held_katana',
+  'hair_8',
+  'top_overalls',
+  'bottom_suit',
+  'top_uniform',
+  'bottom_uniform',
+  'top_slayer'
+];
+
+/** 根据星星数量计算解锁的饰品列表（每 5 颗星解锁 1 件） */
+export function getUnlockedWardrobeItems(stars = 0) {
+  const count = Math.floor(Math.max(0, Number(stars) || 0) / 5);
+  return FIXED_WARDROBE_UNLOCK_SEQUENCE.slice(0, count);
+}
+

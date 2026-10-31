@@ -2,46 +2,46 @@
 
 export const SHAPE_VISUALS = {
   '三角形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <polygon points="100,28 175,162 25,162" fill="#ff7675" stroke="#d63031" stroke-width="8" stroke-linejoin="round" />
+    <polygon points="100,16 186,182 14,182" fill="#ff7675" stroke="#d63031" stroke-width="8" stroke-linejoin="round" />
   </svg>`,
   '正方形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <rect x="36" y="36" width="128" height="128" rx="14" fill="#74b9ff" stroke="#0984e3" stroke-width="8" />
+    <rect x="16" y="16" width="168" height="168" rx="18" fill="#74b9ff" stroke="#0984e3" stroke-width="8" />
   </svg>`,
   '长方形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <rect x="22" y="55" width="156" height="90" rx="14" fill="#55efc4" stroke="#00b894" stroke-width="8" />
+    <rect x="12" y="32" width="176" height="136" rx="18" fill="#55efc4" stroke="#00b894" stroke-width="8" />
   </svg>`,
   '圆形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <circle cx="100" cy="100" r="68" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="8" />
+    <circle cx="100" cy="100" r="86" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="8" />
   </svg>`,
   '半圆形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <path d="M 28 120 A 72 72 0 0 1 172 120 Z" fill="#a29bfe" stroke="#6c5ce7" stroke-width="8" stroke-linejoin="round" />
+    <path d="M 14 136 A 86 86 0 0 1 186 136 Z" fill="#a29bfe" stroke="#6c5ce7" stroke-width="8" stroke-linejoin="round" />
   </svg>`,
   '梯形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <polygon points="62,45 138,45 178,155 22,155" fill="#fab1a0" stroke="#e17055" stroke-width="8" stroke-linejoin="round" />
+    <polygon points="52,26 148,26 186,176 14,176" fill="#fab1a0" stroke="#e17055" stroke-width="8" stroke-linejoin="round" />
   </svg>`,
   '椭圆形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <ellipse cx="100" cy="100" rx="76" ry="50" fill="#81ecec" stroke="#00cec9" stroke-width="8" />
+    <ellipse cx="100" cy="100" rx="88" ry="64" fill="#81ecec" stroke="#00cec9" stroke-width="8" />
   </svg>`,
   '五角星': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <polygon points="100,24 122,78 180,78 133,112 151,168 100,134 49,168 67,112 20,78 78,78" fill="#fdcb6e" stroke="#e1b12c" stroke-width="8" stroke-linejoin="round" />
+    <polygon points="100,16 126,72 188,72 138,110 156,174 100,136 44,174 62,110 12,72 74,72" fill="#fdcb6e" stroke="#e1b12c" stroke-width="8" stroke-linejoin="round" />
   </svg>`,
   '心形': `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-    <path d="M100 162 C40 115 25 75 48 45 C70 18 95 38 100 52 C105 38 130 18 152 45 C175 75 160 115 100 162 Z" fill="#ff7675" stroke="#d63031" stroke-width="8" stroke-linejoin="round" />
+    <path d="M100 176 C32 122 14 76 42 42 C68 12 95 32 100 48 C105 32 132 12 158 42 C186 76 168 122 100 176 Z" fill="#ff7675" stroke="#d63031" stroke-width="8" stroke-linejoin="round" />
   </svg>`
 };
 
 export const COLOR_VISUALS = {
   '红色': '#ef4444',
   '蓝色': '#3b82f6',
-  '白色': '#f8fafc',
+  '白色': '#ffffff',
   '黑色': '#1e293b',
   '绿色': '#22c55e',
-  '黄色': '#eab308',
+  '黄色': '#facc15',
   '紫色': '#a855f7',
   '粉色': '#ec4899',
   '橙色': '#f97316',
   '天蓝': '#38bdf8',
-  '棕色': '#8b5cf6',
+  '棕色': '#8d5b4c',
   '灰色': '#94a3b8',
 };
 
@@ -52,17 +52,12 @@ export function getMiscVisual(word) {
   }
   if (COLOR_VISUALS[clean]) {
     const hex = COLOR_VISUALS[clean];
-    const isLight = clean === '白色' || clean === '黄色';
-    const border = isLight ? '#cbd5e1' : hex;
+    const isWhite = clean === '白色';
+    const isYellow = clean === '黄色';
+    const stroke = isWhite ? '#cbd5e1' : (isYellow ? '#ca8a04' : hex);
+    const strokeWidth = isWhite ? 6 : 4;
     const svg = `<svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
-      <defs>
-        <radialGradient id="grad-${encodeURIComponent(clean)}" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55" />
-          <stop offset="100%" stop-color="${hex}" />
-        </radialGradient>
-      </defs>
-      <circle cx="100" cy="100" r="70" fill="url(#grad-${encodeURIComponent(clean)})" stroke="${border}" stroke-width="6" />
-      <circle cx="75" cy="75" r="16" fill="#ffffff" opacity="0.45" />
+      <circle cx="100" cy="100" r="86" fill="${hex}" stroke="${stroke}" stroke-width="${strokeWidth}" />
     </svg>`;
     return { type: 'color', svg, hex };
   }

@@ -1,6 +1,6 @@
 import { getPartOptions, renderCharacterSVG } from './assets/characters/luna/character.js';
 import { wardrobeThumb } from './assets/characters/luna/wardrobe.js';
-import { OC_WARDROBE } from './assets/characters/luna/wardrobe-data.js';
+import { FIXED_WARDROBE_UNLOCK_SEQUENCE, OC_WARDROBE, getItemMeta, getUnlockedWardrobeItems } from './assets/characters/luna/wardrobe-data.js';
 import { ACHIEVEMENT_DEFINITIONS, unlockAchievementIds } from './features/achievements.js';
 import { createStorage } from './features/storage.js';
 import { themeNeedsReview as isThemeReviewDue, recommendedThemeId as getRecommendedThemeId, dailyRouteThemeIds } from './features/map-route.js';
@@ -48,6 +48,9 @@ Object.entries(MAP_META).forEach(([id, meta]) => { if (THEMES[id]) THEMES[id].ti
 const ADMIN_DEFAULT = DEFAULT_LEARNING_CONTENT;
 const ADMIN_CONTENT_STORAGE_KEY = 'luna-admin-content-v4';
 const adminContent = load(ADMIN_CONTENT_STORAGE_KEY, JSON.parse(JSON.stringify(ADMIN_DEFAULT)));
+if (!adminContent.misc) {
+  adminContent.misc = JSON.parse(JSON.stringify(ADMIN_DEFAULT.misc || { activeGroupId: 'shapes', deletedGroupIds: [], groups: [] }));
+}
 // 官方内容分三层：内置（打进 APK）⊂ 远程官方快照（同步下来的）⊂ 本机生效层（家长改的）。
 let remoteContentSnapshot = load(REMOTE_CONTENT_STORAGE_KEY, null);
 // 官方内容 = 已同步的快照 与 内置内容 中更新的那份。
@@ -61,7 +64,12 @@ function officialContent() {
   const builtInIsNewer = remoteIds.every((id) => builtIds.has(id));
   return builtInIsNewer ? ADMIN_DEFAULT : remote;
 }
-function subjectConfig(kind) { return adminContent[kind]; }
+function subjectConfig(kind) {
+  if (!adminContent[kind]) {
+    adminContent[kind] = JSON.parse(JSON.stringify(ADMIN_DEFAULT[kind] || { groups: [], deletedGroupIds: [], activeGroupId: '' }));
+  }
+  return adminContent[kind];
+}
 const editingContentGroupIds = { english: null, hanzi: null, misc: null };
 function contentGroups(kind) {
   const subject = subjectConfig(kind);
@@ -303,7 +311,7 @@ function wardrobeIcon(category) {
   };
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[category] || paths.hat}</svg>`;
 }
-const starterAvatar = { skin: 0, hair: 3, hairColor: 3, eyes: 0, eyeColor: 2, mouth: 0, showBlush: true, outfit: { hat: '', glasses: '', top: 'top_starter', bottom: 'bottom_starter', shoes: 'shoes_starter', held: 'held_flower', back: '', earring: '' } };
+const starterAvatar = { skin: 0, hair: 3, hairColor: 3, eyes: 0, eyeColor: 2, mouth: 0, showBlush: true, outfit: { hat: '', glasses: '', top: '', bottom: '', shoes: '', held: '', back: '', earring: '' } };
 const cloneStarterAvatar = () => JSON.parse(JSON.stringify(starterAvatar));
 
 function freshDaily() { return { round: false, theme: false, dress: false, claimed: false }; }
@@ -329,8 +337,8 @@ function createProfile(name = CHILD_NAME) {
     recordingEnabled: false,
     activityDates: [],
     arcadeStats: { totalPlays: 0, bestRhythm: 0, bestMatch: 0, bestArrows: 0, bestFruit: 0, bestWhack: 0, bestCatch: 0, dailyPlays: {} },
-    world: {}, achievements: [], study: { date: localDateKey(), seconds: 0, limitMinutes: 5, backupAt: '' },
-    ocOwned: ['top_starter', 'bottom_starter', 'shoes_starter', 'held_flower'],
+    world: {}, achievements: [], study: { date: localDateKey(), seconds: 0, gameSeconds: 0, limitMinutes: 30, backupAt: '' },
+    ocOwned: [],
     ocAvatar: cloneStarterAvatar(),
   };
 }
@@ -362,8 +370,8 @@ const state = {
   completedThemes: initialProfile.completedThemes || [], learnedWords: initialProfile.learnedWords || [], wordProgress: initialProfile.wordProgress || {},
   stars: Number(initialProfile.stars || 0), daily: dailyFor(initialProfile),
   streak: initialProfile.streak || { count: 0, lastCompletedDate: '' },
-  recordingEnabled: Boolean(initialProfile.recordingEnabled), activityDates: initialProfile.activityDates || [], arcadeStats: initialProfile.arcadeStats || { totalPlays: 0, bestRhythm: 0, dailyPlays: {} }, world: initialProfile.world || {}, achievements: initialProfile.achievements || [], study: initialProfile.study || { date: todayKey, seconds: 0, limitMinutes: 5, backupAt: '' },
-  ocTab: 'hair', ocOwned: initialProfile.ocOwned || ['top_starter', 'bottom_starter', 'shoes_starter', 'held_flower'],
+  recordingEnabled: Boolean(initialProfile.recordingEnabled), activityDates: initialProfile.activityDates || [], arcadeStats: initialProfile.arcadeStats || { totalPlays: 0, bestRhythm: 0, dailyPlays: {} }, world: initialProfile.world || {}, achievements: initialProfile.achievements || [], study: initialProfile.study || { date: todayKey, seconds: 0, gameSeconds: 0, limitMinutes: 30, backupAt: '' },
+  ocTab: 'hair', ocOwned: initialProfile.ocOwned || [],
   ocAvatar: initialProfile.ocAvatar || cloneStarterAvatar(),
 };
 function syncActiveProfile() {
@@ -398,7 +406,7 @@ function switchProfile(id) {
   state.stars = Number(profile.stars || 0);
   state.daily = dailyFor(profile);
   state.streak = profile.streak || { count: 0, lastCompletedDate: '' };
-  state.recordingEnabled = Boolean(profile.recordingEnabled); state.activityDates = profile.activityDates || []; state.world = profile.world || {}; state.achievements = profile.achievements || []; state.study = profile.study || { date: todayKey, seconds: 0, limitMinutes: 5, backupAt: '' };
+  state.recordingEnabled = Boolean(profile.recordingEnabled); state.activityDates = profile.activityDates || []; state.world = profile.world || {}; state.achievements = profile.achievements || []; state.study = profile.study || { date: todayKey, seconds: 0, gameSeconds: 0, limitMinutes: 30, backupAt: '' };
   state.ocOwned = profile.ocOwned || [];
   state.ocAvatar = profile.ocAvatar || cloneStarterAvatar();
   state.round = 0; state.completed = false; state.roundLocked = false;
@@ -625,11 +633,12 @@ function showToast(text, duration = 2200) {
 function routeFor(name) { return name === 'lesson' ? `#lesson/${state.activeTheme}` : `#${name}`; }
 function renderTopbarContext() {
   const crumb = $('#topbarLessonTitle');
+  const isRoadmapContext = state.screen === 'roadmap';
   const isClosetContext = state.screen === 'closet' || state.screen === 'home' && state.homeContext === 'closet';
   const isArcadeContext = state.screen === 'arcade' || state.screen === 'home' && state.homeContext === 'arcade';
-  const label = isArcadeContext ? '小小游戏机' : (isClosetContext ? '魔法屋' : currentTheme().title);
+  const label = isRoadmapContext ? '星光奇遇之路' : (isArcadeContext ? '小小游戏机' : (isClosetContext ? '魔法屋' : currentTheme().title));
   const arcadeGameOpen = state.screen === 'arcade' && Boolean(state.arcadeGameId);
-  const isCurrentScreen = state.screen === 'lesson' || state.screen === 'closet' || state.screen === 'arcade' && !arcadeGameOpen;
+  const isCurrentScreen = state.screen === 'roadmap' || state.screen === 'lesson' || state.screen === 'closet' || state.screen === 'arcade' && !arcadeGameOpen;
   crumb.querySelector('b').textContent = label;
   crumb.disabled = isCurrentScreen;
   crumb.setAttribute('aria-label', arcadeGameOpen ? '返回小小游戏机大厅' : (isCurrentScreen ? `当前位置：${label}` : `继续${label}`));
@@ -644,7 +653,12 @@ function setScreen(name, { push = true } = {}) {
   else if (name === 'home' && previousScreen === 'arcade') state.homeContext = 'arcade';
   else if (name === 'home' && previousScreen === 'lesson') state.homeContext = 'lesson';
   if (state.screen === 'lesson' && name !== 'lesson') finishLessonSession();
-  if ((name === 'lesson' || name === 'arcade') && !canStartLesson()) { showToast('今天的探险时间已完成，明天再来吧！'); name = 'home'; }
+  if (state.screen === 'arcade' && name !== 'arcade') {
+    if (arcadeTicker) { clearInterval(arcadeTicker); arcadeTicker = null; }
+    finishArcadeSession();
+  }
+  if (name === 'lesson' && !canStartLesson()) { showToast('今天的探险时间已完成，明天再来吧！'); name = 'home'; }
+  if (name === 'arcade' && !canAccessArcade()) { name = 'home'; }
   state.screen = name;
   if (push && location.hash !== routeFor(name)) history.pushState({ screen: name, theme: state.activeTheme }, '', routeFor(name));
   renderTopbarContext();
@@ -653,25 +667,109 @@ function setScreen(name, { push = true } = {}) {
   $$('.screen').forEach((screen) => screen.classList.toggle('active', screen.id === `${name}Screen`));
   $$('.nav-item').forEach((button) => button.classList.toggle('active', button.dataset.screen === name));
   if (name === 'lesson') { lessonSessionStartedAt = Date.now(); renderRound(); }
-  if (name === 'arcade') renderArcade();
+  if (name === 'arcade') {
+    arcadeSessionStartedAt = Date.now();
+    if (arcadeTicker) clearInterval(arcadeTicker);
+    arcadeTicker = window.setInterval(tickArcadeTime, 1000);
+    renderArcade();
+  }
   if (name === 'closet') { renderWardrobe(); setMagicHouseTab(state.magicHouseTab); }
+  if (name === 'roadmap') renderRoadmap();
   $('#main').focus({ preventScroll: true });
 }
 
-function refreshDailyBoundary() { const next = localDateKey(); if (next !== todayKey) { todayKey = next; state.daily = dailyFor(activeProfile()); state.study = { ...state.study, date: next, seconds: 0 }; persistProgress(); renderHome(); updateProgress(); } }
+function refreshDailyBoundary() { const next = localDateKey(); if (next !== todayKey) { todayKey = next; state.daily = dailyFor(activeProfile()); state.study = { ...state.study, date: next, seconds: 0, gameSeconds: 0 }; persistProgress(); renderHome(); updateProgress(); } }
 function masteredWordCount() { return Object.values(state.wordProgress).filter((item) => item.mastered).length; }
 function recordWordProgress(word, kind) { const key = `${state.activeTheme}:${word}`; const item = state.wordProgress[key] || { learn: 0, review: 0, mastered: false, dueDate: todayKey }; if (kind === 'learn') item.learn += 1; else item.review += 1; item.lastSeen = todayKey; item.mastered = item.learn >= 1 && item.review >= 2; item.dueDate = item.mastered ? new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10) : todayKey; state.wordProgress[key] = item; }
 function refreshAchievements() { unlockAchievementIds(state, masteredWordCount()).forEach((id) => { if (!state.achievements.includes(id)) { state.achievements.push(id); const label = ACHIEVEMENT_DEFINITIONS.find((item) => item.id === id)?.label || '新徽章'; showToast(`获得徽章：${label}！`); } }); }
 let lessonSessionStartedAt = null;
-function studyTodaySeconds() { return state.study.date === todayKey ? state.study.seconds : 0; }
+function studyTodaySeconds() {
+  const base = state.study.date === todayKey ? (state.study.seconds || 0) : 0;
+  const current = lessonSessionStartedAt ? Math.floor((Date.now() - lessonSessionStartedAt) / 1000) : 0;
+  return base + current;
+}
 function markActivityToday() { state.activityDates = Array.from(new Set([...(state.activityDates || []), todayKey])).sort().slice(-90); }
 function renderStudyCalendar() {
   const calendar = $('#studyCalendar'); if (!calendar) return;
   const weekdays = ['日', '一', '二', '三', '四', '五', '六']; const activeDates = new Set(state.activityDates || []); const today = new Date();
   calendar.innerHTML = Array.from({ length: 7 }, (_, index) => { const date = new Date(today); date.setDate(today.getDate() - 6 + index); const key = localDateKey(date); const active = activeDates.has(key); return `<div class="${active ? 'active' : ''} ${key === todayKey ? 'today' : ''}"><i></i><span>${weekdays[date.getDay()]}</span></div>`; }).join('');
 }
-function finishLessonSession() { if (!lessonSessionStartedAt) return; state.study.seconds += Math.floor((Date.now() - lessonSessionStartedAt) / 1000); lessonSessionStartedAt = null; persistProgress(); }
-function canStartLesson() { const limit = Number(state.study.limitMinutes || 0); return !limit || studyTodaySeconds() < limit * 60; }
+function finishLessonSession() {
+  if (!lessonSessionStartedAt) return;
+  const elapsed = Math.floor((Date.now() - lessonSessionStartedAt) / 1000);
+  if (state.study.date === todayKey) {
+    state.study.seconds = (state.study.seconds || 0) + elapsed;
+  }
+  lessonSessionStartedAt = null;
+  persistProgress();
+}
+function canStartLesson() {
+  if (parentModeEnabled) return true;
+  const limit = Number(state.study.limitMinutes || 0);
+  return !limit || studyTodaySeconds() < limit * 60;
+}
+let arcadeSessionStartedAt = null;
+let arcadeTicker = null;
+let arcadeWarnedFiveMin = false;
+
+function gameTodaySeconds() {
+  const base = state.study.date === todayKey ? (state.study.gameSeconds || 0) : 0;
+  const current = arcadeSessionStartedAt ? Math.floor((Date.now() - arcadeSessionStartedAt) / 1000) : 0;
+  return base + current;
+}
+
+function finishArcadeSession() {
+  if (!arcadeSessionStartedAt) return;
+  const elapsed = Math.floor((Date.now() - arcadeSessionStartedAt) / 1000);
+  if (state.study.date === todayKey) {
+    state.study.gameSeconds = (state.study.gameSeconds || 0) + elapsed;
+  }
+  arcadeSessionStartedAt = null;
+  persistProgress();
+}
+
+function canAccessArcade({ speak = true } = {}) {
+  if (parentModeEnabled) return true;
+  const studySec = studyTodaySeconds();
+  if (studySec < 600) {
+    if (speak) {
+      speakChinese('只有先学习了才能玩游戏哟');
+      showToast(`今天已学习 ${Math.floor(studySec / 60)} 分钟，先学满 10 分钟再来玩游戏吧！`);
+    }
+    return false;
+  }
+  const remaining = studySec - gameTodaySeconds();
+  if (remaining <= 0) {
+    if (speak) {
+      speakChinese('游戏时间已经用完啦，进行学习可以扩展游戏时长哟');
+      showToast('今天的游戏时间已经用完啦，去学习可以增加游戏时长哟！');
+    }
+    return false;
+  }
+  return true;
+}
+
+function tickArcadeTime() {
+  if (parentModeEnabled) return;
+  const studySec = studyTodaySeconds();
+  const gameSec = gameTodaySeconds();
+  const remaining = studySec - gameSec;
+  if (remaining > 330) {
+    arcadeWarnedFiveMin = false;
+  }
+  if (remaining <= 300 && remaining > 0 && !arcadeWarnedFiveMin) {
+    arcadeWarnedFiveMin = true;
+    speakChinese('还有 5 分钟的游戏时间，进行学习可以扩展游戏时长哟');
+    showToast('还有 5 分钟的游戏时间，进行学习可以扩展游戏时长哟');
+  }
+  if (remaining <= 0) {
+    if (arcadeTicker) { clearInterval(arcadeTicker); arcadeTicker = null; }
+    finishArcadeSession();
+    speakChinese('游戏时间已经用完啦，进行学习可以扩展游戏时长哟');
+    showToast('今日游戏时间已用完，去学习可以扩展游戏时长哟！');
+    setScreen('home');
+  }
+}
 function updateDailyStreak() {
   const previous = state.streak.lastCompletedDate;
   if (previous === todayKey) return;
@@ -729,25 +827,24 @@ function renderHome() {
   $('#themeCards').innerHTML = Object.values(THEMES).map((theme) => {
     const done = state.completedThemes.includes(theme.id);
     const reviewDue = themeNeedsReview(theme);
-    const unavailable = state.lessonMode === 'review' && !done;
     const map = MAP_META[theme.id] || { name: theme.title, hint: theme.subtitle, icon: 'spark' };
-    const status = state.lessonMode === 'review' ? (done ? '再次探险' : '先探索新知识') : (done ? '已经点亮 · 再去看看' : map.hint);
-    return `<button class="theme-card map-node map-${theme.id} ${theme.id === state.activeTheme ? 'active' : ''} ${unavailable ? 'needs-learning' : ''} ${theme.id === recommended ? 'recommended' : ''} ${reviewDue ? 'review-due' : ''}" type="button" data-theme="${theme.id}" aria-label="${map.name}，${status}"><span class="map-copy"><strong>${map.name}</strong></span></button>`;
+    const status = done ? '已经点亮 · 再去看看' : map.hint;
+    return `<button class="theme-card map-node map-${theme.id} ${theme.id === state.activeTheme ? 'active' : ''} ${theme.id === recommended ? 'recommended' : ''} ${reviewDue ? 'review-due' : ''}" type="button" data-theme="${theme.id}" aria-label="${map.name}，${status}"><span class="map-copy"><strong>${map.name}</strong></span></button>`;
   }).join('');
   $$('[data-theme]').forEach((button) => button.addEventListener('click', () => selectTheme(button.dataset.theme, true)));
   $('#dailyRoute').onclick = () => selectTheme($('#dailyRoute').dataset.theme, true);
-  $$('[data-lesson-mode]').forEach((button) => {
-    const active = button.dataset.lessonMode === state.lessonMode;
-    button.classList.toggle('active', active); button.setAttribute('aria-selected', String(active));
-    button.addEventListener('click', () => { state.lessonMode = button.dataset.lessonMode; state.round = 0; state.completed = false; renderHome(); });
-  });
   renderHomeAvatar();
 }
 let arcadeSequenceTimer = null;
 let whackTimer = null;
 let catchTimer = null;
 function arcadeDailyPlays() { return Number(state.arcadeStats.dailyPlays?.[todayKey] || 0); }
-function openArcade() { state.arcadeGameId = ''; state.arcadeState = null; setScreen('arcade'); }
+function openArcade() {
+  if (!canAccessArcade()) return;
+  state.arcadeGameId = '';
+  state.arcadeState = null;
+  setScreen('arcade');
+}
 function completeArcadeGame(name, { rhythmScore = 0, arrowScore = 0 } = {}) {
   const stats = state.arcadeStats; const playedBefore = arcadeDailyPlays();
   stats.dailyPlays = { ...(stats.dailyPlays || {}), [todayKey]: playedBefore + 1 }; stats.totalPlays = Number(stats.totalPlays || 0) + 1;
@@ -757,10 +854,8 @@ function completeArcadeGame(name, { rhythmScore = 0, arrowScore = 0 } = {}) {
   stats.bestWhack = Math.max(Number(stats.bestWhack || 0), whackScore);
   stats.bestCatch = Math.max(Number(stats.bestCatch || 0), catchScore);
   Object.keys(stats.dailyPlays).sort().slice(0, -30).forEach((key) => delete stats.dailyPlays[key]);
-  const rewarded = playedBefore < 3;
-  if (rewarded) state.stars += 1;
   setDailyTask('round'); persistProgress(); updateProgress();
-  showToast(rewarded ? `完成${name}，获得 1 颗魔法星！` : `完成${name}！今天的小游戏奖励已领取完。`);
+  showToast(playedBefore < 3 ? `完成${name}，今天的小游戏打卡成功！` : `完成${name}！`);
 }
 function arcadeStatus(items) { return `<div class="arcade-status">${items.map(([label, value, tone = 'violet']) => `<span class="${tone}"><b>${value}</b>${label}</span>`).join('')}</div>`; }
 function renderArcade() {
@@ -769,8 +864,16 @@ function renderArcade() {
   const area = $('#arcadeArea');
   if (!state.arcadeGameId) {
     const daily = arcadeDailyPlays();
-    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p><div class="arcade-progress"><span>今日小游戏</span><b>${Math.min(daily, 3)} / 3</b><i style="--arcade-progress:${Math.min(daily, 3) / 3 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => `<button class="arcade-game-card arcade-game-${game.id}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small><em>${game.meta}</em></span></button>`).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
-    $$('[data-arcade-game]', area).forEach((button) => button.addEventListener('click', () => { state.arcadeGameId = button.dataset.arcadeGame; state.arcadeState = null; renderArcade(); }));
+    const modeBadge = parentModeEnabled
+      ? `<div class="arcade-parent-mode-badge" role="status">🛡️ 当前处于家长模式下（无游戏限制）</div>`
+      : `<div class="arcade-time-status" role="status">⏱️ 今日已学 ${Math.floor(studyTodaySeconds() / 60)} 分钟 · 剩余游戏时间 ${Math.max(0, Math.ceil((studyTodaySeconds() - gameTodaySeconds()) / 60))} 分钟</div>`;
+    area.innerHTML = `<section class="arcade-hub"><div class="arcade-heading"><p class="section-kicker">小小游戏机</p><h1>今天想玩什么？</h1><p>每一局都是轻松的魔法复习。</p>${modeBadge}<div class="arcade-progress"><span>今日小游戏</span><b>${Math.min(daily, 3)} / 3</b><i style="--arcade-progress:${Math.min(daily, 3) / 3 * 100}%"></i></div></div><div class="arcade-game-grid">${ARCADE_GAMES.map((game) => `<button class="arcade-game-card arcade-game-${game.id}" type="button" data-arcade-game="${game.id}"><b>${game.icon}</b><span><strong>${game.name}</strong><small>${game.description}</small></span></button>`).join('')}</div><div class="arcade-best-list">${state.arcadeStats.bestRhythm ? `<span>节奏最高 ${state.arcadeStats.bestRhythm} 轮</span>` : ''}${state.arcadeStats.bestFruit ? `<span>切切乐最高 ${state.arcadeStats.bestFruit} 分</span>` : ''}</div></section>`;
+    $$('[data-arcade-game]', area).forEach((button) => button.addEventListener('click', () => {
+      if (!canAccessArcade()) return;
+      state.arcadeGameId = button.dataset.arcadeGame;
+      state.arcadeState = null;
+      renderArcade();
+    }));
     return;
   }
   if (state.arcadeGameId === 'memory') renderMemoryGame(area);
@@ -1381,7 +1484,6 @@ function renderTicTacToeGame(area) {
 }
 function selectTheme(id, goToLesson = true) {
   if (id === 'animal') { openArcade(); return; }
-  if (state.lessonMode === 'review' && !state.completedThemes.includes(id)) { showToast('先完成这个主题的单词学习，再来复习吧。'); return; }
   state.activeTheme = id; state.round = 0; state.completed = false; state.roundLocked = false;
   persistProgress(); renderHome();
   if (goToLesson) setScreen('lesson');
@@ -1389,7 +1491,8 @@ function selectTheme(id, goToLesson = true) {
 
 function updateProgress() {
   const theme = currentTheme(); const total = currentRounds().length;
-  $('#starTotal').textContent = 18 + state.stars;
+  $('#starTotal').textContent = state.stars;
+  $('#gemCountBtn')?.setAttribute('aria-label', `拥有 ${state.stars} 颗魔法星，查看星光奇遇之路`);
   $('#parentStars').textContent = state.stars;
   $('#parentWords').textContent = masteredWordCount();
   $('#parentStreak').textContent = state.streak.count;
@@ -2010,8 +2113,8 @@ function sentenceMarkup(word) {
 function bindSentenceButtons(area) { $$('[data-sentence]', area).forEach((button) => button.addEventListener('click', () => speak(button.dataset.sentence))); }
 function renderLessonGroupSwitcher() {
   const container = $('#lessonGroupSwitcher'); const kind = state.activeTheme;
-  if (!['english', 'hanzi', 'action'].includes(kind)) { container.hidden = true; container.replaceChildren(); return; }
-  // 三个主题都用同一套「按目录分层的篇目浏览器」：朗诵篇目 / 汉字分组 / 英文分组。
+  if (!['english', 'hanzi', 'action', 'color'].includes(kind)) { container.hidden = true; container.replaceChildren(); return; }
+  // 四个主题都用同一套「按目录分层的篇目浏览器」：朗诵篇目 / 汉字分组 / 英文分组 / 花园分组。
   const scope = BROWSER_SCOPES[kind];
   const groups = scope.groups().filter((group) => group.name && (group.lines?.length || group.words?.length));
   if (groups.length < 2) { container.hidden = true; container.replaceChildren(); return; }
@@ -2025,7 +2128,7 @@ function renderLessonGroupSwitcher() {
   const node = directoryNode(tree, path) || directoryNode(tree, defaultPath) || tree;
   container.hidden = false;
   container.innerHTML = browserMarkup(kind, { node, path, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
-  bindContentBrowser(container, { scope: kind, path, onSelect: scope.onSelect, onChange: () => { renderLessonGroupSwitcher(); renderRound(); } });
+  bindContentBrowser(container, { scope: kind, path, onSelect: scope.onSelect, onChange: () => { renderLessonGroupSwitcher(); } });
 }
 function addLessonShortcutHints(area) {
   $$('button.primary-button', area).forEach((button) => {
@@ -2056,8 +2159,8 @@ function handleLessonShortcuts(event) {
 }
 let recitalPlaybackId = 0;
 let recitalAutoReadTimer = 0;
-const RECITAL_GAP_OPTIONS = [500, 1000, 2000, 3000];
-let recitalLineGapMs = (() => { const saved = Number(storageGet('luna-recital-line-gap')); return RECITAL_GAP_OPTIONS.includes(saved) ? saved : 500; })();
+const RECITAL_GAP_OPTIONS = [0, 500, 1000, 2000, 3000];
+let recitalLineGapMs = (() => { const saved = load('luna-recital-line-gap', 500); return RECITAL_GAP_OPTIONS.includes(saved) ? saved : 500; })();
 // 篇目浏览器是否铺开显示（默认紧凑两行，点"展开"才铺开）。
 // 朗诵台记住读到第几句（整篇模式下播放结束也要保持计数，不回落）。
 let recitalCurrentLine = 0;
@@ -2406,7 +2509,7 @@ function showWordCelebration(word, title = '我认识了！') {
 }
 function handleCorrect(word, kind = 'match', extras = {}) {
   if (state.roundLocked) return;
-  state.roundLocked = true; state.round += 1; state.stars += 1;
+  state.roundLocked = true; state.round += 1;
   if (kind === 'learn') { state.learnedWords = Array.from(new Set([...state.learnedWords, word])); showWordCelebration(word); }
   if (extras.record !== false && word) recordWordProgress(word, kind);
   if (extras.celebration) showWordCelebration(extras.celebration.word, extras.celebration.title);
@@ -2417,20 +2520,36 @@ function handleCorrect(word, kind = 'match', extras = {}) {
     renderRound();
   }, kind === 'learn' || kind === 'board' ? 1350 : 850);
 }
+function awardGroupStar() {
+  const prevStars = state.stars || 0;
+  state.stars = prevStars + 1;
+  const prevUnlocked = Math.floor(prevStars / 5);
+  const nextUnlocked = Math.floor(state.stars / 5);
+  state.ocOwned = getUnlockedWardrobeItems(state.stars);
+  saveOcAvatar();
+  persistProgress();
+  $('#newDot').hidden = false;
+  if (nextUnlocked > prevUnlocked) {
+    const newItemId = FIXED_WARDROBE_UNLOCK_SEQUENCE[nextUnlocked - 1];
+    const newItem = getItemMeta(newItemId);
+    showToast(`获得 1 颗魔法星（共 ${state.stars} 颗）！集齐 5 颗星，解锁了新装扮【${newItem?.name || '新装扮'}】！`);
+  } else {
+    showToast(`获得 1 颗魔法星（共 ${state.stars} 颗，还差 ${5 - (state.stars % 5)} 颗解锁下一件饰品）！`);
+  }
+}
 function completeReview() {
   state.completed = true;
-  persistProgress();
+  awardGroupStar();
   if (state.soundOn) playSfx('fanfare');
   triggerConfetti();
   speakChinese(`${childName()}，你真棒！`);
-  showToast('魔法回顾完成，记得很棒！');
 }
 function completeTheme() {
   const theme = currentTheme(); state.completed = true;
   state.world[theme.id] = Math.max(state.world[theme.id] || 0, 2);
   state.completedThemes = Array.from(new Set([...state.completedThemes, theme.id]));
-  state.ocOwned = Array.from(new Set([...state.ocOwned, ...theme.rewards]));
-  saveOcAvatar(); setDailyTask('theme'); persistProgress(); $('#newDot').hidden = false;
+  awardGroupStar();
+  setDailyTask('theme');
   if (state.soundOn) playSfx('fanfare');
   triggerConfetti();
   speakChinese(`${childName()}，你真棒！`);
@@ -2485,8 +2604,21 @@ function renderOcTabs() {
 function renderOcItems() {
   const grid = $('#ocItemGrid');
   if (state.ocTab === 'hair') {
-    grid.innerHTML = OC_PART_OPTIONS.hair.map((hair) => `<button class="oc-item-card ${state.ocAvatar.hair === hair.i ? 'equipped' : ''}" type="button" data-oc-hair="${hair.i}"><span class="oc-item-preview hair-preview">${renderCharacterSVG({ ...state.ocAvatar, hair: hair.i, outfit: {} }, .42)}</span><strong>${hair.name}</strong><small>${state.ocAvatar.hair === hair.i ? '正在使用' : '点一下试试'}</small></button>`).join('');
-    $$('[data-oc-hair]').forEach((button) => button.addEventListener('click', () => { state.ocAvatar.hair = Number(button.dataset.ocHair); saveOcAvatar(); setDailyTask('dress'); renderWardrobe(); showToast('换了一个新发型！'); })); return;
+    grid.innerHTML = OC_PART_OPTIONS.hair.map((hair) => {
+      const isOwned = hair.i === 3 || state.ocOwned.includes(`hair_${hair.i}`);
+      const isEquipped = state.ocAvatar.hair === hair.i;
+      return `<button class="oc-item-card ${isOwned ? '' : 'locked'} ${isEquipped ? 'equipped' : ''}" type="button" data-oc-hair="${hair.i}" ${isOwned ? '' : 'disabled'}><span class="oc-item-preview hair-preview">${isOwned ? renderCharacterSVG({ ...state.ocAvatar, hair: hair.i, outfit: {} }, .42) : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3"/><rect x="5" y="10" width="14" height="11" rx="2"/></svg>'}</span><strong>${hair.name}</strong><small>${isOwned ? (isEquipped ? '正在使用' : '点一下试试') : '完成课程解锁'}</small></button>`;
+    }).join('');
+    $$('[data-oc-hair]').forEach((button) => button.addEventListener('click', () => {
+      const hairIdx = Number(button.dataset.ocHair);
+      if (hairIdx !== 3 && !state.ocOwned.includes(`hair_${hairIdx}`)) return;
+      state.ocAvatar.hair = hairIdx;
+      saveOcAvatar();
+      setDailyTask('dress');
+      renderWardrobe();
+      showToast('换了一个新发型！');
+    }));
+    return;
   }
   const category = OC_CATEGORY_META.find((item) => item.id === state.ocTab);
   const items = OC_WARDROBE.filter((item) => item.slot === category.slot);
@@ -2495,31 +2627,181 @@ function renderOcItems() {
 }
 
 function openReward() {
-  const rewards = currentTheme().rewards;
   $('#rewardModal').classList.add('open'); $('#rewardModal').setAttribute('aria-hidden', 'false'); $('#rewardChest').classList.add('opening');
   if (state.soundOn) playSfx('victory');
   triggerConfetti();
-  const firstReward = OC_WARDROBE.find((item) => item.id === rewards[0]);
-  const lastReward = OC_WARDROBE.find((item) => item.id === rewards[rewards.length - 1]);
+  const unlockedCount = state.ocOwned.length;
+  const latestItemId = unlockedCount > 0 ? state.ocOwned[unlockedCount - 1] : null;
+  const latestItem = latestItemId ? getItemMeta(latestItemId) : null;
   const firstThumb = $('#ocRewardDress'); const lastThumb = $('#ocRewardWings');
-  firstThumb.className = `oc-reward-thumb slot-${firstReward?.slot || 'default'}`;
-  lastThumb.className = `oc-reward-thumb slot-${lastReward?.slot || 'default'}`;
-  firstThumb.innerHTML = wardrobeThumb(rewards[0]); lastThumb.innerHTML = wardrobeThumb(rewards[rewards.length - 1]);
-  $('#ocRewardName1').textContent = firstReward?.name || '新装扮';
-  $('#ocRewardName2').textContent = lastReward?.name || '新装扮';
+  if (latestItem) {
+    if (latestItem.slot === 'hair') {
+      firstThumb.className = 'oc-reward-thumb slot-hair';
+      firstThumb.innerHTML = renderCharacterSVG({ ...state.ocAvatar, hair: latestItem.hairIndex, outfit: {} }, .42);
+    } else {
+      firstThumb.className = `oc-reward-thumb slot-${latestItem.slot || 'default'}`;
+      firstThumb.innerHTML = wardrobeThumb(latestItem.id);
+    }
+    $('#ocRewardName1').textContent = latestItem.name;
+    const nextItemId = FIXED_WARDROBE_UNLOCK_SEQUENCE[unlockedCount];
+    const nextItem = nextItemId ? getItemMeta(nextItemId) : null;
+    if (nextItem) {
+      lastThumb.hidden = false;
+      lastThumb.className = 'oc-reward-thumb locked-preview';
+      lastThumb.innerHTML = '<span class="star-token">⭐</span>';
+      $('#ocRewardName2').textContent = `再攒 ${5 - (state.stars % 5)} 星解锁【${nextItem.name}】`;
+    } else {
+      lastThumb.hidden = true;
+      $('#ocRewardName2').textContent = '已集齐全部装扮！';
+    }
+  } else {
+    firstThumb.className = 'oc-reward-thumb star-reward-thumb';
+    firstThumb.innerHTML = '<span class="star-token">⭐</span>';
+    $('#ocRewardName1').textContent = `获得魔法星（共 ${state.stars} 颗）`;
+    const nextItemId = FIXED_WARDROBE_UNLOCK_SEQUENCE[0];
+    const nextItem = nextItemId ? getItemMeta(nextItemId) : null;
+    lastThumb.hidden = false;
+    lastThumb.className = 'oc-reward-thumb locked-preview';
+    lastThumb.innerHTML = '<i>🔒</i>';
+    $('#ocRewardName2').textContent = `再攒 ${5 - (state.stars % 5)} 星解锁【${nextItem?.name || '新装扮'}】`;
+  }
   speak(`A magic gift for you, ${childName()}!`); setTimeout(() => $('#claimReward').focus(), 650);
 }
 function closeReward() { $('#rewardModal').classList.remove('open'); $('#rewardModal').setAttribute('aria-hidden', 'true'); }
+
+function renderRoadmap() {
+  const container = $('#roadmapPathContainer');
+  if (!container) return;
+  const stars = Number(state.stars) || 0;
+  const unlockedCount = Math.floor(stars / 5);
+  const totalItems = FIXED_WARDROBE_UNLOCK_SEQUENCE.length;
+
+  $('#roadmapStarCount').textContent = stars;
+  $('#roadmapUnlockedCount').textContent = `${Math.min(unlockedCount, totalItems)} / ${totalItems}`;
+
+  const rows = [];
+
+  // 起点地标 (0 星)
+  rows.push(`
+    <div class="roadmap-start-marker" aria-label="星光奇遇起点">
+      <span>✨</span>
+      <span>魔法探险起点 · 0 ⭐</span>
+    </div>
+  `);
+
+  FIXED_WARDROBE_UNLOCK_SEQUENCE.forEach((itemId, index) => {
+    const requiredStars = (index + 1) * 5;
+    const isUnlocked = index < unlockedCount;
+    const isCurrent = index === unlockedCount;
+    const itemMeta = getItemMeta(itemId);
+    const itemName = itemMeta?.name || '神秘宝物';
+    const isHair = itemId.startsWith('hair_');
+    const hairIdx = isHair ? Number(itemId.replace('hair_', '')) : 0;
+
+    // S 弯交替位置：奇偶交替 left / right
+    const posClass = index % 2 === 0 ? 'pos-left' : 'pos-right';
+    let statusClass = 'locked';
+    let badgeText = `${requiredStars} ⭐`;
+    let descText = `需攒齐 ${requiredStars} 颗星`;
+
+    if (isUnlocked) {
+      statusClass = 'passed';
+      badgeText = '已获得 ✓';
+      descText = '已收入衣橱';
+    } else if (isCurrent) {
+      statusClass = 'current';
+      const diff = requiredStars - stars;
+      badgeText = `目标 · 还差 ${diff} 星`;
+      descText = `当前进度 ${stars}/${requiredStars} ⭐`;
+    }
+
+    let thumbHtml = '';
+    if (isHair) {
+      thumbHtml = renderCharacterSVG({ ...state.ocAvatar, hair: hairIdx, outfit: {} }, 0.42);
+    } else {
+      thumbHtml = wardrobeThumb(itemId);
+    }
+
+    rows.push(`
+      <div class="roadmap-node-row ${posClass}" ${isCurrent ? 'id="roadmapCurrentTarget"' : ''}>
+        <button class="roadmap-node-card ${statusClass}" type="button" data-roadmap-index="${index}" data-roadmap-id="${itemId}" aria-label="${itemName}，${badgeText}，${descText}">
+          <span class="roadmap-badge">${badgeText}</span>
+          <span class="roadmap-node-thumb">${thumbHtml}</span>
+          <div class="roadmap-node-body">
+            <span class="roadmap-node-stars">⭐ ${requiredStars} 星</span>
+            <strong class="roadmap-node-name">${itemName}</strong>
+            <span class="roadmap-node-desc">${descText}</span>
+          </div>
+        </button>
+      </div>
+    `);
+  });
+
+  // 终点地标
+  rows.push(`
+    <div class="roadmap-end-marker" aria-label="终点：星光大满贯">
+      <span>👑</span>
+      <span>星光大满贯 · 全部点亮！</span>
+    </div>
+  `);
+
+  container.innerHTML = rows.join('');
+
+  // 绑定节点卡片点击交互
+  $$('.roadmap-node-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const idx = Number(card.dataset.roadmapIndex);
+      const itemId = card.dataset.roadmapId;
+      const meta = getItemMeta(itemId);
+      const reqStars = (idx + 1) * 5;
+      if (idx < unlockedCount) {
+        // 已解锁：穿上并跳转到衣帽间
+        if (itemId.startsWith('hair_')) {
+          state.ocAvatar.hair = Number(itemId.replace('hair_', ''));
+          state.ocTab = 'hair';
+        } else if (meta?.slot) {
+          state.ocAvatar.outfit[meta.slot] = itemId;
+          state.ocTab = meta.slot;
+        }
+        saveOcAvatar();
+        setDailyTask('dress');
+        setScreen('closet');
+        setMagicHouseTab('closet');
+        showToast(`已为你换上【${meta?.name || '新装扮'}】！`);
+      } else if (idx === unlockedCount) {
+        // 当前目标：鼓励提示
+        const need = reqStars - stars;
+        if (state.soundOn) playSfx('tap');
+        speakChinese(`加油，${childName()}！只要再拿 ${need} 颗星，就能点亮【${meta?.name || '新道具'}】啦！`);
+        showToast(`再获得 ${need} 颗星就能开启这个盲盒啦！`);
+      } else {
+        // 后续未解锁
+        if (state.soundOn) playSfx('tap');
+        showToast(`积攒满 ${reqStars} 颗魔法星时解锁【${meta?.name || '神秘宝物'}】`);
+      }
+    });
+  });
+
+  // 平滑聚焦到当前目标节点
+  requestAnimationFrame(() => {
+    const target = $('#roadmapCurrentTarget');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+}
 let parentGateAnswer = 0;
 let parentModeEnabled = storageGet('luna-parent-mode-enabled') === 'true';
 function renderParentModeState() {
   const button = $('#parentButton'); const status = $('#parentModeStatus');
   button.classList.toggle('enabled', parentModeEnabled); button.setAttribute('aria-pressed', String(parentModeEnabled));
-  button.textContent = parentModeEnabled ? '家长模式已启用' : '给爸爸妈妈';
+  button.setAttribute('aria-label', parentModeEnabled ? '家长模式已启用（点击打开家长设置）' : '给爸爸妈妈（家长设置）');
+  button.textContent = parentModeEnabled ? '👑 家长模式' : '🌱 给爸爸妈妈';
   if (status) status.textContent = parentModeEnabled ? '家长模式已启用：再次打开无需答题。' : '家长模式未启用。';
 }
 function setParentModeEnabled(enabled) {
   parentModeEnabled = enabled; saveText('luna-parent-mode-enabled', String(enabled)); renderParentModeState();
+  if (state.screen === 'arcade') renderArcade();
 }
 function speechRateLabel(rate = globalSpeechRate) { if (rate < .85) return '慢速'; if (rate > 1.15) return '快速'; return '标准'; }
 function renderSpeechRateControl() {
@@ -2528,7 +2810,7 @@ function renderSpeechRateControl() {
   input.value = String(globalSpeechRate); input.setAttribute('aria-valuetext', `${speechRateLabel()}，${globalSpeechRate.toFixed(2)} 倍`);
   label.textContent = `${speechRateLabel()} · ${globalSpeechRate.toFixed(2)}×`;
 }
-const DAILY_LIMIT_OPTIONS = [10, 30, 60, 120, 0];
+const DAILY_LIMIT_OPTIONS = [30, 60, 120, 0];
 function dailyLimitLabel(limit) {
   if (!limit) return '不限时长';
   if (limit >= 60) {
@@ -2544,6 +2826,12 @@ function renderDailyLimitControl() {
   input.value = String(index); input.setAttribute('aria-valuetext', dailyLimitLabel(DAILY_LIMIT_OPTIONS[index]));
   label.textContent = dailyLimitLabel(DAILY_LIMIT_OPTIONS[index]);
 }
+function renderStarRecoveryControls() {
+  const input = $('#starCountInput');
+  const status = $('#starRecoveryStatus');
+  if (input) input.value = state.stars || 0;
+  if (status) status.textContent = `当前：${state.stars || 0} 颗星 · 已解锁 ${state.ocOwned.length} 件饰品`;
+}
 function renderParentProfileControls() {
   const select = $('#profileSelect');
   if (!select) return;
@@ -2554,6 +2842,7 @@ function renderParentProfileControls() {
   renderDailyLimitControl();
   renderSpeechRateControl();
   renderStudyCalendar();
+  renderStarRecoveryControls();
   $('#appVersion').textContent = `v${BUILD_INFO.version}`;
   updateProgress();
 }
@@ -2562,6 +2851,7 @@ function setParentTab(tab) {
   parentActiveTab = ['overview', 'settings', 'tools'].includes(tab) ? tab : 'overview';
   $$('.parent-tab').forEach((button) => { const active = button.dataset.parentTab === parentActiveTab; button.classList.toggle('active', active); button.setAttribute('aria-selected', String(active)); });
   $$('.parent-tab-panel').forEach((panel) => { panel.hidden = panel.id !== `parentPanel${parentActiveTab[0].toUpperCase()}${parentActiveTab.slice(1)}`; });
+  if (parentActiveTab === 'tools') renderStarRecoveryControls();
 }
 function prepareParentGate() {
   const first = Math.floor(Math.random() * 7) + 7;
@@ -2701,6 +2991,7 @@ const BROWSER_SCOPES = {
   action: { pathPrefix: '朗诵篇目', rootTitle: '全部篇目', activeLabel: '正在朗诵', unitLabel: '篇', groups: () => recitalGroups(), activeId: () => activeRecitalGroup().id, onSelect: (id) => selectRecitalArticle(id) },
   hanzi: { pathPrefix: '汉字分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('hanzi'), activeId: () => activeContentGroup('hanzi').id, onSelect: (id) => selectContentGroup('hanzi', id) },
   english: { pathPrefix: '英文分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('english'), activeId: () => activeContentGroup('english').id, onSelect: (id) => selectContentGroup('english', id) },
+  color: { pathPrefix: '花园分组', rootTitle: '全部分组', activeLabel: '正在认知', unitLabel: '组', groups: () => contentGroups('misc'), activeId: () => activeContentGroup('misc').id, onSelect: (id) => selectContentGroup('misc', id) },
 };
 function selectContentGroup(kind, groupId) {
   const group = contentGroups(kind).find((item) => item.id === groupId);
@@ -3034,12 +3325,38 @@ $$('[data-screen]').forEach((button) => button.addEventListener('click', () => s
 $$('[data-magic-house-tab]').forEach((button) => button.addEventListener('click', () => setMagicHouseTab(button.dataset.magicHouseTab)));
 $('#topbarLessonTitle').addEventListener('click', () => { if (state.screen === 'arcade' && state.arcadeGameId) { clearTimeout(arcadeSequenceTimer); clearTimeout(whackTimer); clearTimeout(catchTimer); state.arcadeGameId = ''; state.arcadeState = null; renderTopbarContext(); renderArcade(); return; } if (state.screen === 'home') setScreen(state.homeContext === 'closet' ? 'closet' : state.homeContext === 'arcade' ? 'arcade' : 'lesson'); });
 $('#magicHouse').addEventListener('click', () => { setScreen('closet'); showToast('欢迎来到魔法屋，给露娜换上新装吧！'); });
+$('#gemCountBtn')?.addEventListener('click', () => {
+  setScreen('roadmap');
+  showToast(`你有 ${state.stars} 颗魔法星，来看你的星光奇遇之路吧！`);
+});
+$('#roadmapGoCloset')?.addEventListener('click', () => {
+  setScreen('closet');
+  setMagicHouseTab('closet');
+  showToast('欢迎来到魔法屋，给露娜试穿新造型吧！');
+});
 $('#homeOcGuide')?.addEventListener('click', () => {
   speakChinese(`你好，${childName()}！快来魔法屋看看吧！`);
   setScreen('closet');
   showToast('欢迎来到魔法屋，给露娜换上新装吧！');
 });
-$('#soundToggle').addEventListener('click', () => { state.soundOn = !state.soundOn; $('#soundToggle').setAttribute('aria-pressed', String(state.soundOn)); $('#soundToggle').setAttribute('aria-label', state.soundOn ? '关闭声音' : '打开声音'); $('#soundToggle').classList.toggle('muted', !state.soundOn); if (!state.soundOn) { window.speechSynthesis?.cancel(); stopNativeTts(); stopWardrobeMusic(); } else if (state.screen === 'closet') startWardrobeMusic(); });
+function renderSoundToggleState() {
+  const toggle = $('#soundToggle');
+  if (!toggle) return;
+  toggle.setAttribute('aria-pressed', String(state.soundOn));
+  toggle.setAttribute('aria-label', state.soundOn ? '关闭声音' : '打开声音');
+  toggle.classList.toggle('muted', !state.soundOn);
+  const icon = toggle.querySelector('.sound-icon');
+  if (icon) icon.textContent = state.soundOn ? '🔔' : '🔕';
+}
+$('#soundToggle').addEventListener('click', () => {
+  state.soundOn = !state.soundOn;
+  renderSoundToggleState();
+  if (!state.soundOn) {
+    window.speechSynthesis?.cancel();
+    stopNativeTts();
+    stopWardrobeMusic();
+  } else if (state.screen === 'closet') startWardrobeMusic();
+});
 $('#parentButton').addEventListener('click', openParent); $('#closeParent').addEventListener('click', closeParent); $('#disableParentMode').addEventListener('click', disableParentMode);
 $$('[data-parent-tab]').forEach((button) => button.addEventListener('click', () => setParentTab(button.dataset.parentTab)));
 $('#parentGateForm').addEventListener('submit', (event) => { event.preventDefault(); if (Number($('#parentGateAnswer').value) === parentGateAnswer) unlockParent(); else { $('#parentGateError').hidden = false; $('#parentGateAnswer').select(); } });
@@ -3050,6 +3367,26 @@ $('#dailyLimitRange').addEventListener('change', () => { persistProgress(); show
 $('#speechRate').addEventListener('input', (event) => { globalSpeechRate = clamp(Number(event.target.value), .5, 1.5); saveText('luna-global-speech-rate', String(globalSpeechRate)); renderSpeechRateControl(); });
 $('#speechRate').addEventListener('change', () => { window.speechSynthesis?.cancel(); showToast(`全局朗读语速已设为${speechRateLabel()}。`); });
 $('#recordingToggle').addEventListener('click', () => { state.recordingEnabled = !state.recordingEnabled; persistProgress(); renderParentProfileControls(); showToast(state.recordingEnabled ? '已开启录音跟读；录音只留在当前页面。' : '已关闭录音跟读。'); });
+$('#saveStarCountBtn')?.addEventListener('click', () => {
+  const input = $('#starCountInput');
+  const count = Math.max(0, parseInt(input?.value, 10) || 0);
+  state.stars = count;
+  state.ocOwned = getUnlockedWardrobeItems(count);
+  for (const slot of Object.keys(state.ocAvatar.outfit || {})) {
+    if (state.ocAvatar.outfit[slot] && !state.ocOwned.includes(state.ocAvatar.outfit[slot])) {
+      state.ocAvatar.outfit[slot] = '';
+    }
+  }
+  if (state.ocAvatar.hair !== 3 && !state.ocOwned.includes(`hair_${state.ocAvatar.hair}`)) {
+    state.ocAvatar.hair = 3;
+  }
+  saveOcAvatar();
+  persistProgress();
+  updateProgress();
+  renderWardrobe();
+  renderStarRecoveryControls();
+  showToast(`已设置 ${count} 颗魔法星，已按固定顺序解锁 ${state.ocOwned.length} 件饰品！`);
+});
 $('#adminButton').addEventListener('click', () => { closeParent(); openAdmin(); });
 $('#closeAdmin').addEventListener('click', closeAdmin);
 $('#syncContentButton')?.addEventListener('click', syncLearningContent);
@@ -3113,8 +3450,8 @@ window.addEventListener('resize', () => {
   if ($('#hanziWriterModal')?.classList.contains('open')) { renderHanziWriterWord(); }
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });
-window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade'].includes(screen) ? screen : 'home', { push: false }); });
+window.addEventListener('popstate', () => { const [,screen = 'home', theme] = location.hash.match(/^#([^/]+)\/?(.*)?/) || []; if (theme && THEMES[theme]) state.activeTheme = theme; setScreen(['home','lesson','closet','arcade','roadmap'].includes(screen) ? screen : 'home', { push: false }); });
 document.addEventListener('keydown', handleLessonShortcuts);
 document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && $('#recitalConfigModal').classList.contains('open')) closeRecitalConfig(); else if (event.key === 'Escape' && $('#contentConfigModal').classList.contains('open')) closeContentConfig(); else if (event.key === 'Escape' && $('#parentModal').classList.contains('open')) closeParent(); else if (event.key === 'Escape' && $('#rewardModal').classList.contains('open')) closeReward(); else if (event.key === 'Escape' && $('#dailyModal').classList.contains('open')) closeDailyWrapUp(); else if (event.key === 'Escape' && $('#adminModal').classList.contains('open')) closeAdmin(); else if (event.key === 'Escape' && $('#hanziGroupModal')?.classList.contains('open')) closeHanziGroupModal(); else if (event.key === 'Escape' && $('#issueTrackerModal')?.classList.contains('open')) closeIssueTracker(); else if (event.key === 'Escape' && $('#hanziWriterModal')?.classList.contains('open')) closeHanziWriter(); });
 
-$('.app-shell').classList.add('home-active'); renderTopbarContext(); mountHomeMap(); renderWardrobe(); renderHome(); updateProgress(); renderParentModeState(); renderSpeechRateControl(); renderParentProfileControls(); renderContentSyncStatus(); if (location.hash) window.dispatchEvent(new PopStateEvent('popstate'));
+$('.app-shell').classList.add('home-active'); renderTopbarContext(); mountHomeMap(); renderWardrobe(); renderHome(); updateProgress(); renderSoundToggleState(); renderParentModeState(); renderSpeechRateControl(); renderParentProfileControls(); renderContentSyncStatus(); if (location.hash) window.dispatchEvent(new PopStateEvent('popstate'));

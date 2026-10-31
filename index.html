@@ -19,6 +19,7 @@
     <link rel="preload" href="assets/fonts/castle-kai.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="style.css?v=1.0.26" />
     <link rel="stylesheet" href="styles/screens/adventure-map.css" />
+    <link rel="stylesheet" href="styles/screens/roadmap.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -29,18 +30,18 @@
           <span>魔法城堡</span>
         </button><button class="topbar-lesson-title" id="topbarLessonTitle" type="button" aria-label="继续当前课程"><i aria-hidden="true">›</i><b></b></button></div>
         <div class="top-actions">
-          <div class="gem-count" aria-label="拥有 18 颗魔法星"><span class="star-token" aria-hidden="true"></span><b id="starTotal">18</b></div>
+          <button class="gem-count" id="gemCountBtn" type="button" aria-label="拥有 0 颗魔法星，查看星光奇遇之路"><span class="star-token" aria-hidden="true">⭐</span><b id="starTotal">0</b></button>
           <button class="sound-toggle icon-button" id="soundToggle" type="button" aria-label="关闭声音" aria-pressed="true">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10H4Zm12.5 2A4.5 4.5 0 0 0 14 8v2a2.5 2.5 0 0 1 0 4v2a4.5 4.5 0 0 0 2.5-4Z"/></svg>
+            <span class="sound-icon" aria-hidden="true">🔔</span>
           </button>
-          <button class="parent-button" id="parentButton" type="button">给爸爸妈妈</button>
+          <button class="parent-button" id="parentButton" type="button">🌱 给爸爸妈妈</button>
         </div>
       </header>
 
       <main id="main" tabindex="-1">
         <section class="screen active" id="homeScreen" aria-label="魔法城堡地图">
           <div class="garden-scene">
-            <section class="theme-map" aria-labelledby="themeMapTitle"><div class="lesson-mode-switch" id="lessonModeSwitch" role="tablist" aria-label="学习模式"><button class="lesson-mode-button active" type="button" role="tab" aria-selected="true" data-lesson-mode="learn">探索新知识</button><button class="lesson-mode-button" type="button" role="tab" aria-selected="false" data-lesson-mode="review">魔法回顾</button></div><div id="themeCards" class="theme-cards"></div><button id="magicHouse" class="magic-house-cloud" type="button" aria-label="魔法屋，前往魔法屋"><span>魔法屋</span></button><button class="home-oc-guide" id="homeOcGuide" type="button" aria-label="露娜，前往魔法屋换装"><span class="home-oc-halo" aria-hidden="true"></span><span class="home-oc-avatar" id="homeOcAvatar" aria-hidden="true"></span><span class="home-oc-speech" id="homeOcSpeech" aria-hidden="true"><span id="speechChildName">Hi, 荆宝!</span></span></button><button id="dailyRoute" class="daily-route" type="button" hidden></button></section>
+            <section class="theme-map" aria-labelledby="themeMapTitle"><div id="themeCards" class="theme-cards"></div><button id="magicHouse" class="magic-house-cloud" type="button" aria-label="魔法屋，前往魔法屋"><span>魔法屋</span></button><button class="home-oc-guide" id="homeOcGuide" type="button" aria-label="露娜，前往魔法屋换装"><span class="home-oc-halo" aria-hidden="true"></span><span class="home-oc-avatar" id="homeOcAvatar" aria-hidden="true"></span><span class="home-oc-speech" id="homeOcSpeech" aria-hidden="true"><span id="speechChildName">Hi, 荆宝!</span></span></button><button id="dailyRoute" class="daily-route" type="button" hidden></button></section>
           </div>
         </section>
 
@@ -60,6 +61,37 @@
         </section>
 
         <section class="screen" id="arcadeScreen" aria-label="小小游戏机"><div class="arcade-layout" id="arcadeArea"></div></section>
+        <section class="screen" id="roadmapScreen" aria-label="星光奇遇路线图">
+          <div class="roadmap-layout">
+            <header class="roadmap-header">
+              <div class="roadmap-stats">
+                <div class="roadmap-stat-pill">
+                  <span class="roadmap-star-icon" aria-hidden="true">⭐</span>
+                  <div class="roadmap-stat-info">
+                    <strong id="roadmapStarCount">0</strong>
+                    <small>魔法星</small>
+                  </div>
+                </div>
+                <div class="roadmap-stat-pill">
+                  <span class="roadmap-gift-icon" aria-hidden="true">🎁</span>
+                  <div class="roadmap-stat-info">
+                    <strong id="roadmapUnlockedCount">0 / 58</strong>
+                    <small>已点亮道具</small>
+                  </div>
+                </div>
+              </div>
+              <button class="roadmap-closet-btn primary-button" id="roadmapGoCloset" type="button">
+                <span>去衣帽间试穿</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+              </button>
+            </header>
+            <div class="roadmap-scroll-wrap" id="roadmapScrollWrap">
+              <div class="roadmap-path-container" id="roadmapPathContainer">
+                <!-- 由 renderRoadmap() 动态生成自下而上的星光台阶与道具节点 -->
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section class="screen" id="closetScreen" aria-label="魔法屋">
           <div class="closet-layout oc-closet-layout">
@@ -112,8 +144,8 @@
           <header class="parent-dashboard-header"><p class="section-kicker">家长小站</p><h2>陪伴学习的小仪表盘</h2><div class="parent-mode-status"><span id="parentModeStatus" role="status">家长模式已启用：再次打开无需答题。</span><button id="disableParentMode" class="secondary-button" type="button">关闭家长模式</button></div></header>
           <div class="parent-tabs" role="tablist" aria-label="家长小站分类"><button class="parent-tab active" id="parentTabOverview" type="button" role="tab" aria-selected="true" aria-controls="parentPanelOverview" data-parent-tab="overview">学习概览</button><button class="parent-tab" id="parentTabSettings" type="button" role="tab" aria-selected="false" aria-controls="parentPanelSettings" data-parent-tab="settings">学习设置</button><button class="parent-tab" id="parentTabTools" type="button" role="tab" aria-selected="false" aria-controls="parentPanelTools" data-parent-tab="tools">内容与工具</button></div>
           <section class="parent-tab-panel" id="parentPanelOverview" role="tabpanel" aria-labelledby="parentTabOverview"><div class="parent-stats"><div><b id="parentStars">0</b><span>获得星星</span></div><div><b id="parentWords">0</b><span>已掌握内容</span></div><div><b id="parentStreak">0</b><span>连续学习</span></div><div><b id="parentAchievements">0</b><span>获得徽章</span></div></div><div class="parent-calendar-card"><div><p>最近 7 天</p><h3>学习日历</h3></div><div id="studyCalendar" class="study-calendar" aria-label="最近 7 天学习记录"></div></div><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>当前学习者</p><h3>孩子档案</h3></div><span>可切换或添加</span></div><div class="profile-controls"><label for="profileSelect">正在使用</label><select id="profileSelect" aria-label="选择孩子档案"></select><div class="profile-create"><input id="newProfileName" maxlength="12" placeholder="新孩子昵称" aria-label="新孩子昵称" /><button class="secondary-button" id="createProfile" type="button">添加档案</button></div></div></div></section>
-          <section class="parent-tab-panel" id="parentPanelSettings" role="tabpanel" aria-labelledby="parentTabSettings" hidden><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>声音与跟读</p><h3>朗读设置</h3></div><span>全局生效</span></div><div class="voice-preview"><span>学习朗读会优先使用设备中较自然的可用语音。英文、汉字和朗诵文本都会使用下面的全局语速。</span><label class="speech-rate-control" for="speechRate"><span>全局朗读语速 <b id="speechRateValue">标准 · 1.00×</b></span><input id="speechRate" type="range" min="0.5" max="1.5" step="0.05" value="1" /><div class="speech-rate-labels" aria-hidden="true"><span>0.50×</span><span>0.75×</span><span>1.00×</span><span>1.25×</span><span>1.50×</span></div></label><div class="voice-preview-actions"><button class="secondary-button" id="voiceTest" type="button">试听学习朗读</button><button class="secondary-button" id="recordingToggle" type="button" aria-pressed="false"></button></div></div></div><div class="daily-limit-control"><label for="dailyLimitRange"><span>每日探险时长</span><b id="dailyLimitValue">10 分钟</b></label><div class="daily-limit-slider"><input id="dailyLimitRange" type="range" min="0" max="4" step="1" value="0" aria-describedby="parentStudyToday" /><div class="daily-limit-labels"><span>10 分钟</span><span>30 分钟</span><span>1 小时</span><span>2 小时</span><span>不限时长</span></div></div><span id="parentStudyToday">今天已探险 0 分钟</span></div><p class="parent-note">录音只保留在当前页面，关闭或刷新后不会上传，也不会保存为长期学习数据。</p></section>
-          <section class="parent-tab-panel" id="parentPanelTools" role="tabpanel" aria-labelledby="parentTabTools" hidden><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>内容、备份与设备</p><h3>数据工具</h3></div><span>请谨慎操作</span></div><p class="parent-card-description">管理学习内容、导入导出学习记录，或重新开始当天挑战。</p><div class="app-version-row"><span>当前版本 <b id="appVersion">v0.0.0</b></span><button class="text-version-button" id="checkForUpdate" type="button">检查更新</button></div><div class="parent-action-grid parent-tool-grid"><button class="secondary-button" id="adminButton" type="button">管理学习内容</button><button class="secondary-button" id="exportProgress" type="button">导出学习记录</button><button class="secondary-button" id="importProgress" type="button">导入学习记录</button><button class="secondary-button danger-button" id="resetProgress" type="button">重新开始今天的挑战</button></div></div><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>想法、建议与缺陷</p><h3>意见与想法记事簿</h3></div><span>随时记录</span></div><p class="parent-card-description">记录使用过程中的灵感、功能建议或遇到的 Bug，支持一键复制为 GitHub Issue 格式或导出分享。</p><div class="parent-action-grid"><button class="secondary-button" id="openIssueTrackerBtn" type="button">📝 打开记事簿 / 提 Issue</button></div></div><input id="importProgressFile" type="file" accept="application/json" hidden /></section>
+          <section class="parent-tab-panel" id="parentPanelSettings" role="tabpanel" aria-labelledby="parentTabSettings" hidden><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>声音与跟读</p><h3>朗读设置</h3></div><span>全局生效</span></div><div class="voice-preview"><span>学习朗读会优先使用设备中较自然的可用语音。英文、汉字和朗诵文本都会使用下面的全局语速。</span><label class="speech-rate-control" for="speechRate"><span>全局朗读语速 <b id="speechRateValue">标准 · 1.00×</b></span><input id="speechRate" type="range" min="0.5" max="1.5" step="0.05" value="1" /><div class="speech-rate-labels" aria-hidden="true"><span>0.50×</span><span>0.75×</span><span>1.00×</span><span>1.25×</span><span>1.50×</span></div></label><div class="voice-preview-actions"><button class="secondary-button" id="voiceTest" type="button">试听学习朗读</button><button class="secondary-button" id="recordingToggle" type="button" aria-pressed="false"></button></div></div></div><div class="daily-limit-control"><label for="dailyLimitRange"><span>每日探险时长</span><b id="dailyLimitValue">30 分钟</b></label><div class="daily-limit-slider"><input id="dailyLimitRange" type="range" min="0" max="3" step="1" value="0" aria-describedby="parentStudyToday" /><div class="daily-limit-labels"><span>30 分钟</span><span>1 小时</span><span>2 小时</span><span>不限时长</span></div></div><span id="parentStudyToday">今天已探险 0 分钟</span></div><p class="parent-note">录音只保留在当前页面，关闭或刷新后不会上传，也不会保存为长期学习数据。</p></section>
+          <section class="parent-tab-panel" id="parentPanelTools" role="tabpanel" aria-labelledby="parentTabTools" hidden><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>积分与外观恢复</p><h3>魔法星与饰品恢复</h3></div><span>每 5 星解锁 1 饰品</span></div><p class="parent-card-description">重装应用或更换设备后，可在此直接输入累计获得的星星数量，一键按固定顺序恢复之前解锁的所有装扮。</p><div class="star-recovery-form"><label for="starCountInput"><span>设置魔法星数量</span></label><div class="star-input-group"><input type="number" id="starCountInput" min="0" max="500" step="1" value="0" placeholder="0" /><button class="secondary-button" id="saveStarCountBtn" type="button">一键恢复饰品</button></div><p class="star-recovery-status" id="starRecoveryStatus">当前：0 颗星 · 已解锁 0 件饰品</p></div></div><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>内容、备份与设备</p><h3>数据工具</h3></div><span>请谨慎操作</span></div><p class="parent-card-description">管理学习内容、导入导出学习记录，或重新开始当天挑战。</p><div class="app-version-row"><span>当前版本 <b id="appVersion">v0.0.0</b></span><button class="text-version-button" id="checkForUpdate" type="button">检查更新</button></div><div class="parent-action-grid parent-tool-grid"><button class="secondary-button" id="adminButton" type="button">管理学习内容</button><button class="secondary-button" id="exportProgress" type="button">导出学习记录</button><button class="secondary-button" id="importProgress" type="button">导入学习记录</button><button class="secondary-button danger-button" id="resetProgress" type="button">重新开始今天的挑战</button></div></div><div class="parent-dashboard-card"><div class="parent-card-heading"><div><p>想法、建议与缺陷</p><h3>意见与想法记事簿</h3></div><span>随时记录</span></div><p class="parent-card-description">记录使用过程中的灵感、功能建议或遇到的 Bug，支持一键复制为 GitHub Issue 格式或导出分享。</p><div class="parent-action-grid"><button class="secondary-button" id="openIssueTrackerBtn" type="button">📝 打开记事簿 / 提 Issue</button></div></div><input id="importProgressFile" type="file" accept="application/json" hidden /></section>
         </section>
       </div>
     </div>

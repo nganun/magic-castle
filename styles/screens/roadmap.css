@@ -1,0 +1,376 @@
+/* 星光奇遇之路（Roadmap）全屏界面样式 */
+#roadmapScreen {
+  background: radial-gradient(circle at 50% 10%, #2f1b5c 0%, #170d32 60%, #0d061e 100%);
+  color: #fff;
+  min-height: calc(100vh - 82px);
+  position: relative;
+  overflow: hidden;
+}
+
+.roadmap-layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 82px);
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* 顶部状态浮动栏 */
+.roadmap-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(23, 13, 50, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 10;
+}
+
+.roadmap-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roadmap-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.roadmap-star-icon,
+.roadmap-gift-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.roadmap-stat-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.roadmap-stat-info strong {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 17px;
+  color: #ffd84d;
+  font-weight: 800;
+}
+
+.roadmap-stat-info small {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.roadmap-closet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.roadmap-closet-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.roadmap-closet-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* 路线滚动视口 */
+.roadmap-scroll-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px 16px 80px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 路线图节点垂直容器（自下而上反转布局） */
+.roadmap-path-container {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 46px;
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* 背景星光蜿蜒发光主线 */
+.roadmap-path-container::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  bottom: 30px;
+  width: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.2) 0%, rgba(250, 204, 21, 0.6) 50%, rgba(250, 204, 21, 0.9) 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.4);
+  z-index: 1;
+}
+
+/* 里程碑节点行 */
+.roadmap-node-row {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+/* 节点交错左右错落（S型弯道感） */
+.roadmap-node-row.pos-left {
+  justify-content: flex-start;
+  padding-left: clamp(10px, 8vw, 40px);
+}
+
+.roadmap-node-row.pos-center {
+  justify-content: center;
+}
+
+.roadmap-node-row.pos-right {
+  justify-content: flex-end;
+  padding-right: clamp(10px, 8vw, 40px);
+}
+
+/* 单个节点卡片 */
+.roadmap-node-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-radius: 20px;
+  background: rgba(40, 22, 75, 0.85);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  max-width: 280px;
+  width: 100%;
+  text-align: left;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.roadmap-node-card:hover {
+  transform: scale(1.03);
+}
+
+/* 道具缩略图外框 */
+.roadmap-node-thumb {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.roadmap-node-thumb svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* 节点文字信息 */
+.roadmap-node-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.roadmap-node-stars {
+  font-family: "Baloo 2", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd84d;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.roadmap-node-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roadmap-node-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 徽章标记 */
+.roadmap-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* === 状态1：已解锁 (Passed) === */
+.roadmap-node-card.passed {
+  border-color: rgba(250, 204, 21, 0.4);
+  background: rgba(55, 32, 95, 0.85);
+}
+
+.roadmap-node-card.passed .roadmap-node-thumb {
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.25) 0%, rgba(250, 204, 21, 0.05) 100%);
+  border-color: #facc15;
+}
+
+.roadmap-node-card.passed .roadmap-badge {
+  background: #10b981;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+/* === 状态2：当前目标 (Current / In-Progress) === */
+.roadmap-node-card.current {
+  border-color: #ffd84d;
+  background: rgba(80, 42, 138, 0.95);
+  box-shadow: 0 0 25px rgba(255, 216, 77, 0.5), 0 8px 30px rgba(0, 0, 0, 0.45);
+  transform: scale(1.05);
+  animation: roadmapPulse 2.4s infinite ease-in-out;
+}
+
+@keyframes roadmapPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 216, 77, 0.4), 0 8px 30px rgba(0, 0, 0, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(255, 216, 77, 0.75), 0 8px 35px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.roadmap-node-card.current .roadmap-node-thumb {
+  background: radial-gradient(circle, rgba(255, 216, 77, 0.3) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border-color: #ffd84d;
+}
+
+.roadmap-node-card.current .roadmap-node-thumb svg {
+  filter: brightness(0.2) contrast(1.5) drop-shadow(0 0 6px rgba(255, 216, 77, 0.8));
+  opacity: 0.85;
+}
+
+.roadmap-node-card.current .roadmap-badge {
+  background: #f59e0b;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.6);
+}
+
+/* === 状态3：未解锁 (Locked) === */
+.roadmap-node-card.locked {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(28, 16, 52, 0.7);
+  opacity: 0.8;
+}
+
+.roadmap-node-card.locked .roadmap-node-thumb {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.roadmap-node-card.locked .roadmap-node-thumb svg {
+  filter: brightness(0) invert(0.4) opacity(0.35);
+}
+
+.roadmap-node-card.locked .roadmap-node-name {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.roadmap-node-card.locked .roadmap-badge {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 起点仪式地标 */
+.roadmap-start-marker {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd84d;
+}
+
+/* 终点闪耀皇冠 */
+.roadmap-end-marker {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(168, 85, 247, 0.2));
+  border: 2px solid #ffd84d;
+  color: #ffd84d;
+  font-weight: 900;
+  font-size: 16px;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+}
+
+@media (max-width: 600px) {
+  .roadmap-header {
+    padding: 10px 14px;
+  }
+  .roadmap-stat-pill {
+    padding: 4px 10px;
+  }
+  .roadmap-node-card {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .roadmap-node-thumb {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+}

@@ -144,9 +144,7 @@ function buildPileAnchors(region) {
 //   - 散卡的 z 在 [0, totalZ-1] 内随机，与摞充分交错
 //
 // 这样最终所有卡片（摞内、摞间、散卡）共享同一个 z 空间，视觉上混为一体。
-export function generateLevel() {
-  const types = buildTypePool();
-
+export function generateLevel(level = 1) {
   // 牌堆总区域（去掉 HUD 和槽位区）
   const pileRegion = {
     left: 30,
@@ -154,6 +152,41 @@ export function generateLevel() {
     top: HUD_HEIGHT + 30,
     bottom: LEVEL_LOGICAL_H - SLOT_AREA_HEIGHT - 40,
   };
+
+  if (level === 1) {
+    // 第 1 关：新手引导关，3 种图案 × 3 张 = 9 张，整齐平铺在中央，易通关
+    const types = shuffle([0, 0, 0, 1, 1, 1, 2, 2, 2]);
+    const cards = [];
+    const cols = 3;
+    const rows = 3;
+    const cx = LEVEL_LOGICAL_W / 2;
+    const cy = (pileRegion.top + pileRegion.bottom) / 2;
+    const gapX = CARD_W + 36;
+    const gapY = CARD_H + 36;
+    const startX = cx - ((cols - 1) * gapX) / 2;
+    const startY = cy - ((rows - 1) * gapY) / 2;
+
+    for (let i = 0; i < types.length; i++) {
+      const r = Math.floor(i / cols);
+      const c = i % cols;
+      cards.push({
+        id: i,
+        type: types[i],
+        x: startX + c * gapX,
+        y: startY + r * gapY,
+        w: CARD_W,
+        h: CARD_H,
+        zLayer: 0,
+      });
+    }
+    return {
+      cards,
+      pileRegion,
+      totalCards: 9,
+    };
+  }
+
+  const types = buildTypePool();
 
   // 1) 摞 anchor
   const anchors = buildPileAnchors(pileRegion);

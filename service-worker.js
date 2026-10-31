@@ -3,6 +3,7 @@ const APP_SHELL = [
   './index.html',
   './style.css',
   './styles/screens/adventure-map.css',
+  './styles/screens/roadmap.css',
   './app.js',
   './features/map-route.js',
   './features/storage.js',
@@ -202,7 +203,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // CSS, JS, and vendor use network-first so visual and script fixes are never held behind an old offline cache.
-  if (url.pathname.endsWith('/style.css') || url.pathname.endsWith('/styles/screens/adventure-map.css') || url.pathname.endsWith('/app.js') || url.pathname.includes('/features/') || url.pathname.includes('/vendor/')) {
+  if (url.pathname.endsWith('/style.css') || url.pathname.endsWith('/styles/screens/adventure-map.css') || url.pathname.endsWith('/styles/screens/roadmap.css') || url.pathname.endsWith('/app.js') || url.pathname.includes('/features/') || url.pathname.includes('/vendor/')) {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
       return response;

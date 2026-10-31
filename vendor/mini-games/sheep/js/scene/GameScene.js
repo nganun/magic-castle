@@ -42,7 +42,8 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init() {
+  init(data) {
+    this.currentLevel = (data && data.level) || this.currentLevel || 1;
     // 逻辑坐标 → 屏幕坐标的均匀缩放：同时适配宽高，保持完整可见并居中
     this.uiScale = Math.min(WIDTH / LEVEL_LOGICAL_W, HEIGHT / LEVEL_LOGICAL_H);
     this.offsetX = Math.max(0, (WIDTH - LEVEL_LOGICAL_W * this.uiScale) / 2);
@@ -50,9 +51,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
-    console.log('[GameScene] create start');
+    console.log('[GameScene] create start, level =', this.currentLevel);
     try {
-      this.level = generateLevel();
+      this.level = generateLevel(this.currentLevel);
       console.log('[GameScene] cards count =', this.level.cards.length);
 
       this.resetState();
@@ -111,7 +112,7 @@ export class GameScene extends Phaser.Scene {
     const hudSafeOffset = this.s(90);
 
     // 标题：白底深绿描边 + 柔和阴影，卡通游戏风格
-    this.hudTitle = this.add.text(WIDTH / 2, this.s(46) + hudSafeOffset, '羊了个羊 · 星球', {
+    this.hudTitle = this.add.text(WIDTH / 2, this.s(46) + hudSafeOffset, `羊了个羊 · 第 ${this.currentLevel} 关`, {
       fontFamily: '"Comic Sans MS", "Hiragino Sans GB", "PingFang SC", sans-serif',
       fontSize: `${Math.round(this.s(46))}px`,
       color: '#ffffff',
@@ -150,7 +151,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.hudStatus) return;
     const onPile = this.cards.filter((c) => c.state === 'on_pile').length;
     this.hudStatus.setText(
-      `牌堆 ${onPile}/${TOTAL_CARDS} · 槽 ${this.slot.length}/${SLOT_CAPACITY}`,
+      `第 ${this.currentLevel} 关 · 牌堆 ${onPile}/${this.cards.length} · 槽 ${this.slot.length}/${SLOT_CAPACITY}`,
     );
   }
 
@@ -298,9 +299,9 @@ export class GameScene extends Phaser.Scene {
     gray.setVisible(false);
     container.add(gray);
 
-    // 6) 交互
+    // 6) 交互：Phaser Container setInteractive 使用以自身 displayOrigin (sw/2, sh/2) 对齐的局部矩形 (0, 0, sw, sh)
     container.setInteractive(
-      new Phaser.Geom.Rectangle(-sw / 2, -sh / 2, sw, sh),
+      new Phaser.Geom.Rectangle(0, 0, sw, sh),
       Phaser.Geom.Rectangle.Contains,
     );
     container.on('pointerdown', () => this.onCardClick(card));
