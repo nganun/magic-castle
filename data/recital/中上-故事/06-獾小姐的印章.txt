@@ -1,4 +1,4 @@
-id: guan-xiao-jie-de-ying-zhang
+# id: guan-xiao-jie-de-ying-zhang
 出版社来信邀请獾小姐成为签约作家，
 并请她在合同上盖姓名章。
 可是獾小姐没有属于自己的印章，
