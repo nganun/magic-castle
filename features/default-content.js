@@ -91,7 +91,10 @@ export const DEFAULT_LEARNING_CONTENT = {
           "冰块",
           "草原",
           "自信满满",
-          "非洲"
+          "非洲",
+          "温暖",
+          "面包",
+          "酵母"
         ]
       },
       {

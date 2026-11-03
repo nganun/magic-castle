@@ -422,6 +422,7 @@ function switchProfile(id) {
 
 
 let learnCountdownTimer = null;
+let isLearnCountingDown = false;
 let preferredEnglishVoice = null;
 let preferredChineseVoice = null;
 let speechRun = 0;
@@ -675,7 +676,7 @@ function setScreen(name, { push = true } = {}) {
   if (name === 'closet') startWardrobeMusic(); else stopWardrobeMusic();
   $$('.screen').forEach((screen) => screen.classList.toggle('active', screen.id === `${name}Screen`));
   $$('.nav-item').forEach((button) => button.classList.toggle('active', button.dataset.screen === name));
-  if (name === 'lesson') { lessonSessionStartedAt = Date.now(); renderRound(); }
+  if (name === 'lesson') { isAwaitingStart = true; lessonSessionStartedAt = Date.now(); renderRound(); }
   if (name === 'arcade') {
     arcadeSessionStartedAt = Date.now();
     if (arcadeTicker) clearInterval(arcadeTicker);
@@ -1846,6 +1847,7 @@ function renderTicTacToeGame(area) {
 }
 function selectTheme(id, goToLesson = true) {
   if (id === 'animal') { openArcade(); return; }
+  isAwaitingStart = true;
   state.activeTheme = id; state.round = 0; state.completed = false; state.roundLocked = false;
   persistProgress(); renderHome();
   if (goToLesson) setScreen('lesson');
@@ -1960,14 +1962,18 @@ function navigateCard(delta) {
   renderRound();
 }
 
+let isAwaitingStart = true;
+
 function startLearnCountdown(seconds = 3) {
   const button = $('#learnNext');
   const label = $('#learnNextLabel');
   if (!button || !label) return;
   clearInterval(learnCountdownTimer);
+  isLearnCountingDown = true;
   let remaining = seconds;
   button.disabled = true;
   button.setAttribute('aria-disabled', 'true');
+  button.classList.remove('ready');
   label.textContent = '继续';
   button.style.setProperty('--listen-progress', '0%');
   learnCountdownTimer = window.setInterval(() => {
@@ -1975,6 +1981,7 @@ function startLearnCountdown(seconds = 3) {
     button.style.setProperty('--listen-progress', `${((seconds - remaining) / seconds) * 100}%`);
     if (remaining <= 0) {
       clearInterval(learnCountdownTimer);
+      isLearnCountingDown = false;
       button.disabled = false;
       button.removeAttribute('aria-disabled');
       label.textContent = '继续';
@@ -2023,7 +2030,7 @@ function hanziLearnMarkup(game, recordingAction) {
     showImage,
     imageUrl: hanziWordImageUrl(game.word),
     groupPath: lessonGroupPathLabel(group),
-    actions: lessonPrimaryActionsMarkup(),
+    actions: lessonPrimaryActionsMarkup('', isAwaitingStart ? '开始' : '继续'),
     recording: recordingAction,
   });
 }
@@ -2123,13 +2130,7 @@ function updateHanziGridGeometry(count) {
   } else if (isPortrait) {
     if (count <= 2) { cols = 1; rows = count; }
     else if (count <= 4) { cols = 2; rows = 2; }
-    else if (count <= 6) { cols = 2; rows = 3; }
-    else if (count <= 8) { cols = 2; rows = 4; }
-    else if (count <= 10) { cols = 2; rows = 5; }
-    else if (count <= 12) { cols = 3; rows = 4; }
-    else if (count <= 15) { cols = 3; rows = 5; }
-    else if (count <= 16) { cols = 4; rows = 4; }
-    else if (count <= 20) { cols = 4; rows = 5; }
+    else if (count <= 8) { cols = 2; rows = Math.ceil(count / 2); }
     else {
       cols = 3;
       rows = Math.ceil(count / 3);
@@ -2139,12 +2140,9 @@ function updateHanziGridGeometry(count) {
     else if (count <= 6) { cols = Math.ceil(count / 2); rows = 2; }
     else if (count <= 8) { cols = 4; rows = 2; }
     else if (count <= 10) { cols = 5; rows = 2; }
-    else if (count <= 12) { cols = 4; rows = 3; }
-    else if (count <= 15) { cols = 5; rows = 3; }
-    else if (count <= 16) { cols = 4; rows = 4; }
-    else if (count <= 20) { cols = 5; rows = 4; }
+    else if (count <= 15) { cols = 5; rows = Math.ceil(count / 5); }
     else {
-      cols = Math.min(6, Math.ceil(Math.sqrt(count * 1.5)));
+      cols = Math.min(6, Math.max(4, Math.ceil(Math.sqrt(count * 1.5))));
       rows = Math.ceil(count / cols);
     }
   }
@@ -2183,6 +2181,7 @@ function renderHanziGroupModal() {
           const targetId = btn.dataset.hanziModalGroup;
           if (targetId === active.id) return;
           stopSequentialHanzi();
+          isAwaitingStart = true;
           setActiveContentGroup(kind, targetId);
           saveContentConfiguration();
           applyAdminContent();
@@ -2219,8 +2218,10 @@ function renderHanziGroupModal() {
     }
   }
 
+  const hasThumb = kind === 'misc' || showImage;
   updateHanziGridGeometry(words.length);
   const grid = $('#hanziGroupWordsGrid');
+  if (grid) grid.classList.toggle('has-thumb-mode', hasThumb);
   grid.innerHTML = words.map((word, index) => {
     const isCurrent = currentWord === word;
     const isMastered = Boolean(state.wordProgress[`${kind}:${word}`]?.mastered);
@@ -2236,7 +2237,6 @@ function renderHanziGroupModal() {
       cornerTag = `<button class="hanzi-card-jump-btn" type="button" data-hanzi-jump-index="${index}" aria-label="学习 ${escapeHtml(word)}">学这个</button>`;
     }
     let thumbnailHtml = '';
-    const hasThumb = kind === 'misc' || showImage;
     if (kind === 'misc') {
       const visual = getMiscVisual(word);
       thumbnailHtml = `
@@ -2294,6 +2294,7 @@ function renderHanziGroupModal() {
       state.completed = false;
       state.roundLocked = false;
       closeHanziGroupModal();
+      isAwaitingStart = false;
       renderRound();
       speakForCurrentTheme(targetWord);
       showToast(`已开始学习“${targetWord}”。`);
@@ -2536,7 +2537,7 @@ function renderLessonGroupSwitcher() {
   const path = (stored ?? defaultPath).filter((part) => typeof part === 'string');
   const node = directoryNode(tree, path) || directoryNode(tree, defaultPath) || tree;
   container.hidden = false;
-  container.innerHTML = browserMarkup(kind, { node, path, activeId: scope.activeId(), rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
+  container.innerHTML = browserMarkup(kind, { node, path, activeId: scope.activeId(), icon: scope.icon, rootTitle: scope.rootTitle, pathPrefix: scope.pathPrefix, activeLabel: scope.activeLabel, unitLabel: scope.unitLabel });
   bindContentBrowser(container, { scope: kind, path, onSelect: scope.onSelect, onChange: () => { renderLessonGroupSwitcher(); } });
 }
 function addLessonShortcutHints(area) {
@@ -2711,6 +2712,8 @@ function relocateLessonProgress(area, stash) {
 function renderRound() {
   stopRecitalPlayer();
   window.clearTimeout(recitalAutoReadTimer);
+  clearInterval(learnCountdownTimer);
+  isLearnCountingDown = false;
   clearRecitalHighlights();
   const theme = currentTheme();
   renderLessonGroupSwitcher();
@@ -2737,7 +2740,7 @@ function renderRound() {
         note: miscGroup?.notes?.[game.word] || '',
         groupPath,
         totalWords: groupCount,
-        actions: lessonPrimaryActionsMarkup(),
+        actions: lessonPrimaryActionsMarkup('', isAwaitingStart ? '开始' : '继续'),
         recording: recordingAction,
       });
     } else {
@@ -2750,13 +2753,45 @@ function renderRound() {
         hasImage: Boolean(learnGroup?.image),
         showImage: learnGroup ? englishImageHintVisible : true,
         sentence: sentenceMarkup(game.word),
-        actions: lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`),
+        actions: lessonPrimaryActionsMarkup(`中文：${wordMeaning(game.word)}`, isAwaitingStart ? '开始' : '继续'),
         recording: recordingAction,
       });
     }
     // 插图缺失时退回文字卡片，避免出现破图
     $$('img[data-fallback-image]', area).forEach((img) => img.addEventListener('error', () => { if (img.dataset.fallbackImage) img.src = img.dataset.fallbackImage; }, { once: true }));
-    $('#learnNext').addEventListener('click', () => handleCorrect(game.word, 'learn'));
+    const learnNextBtn = $('#learnNext');
+    if (isAwaitingStart) {
+      if (learnNextBtn) {
+        learnNextBtn.disabled = false;
+        learnNextBtn.removeAttribute('aria-disabled');
+        learnNextBtn.classList.add('ready');
+        learnNextBtn.style.setProperty('--listen-progress', '100%');
+      }
+      learnNextBtn?.addEventListener('click', (e) => {
+        if (isLearnCountingDown || learnNextBtn.disabled || learnNextBtn.getAttribute('aria-disabled') === 'true') {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        if (isAwaitingStart) {
+          isAwaitingStart = false;
+          autoReadWordCard(game.word);
+          startLearnCountdown(3);
+          return;
+        }
+        handleCorrect(game.word, 'learn');
+      });
+    } else {
+      learnNextBtn?.addEventListener('click', (e) => {
+        if (isLearnCountingDown || learnNextBtn.disabled || learnNextBtn.getAttribute('aria-disabled') === 'true') {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        handleCorrect(game.word, 'learn');
+      });
+      startLearnCountdown(3);
+    }
     $('#openEnglishGroupBtn')?.addEventListener('click', () => openGroupModal('english'));
     $('#englishImageToggleBtn')?.addEventListener('click', toggleEnglishImageHint);
     $('#openMiscGroupBtn')?.addEventListener('click', () => openGroupModal('misc'));
@@ -2774,7 +2809,6 @@ function renderRound() {
     $('#hanziImageToggleBtn')?.addEventListener('click', toggleHanziImageHint);
     $('#openHanziWriterBtn')?.addEventListener('click', () => openHanziWriter(game.word));
     $('#recordPractice')?.addEventListener('click', recordPractice);
-    startLearnCountdown(3);
   } else if (game.type === 'recite') {
     const wholePiece = state.recitalMode === 'whole'; const piece = activeRecitalGroup(); const recitalText = wholePiece ? piece.lines.join('\n') : game.text;    const manuscript = wholePiece
       ? `<span class="recital-manuscript">${piece.lines.map((line, index) => `<span class="recital-line" data-recital-line="${index}">${escapeHtml(line)}</span>`).join('')}</span>`
@@ -2873,7 +2907,7 @@ area.innerHTML = `${lessonCardProgress()}<div class="match-word-card"><img src="
   addLessonShortcutHints(area);
   relocateLessonProgress(area, progressStash);
   updateProgress();
-  if (game.type === 'learn') autoReadWordCard(game.word);
+  if (game.type === 'learn' && !isAwaitingStart) autoReadWordCard(game.word);
 }
 async function recordPractice() {
   const button = $('#recordPractice'); const playback = $('#practicePlayback');
@@ -3366,7 +3400,7 @@ function applySyncedContent(merged) {
   saveContentConfiguration();
   applyAdminContent();
   renderAdminContentSummary();
-  if (['hanzi', 'english', 'action'].includes(state.activeTheme)) { state.round = 0; state.completed = false; persistProgress(); }
+  if (['hanzi', 'english', 'action'].includes(state.activeTheme)) { isAwaitingStart = true; state.round = 0; state.completed = false; persistProgress(); }
   renderRound();
 }
 async function syncLearningContent() {
@@ -3446,15 +3480,16 @@ function renameContentFolder(kind, from, to) {
   showToast(`目录已改名为「${name}」。`);
 }
 const BROWSER_SCOPES = {
-  action: { pathPrefix: '朗诵篇目', rootTitle: '全部篇目', activeLabel: '正在朗诵', unitLabel: '篇', groups: () => recitalGroups(), activeId: () => activeRecitalGroup().id, onSelect: (id) => selectRecitalArticle(id) },
-  hanzi: { pathPrefix: '汉字分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('hanzi'), activeId: () => activeContentGroup('hanzi').id, onSelect: (id) => selectContentGroup('hanzi', id) },
-  english: { pathPrefix: '英文分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('english'), activeId: () => activeContentGroup('english').id, onSelect: (id) => selectContentGroup('english', id) },
-  color: { pathPrefix: '花园分组', rootTitle: '全部分组', activeLabel: '正在认知', unitLabel: '组', groups: () => contentGroups('misc'), activeId: () => activeContentGroup('misc').id, onSelect: (id) => selectContentGroup('misc', id) },
+  action: { icon: '🎭', pathPrefix: '朗诵篇目', rootTitle: '全部篇目', activeLabel: '正在朗诵', unitLabel: '篇', groups: () => recitalGroups(), activeId: () => activeRecitalGroup().id, onSelect: (id) => selectRecitalArticle(id) },
+  hanzi: { icon: '📚', pathPrefix: '汉字分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('hanzi'), activeId: () => activeContentGroup('hanzi').id, onSelect: (id) => selectContentGroup('hanzi', id) },
+  english: { icon: '🌲', pathPrefix: '英文分组', rootTitle: '全部分组', activeLabel: '正在学习', unitLabel: '组', groups: () => contentGroups('english'), activeId: () => activeContentGroup('english').id, onSelect: (id) => selectContentGroup('english', id) },
+  color: { icon: '🌈', pathPrefix: '花园分组', rootTitle: '全部分组', activeLabel: '正在认知', unitLabel: '组', groups: () => contentGroups('misc'), activeId: () => activeContentGroup('misc').id, onSelect: (id) => selectContentGroup('misc', id) },
 };
 function selectContentGroup(kind, groupId) {
   const group = contentGroups(kind).find((item) => item.id === groupId);
   if (!group) return;
   stopRecitalPlayer();
+  isAwaitingStart = true;
   setActiveContentGroup(kind, groupId);
   saveContentConfiguration();
   applyAdminContent();
@@ -3468,6 +3503,7 @@ function selectRecitalArticle(groupId) {
   const group = recitalGroups().find((item) => item.id === groupId);
   if (!group) return;
   stopRecitalPlayer();
+  isAwaitingStart = true;
   setActiveRecitalGroup(groupId);
   recitalCurrentLine = 0;
   saveContentConfiguration();
@@ -3481,7 +3517,7 @@ function selectRecitalArticle(groupId) {
 function renderContentGroupDirectory(kind) {
   const active = activeContentGroup(kind); const editing = editingContentGroup(kind); const groups = contentGroups(kind);
   $('#contentConfigSummary').innerHTML = `<div><b>${groups.length}</b><span>个分组</span></div><div><b>${groups.reduce((total, group) => total + group.words.length, 0)}</b><span>项内容</span></div><div><b>${active.words.length}</b><span>当前学习项</span></div>`;
-  const card = (group) => `<button class="content-group-card ${group.id === editing.id ? 'active' : ''}" type="button" data-content-group="${escapeHtml(group.id)}" aria-pressed="${group.id === editing.id}"><span class="content-group-card-head"><b>${escapeHtml(group.name || '未命名分组')}</b>${group.id === active.id ? '<em>正在学习</em>' : ''}</span><span class="content-group-card-meta">${group.words.length ? `${group.words.length} 项内容` : '待写入'}</span><span class="content-group-card-words">${groupItemsPreview(group)}</span></button>`;
+  const card = (group) => `<button class="content-group-card ${group.id === editing.id ? 'active' : ''}" type="button" data-content-group="${escapeHtml(group.id)}" aria-pressed="${group.id === editing.id}"><span class="content-group-card-head"><b>${escapeHtml(group.name || '未命名分组')}</b></span><span class="content-group-card-meta">${group.words.length ? `${group.words.length} 项内容` : '待写入'}</span><span class="content-group-card-words">${groupItemsPreview(group)}</span></button>`;
   $('#contentGroupList').innerHTML = groupFolders(groups).map(([folder, items]) => `<section class="content-group-folder"><h4 class="content-group-folder-title">${escapeHtml(folder || '未分类')}${folder ? `<button class="content-group-folder-rename" type="button" data-folder-rename="${escapeHtml(folder)}" data-folder-kind="${kind}">改名</button>` : ''}</h4><div class="content-group-folder-items">${items.map(card).join('')}</div></section>`).join('');
   $$('[data-content-group]', $('#contentGroupList')).forEach((button) => button.addEventListener('click', () => chooseContentGroup(button.dataset.contentGroup)));
   $$('[data-folder-rename]', $('#contentGroupList')).forEach((button) => button.addEventListener('click', () => {
@@ -3540,7 +3576,7 @@ function deleteContentGroup() {
 }
 function renderRecitalGroupList() {
   const active = activeRecitalGroup(); const groups = recitalGroups();
-  const card = (group) => `<button class="content-group-card ${group.id === active.id ? 'active' : ''}" type="button" data-recital-group="${escapeHtml(group.id)}" aria-pressed="${group.id === active.id}"><span class="content-group-card-head"><b>${escapeHtml(group.name)}</b>${group.id === active.id ? '<em>正在朗诵</em>' : ''}</span><span class="content-group-card-meta">${group.lines.length} 句文本</span><span class="content-group-card-words">${group.lines.slice(0, 2).map((line) => `<span>${escapeHtml(line)}</span>`).join('')}${group.lines.length > 2 ? `<i>+${group.lines.length - 2}</i>` : ''}</span></button>`;
+  const card = (group) => `<button class="content-group-card ${group.id === active.id ? 'active' : ''}" type="button" data-recital-group="${escapeHtml(group.id)}" aria-pressed="${group.id === active.id}"><span class="content-group-card-head"><b>${escapeHtml(group.name)}</b></span><span class="content-group-card-meta">${group.lines.length} 句文本</span><span class="content-group-card-words">${group.lines.slice(0, 2).map((line) => `<span>${escapeHtml(line)}</span>`).join('')}${group.lines.length > 2 ? `<i>+${group.lines.length - 2}</i>` : ''}</span></button>`;
   $('#recitalGroupList').innerHTML = groupFolders(groups).map(([folder, items]) => `<section class="content-group-folder"><h4 class="content-group-folder-title">${escapeHtml(folder || '未分类')}${folder ? `<button class="content-group-folder-rename" type="button" data-folder-rename="${escapeHtml(folder)}" data-folder-kind="recital">改名</button>` : ''}</h4><div class="content-group-folder-items">${items.map(card).join('')}</div></section>`).join('');
   $$('[data-recital-group]', $('#recitalGroupList')).forEach((button) => button.addEventListener('click', () => chooseRecitalGroup(button.dataset.recitalGroup)));
   $$('[data-folder-rename]', $('#recitalGroupList')).forEach((button) => button.addEventListener('click', () => {
@@ -3934,7 +3970,7 @@ $('#prevCardBtn')?.addEventListener('click', () => navigateCard(-1));
 $('#nextCardBtn')?.addEventListener('click', () => navigateCard(1));
 $('#resetProgress').addEventListener('click', () => { state.round = 0; state.completed = false; state.roundLocked = false; closeParent(); setScreen('home'); showToast('今天的挑战已经从第一关重新开始。'); });
 window.addEventListener('resize', () => {
-  if ($('#hanziGroupModal')?.classList.contains('open')) { updateHanziGridGeometry(activeContentGroup('hanzi').words.length); }
+  if ($('#hanziGroupModal')?.classList.contains('open')) { updateHanziGridGeometry(activeContentGroup(groupModalKind).words.length); }
   if ($('#hanziWriterModal')?.classList.contains('open')) { renderHanziWriterWord(); }
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDailyBoundary(); });

@@ -24,10 +24,10 @@ export function lessonCardTopline(kicker, actions, extraClass = '') {
   return `<div class="lesson-card-topline ${extraClass}"><p class="lesson-card-kicker">${kicker}</p><span class="lesson-card-actions">${actions}</span></div>`;
 }
 
-// 分组所在位置（目录 / 分组名），三张卡片统一用它做顶行标题
+// 分组所在位置（目录 › 分组名），三张卡片统一用它做顶行标题
 export function lessonGroupPathLabel(group) {
   if (!group) return '';
-  return [group.directory, group.name].filter(Boolean).join(' / ');
+  return [group.directory, group.name].filter(Boolean).join(' › ');
 }
 
 export function lessonCardProgress() {
@@ -44,8 +44,8 @@ export function lessonCardCurtainMarkup() {
   return '<div class="lesson-card-curtain" aria-hidden="true"><i></i><i></i></div>';
 }
 
-export function lessonPrimaryActionsMarkup(name = '') {
-  return `<div class="lesson-action-stack">${name ? `<strong class="word-action-name">${escapeHtml(name)}</strong>` : ''}<div class="lesson-primary-actions"><button class="repeat-current-button" id="repeatCurrent" type="button" aria-label="再读一遍，可按 R 键触发"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4.5l5 4.5V4.5L7.5 9H3z" fill="currentColor"/><path d="M16 8.5c1.2 1 2 2.2 2 3.5s-.8 2.5-2 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 5.5c2.3 1.8 3.5 4.1 3.5 6.5s-1.2 4.7-3.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>再读一遍</span><kbd aria-hidden="true">R</kbd></button><button class="primary-button" id="learnNext" type="button" disabled aria-disabled="true"><span class="learn-next-copy"><span id="learnNextLabel">继续</span></span></button></div></div>`;
+export function lessonPrimaryActionsMarkup(name = '', buttonLabel = '继续') {
+  return `<div class="lesson-action-stack">${name ? `<strong class="word-action-name">${escapeHtml(name)}</strong>` : ''}<div class="lesson-primary-actions"><button class="repeat-current-button" id="repeatCurrent" type="button" aria-label="再读一遍，可按 R 键触发"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4.5l5 4.5V4.5L7.5 9H3z" fill="currentColor"/><path d="M16 8.5c1.2 1 2 2.2 2 3.5s-.8 2.5-2 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19 5.5c2.3 1.8 3.5 4.1 3.5 6.5s-1.2 4.7-3.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>再读一遍</span><kbd aria-hidden="true">R</kbd></button><button class="primary-button" id="learnNext" type="button" disabled aria-disabled="true"><span class="learn-next-copy"><span id="learnNextLabel">${escapeHtml(buttonLabel)}</span></span></button></div></div>`;
 }
 
 export function hanziSceneMarkup(word) {

@@ -10,6 +10,7 @@ let browserPaths = (() => { const saved = storage.load(BROWSER_PATHS_KEY, {}); r
 const browserExpanded = {};
 
 export const BROWSER_ICONS = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1.5 1.5 0 0 1-1.5 1.5H15v-6a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v6H4.5A1.5 1.5 0 0 1 3 20v-9.5Z"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5.4"/><path d="M6.4 11 12 5.4 17.6 11"/></svg>',
   expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.6 12 11.6 17 6.6"/><path d="M7 12 12 17 17 12"/></svg>',
   collapse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17.4 12 12.4 17 17.4"/><path d="M7 12 12 7 17 12"/></svg>',
@@ -31,19 +32,73 @@ export function setBrowserScopePath(scope, path) {
 }
 
 export function browserMarkup(scope, options) {
-  const { node, path, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇' } = options;
+  const { node, path, activeId, rootTitle, pathPrefix, activeLabel, unitLabel = '篇', icon } = options;
   const items = [
     ...[...node.dirs.values()].map((folder) => `<button class="content-browser-item is-folder" type="button" data-browser-folder="${escapeHtml(folder.name)}"><span class="content-browser-icon" aria-hidden="true">📁</span>${escapeHtml(folder.name)}<em>${countTreeItems(folder)} ${unitLabel}</em></button>`),
-    ...node.groups.map((group) => `<button class="content-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-browser-group="${escapeHtml(group.id)}">${escapeHtml(group.name)}${group.id === activeId ? `<em>${activeLabel}</em>` : ''}</button>`),
+    ...node.groups.map((group) => `<button class="content-browser-item is-article ${group.id === activeId ? 'active' : ''}" type="button" data-browser-group="${escapeHtml(group.id)}">${escapeHtml(group.name)}</button>`),
   ].join('');
-  const header = path.length ? `${pathPrefix}/${path.join('/')}` : rootTitle;
+
+  const rootIcon = icon || (scope === 'hanzi' ? '📚' : (scope === 'english' ? '🌲' : (scope === 'action' ? '🎭' : (scope === 'color' ? '🌈' : '📁'))));
+  const moduleName = scope === 'hanzi' ? '汉字图书塔' : (scope === 'english' ? '单词森林' : (scope === 'action' ? '朗诵小舞台' : (scope === 'color' ? '彩虹花园' : (pathPrefix || rootTitle || '全部分组'))));
+
+  let breadcrumbsHtml = '';
+  if (path.length === 0) {
+    breadcrumbsHtml = `
+      <div class="content-browser-breadcrumbs" role="navigation" aria-label="层级路径">
+        <span class="content-browser-crumb is-level-1 is-current" aria-label="根目录" title="根目录">
+          ${BROWSER_ICONS.home}
+        </span>
+      </div>
+    `;
+  } else {
+    const crumbs = [];
+    crumbs.push(`
+      <button type="button" class="content-browser-crumb is-level-1 is-link" data-browser-crumb-index="-1" aria-label="返回根目录" title="根目录">
+        ${BROWSER_ICONS.home}
+      </button>
+    `);
+    path.forEach((part, idx) => {
+      crumbs.push(`<span class="content-browser-crumb-sep" aria-hidden="true">›</span>`);
+      const isLast = idx === path.length - 1;
+      if (isLast) {
+        crumbs.push(`
+          <span class="content-browser-crumb is-level-2 is-current">
+            <span class="content-browser-crumb-icon" aria-hidden="true">📁</span>
+            <span class="content-browser-crumb-label">${escapeHtml(part)}</span>
+          </span>
+        `);
+      } else {
+        crumbs.push(`
+          <button type="button" class="content-browser-crumb is-level-2 is-link" data-browser-crumb-index="${idx}" aria-label="返回 ${escapeHtml(part)}" title="返回 ${escapeHtml(part)}">
+            <span class="content-browser-crumb-label">${escapeHtml(part)}</span>
+          </button>
+        `);
+      }
+    });
+    breadcrumbsHtml = `
+      <div class="content-browser-breadcrumbs" role="navigation" aria-label="层级路径">
+        ${crumbs.join('')}
+      </div>
+    `;
+  }
+
   const expanded = Boolean(browserExpanded[scope]);
   const upButton = path.length ? `<button class="content-browser-action" type="button" data-browser-up aria-label="回到上一层" title="上一层">${BROWSER_ICONS.up}</button>` : '';
   const toggleButton = `<button class="content-browser-action" type="button" data-browser-toggle aria-label="${expanded ? '收起' : '展开全部'}" title="${expanded ? '收起' : '展开'}">${expanded ? BROWSER_ICONS.collapse : BROWSER_ICONS.expand}</button>`;
-  return `<nav class="content-browser ${expanded ? 'is-expanded' : ''}" aria-label="${escapeHtml(pathPrefix)}"><div class="content-browser-head"><span class="content-browser-title">${escapeHtml(header)}</span><span class="content-browser-actions">${upButton}${toggleButton}</span></div><div class="content-browser-items">${items || '<span class="content-browser-empty">这一层还没有内容</span>'}</div></nav>`;
+  return `<nav class="content-browser ${expanded ? 'is-expanded' : ''}" aria-label="${escapeHtml(pathPrefix || rootTitle || '内容浏览')}"><div class="content-browser-head">${breadcrumbsHtml}<span class="content-browser-actions">${upButton}${toggleButton}</span></div><div class="content-browser-items">${items || '<span class="content-browser-empty">这一层还没有内容</span>'}</div></nav>`;
 }
 
 export function bindContentBrowser(root, { scope, path, onSelect, onChange }) {
+  root.querySelectorAll('[data-browser-crumb-index]').forEach((button) => button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const idx = parseInt(button.dataset.browserCrumbIndex, 10);
+    if (idx === -1) {
+      setBrowserScopePath(scope, []);
+    } else {
+      setBrowserScopePath(scope, path.slice(0, idx + 1));
+    }
+    onChange();
+  }));
   root.querySelectorAll('[data-browser-folder]').forEach((button) => button.addEventListener('click', (event) => {
     event.stopPropagation();
     setBrowserScopePath(scope, [...path, button.dataset.browserFolder]);
